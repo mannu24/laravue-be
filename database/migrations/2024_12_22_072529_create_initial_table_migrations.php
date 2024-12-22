@@ -1,7 +1,7 @@
 <?php
 
 use App\Enum\ContactStatusTypes;
-use App\Enum\PaymentStatusTyeps;
+use App\Enum\PaymentStatusTypes;
 use App\Enum\ProjectTypes;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('website')->nullable();
             $table->string('avatar')->nullable();
             $table->integer('reputation_points')->default(0);
-            $table->integer('credits')->default(500);
+            $table->integer('credits_balance')->default(500);
             $table->timestamps();
         });
 
@@ -33,6 +33,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('description');
             $table->string('icon');
+            $table->boolean('is_active');
             $table->timestamps();
         });
 
@@ -46,131 +47,158 @@ return new class extends Migration
 
         Schema::create('technologies', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('created_by_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->string('name');
+            $table->boolean('is_active');
+            $table->timestamps();
+        });
+
+        Schema::create('developer_technologies', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->foreignId('tech_id')->nullable()->constrained('technologies')->onDelete('cascade');
             $table->timestamps();
         });
 
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
+            $table->boolean('is_active');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('title');
-            $table->string('slug')->unique();
-            $table->text('description');
+            $table->string('title',500);
+            $table->string('slug',500)->unique();
+            $table->longText('description');
             $table->enum('project_type', ProjectTypes::toArray())->default(ProjectTypes::OPEN);
-            $table->string('image')->nullable();
             $table->string('github_url')->nullable();
             $table->string('demo_url')->nullable();
+            $table->boolean('is_sellable')->nullable();
             $table->decimal('original_price', 10, 2)->nullable();
             $table->decimal('selling_price', 10, 2)->nullable();
-            $table->integer('upvotes')->default(0);
             $table->integer('views')->default(0);
             $table->timestamps();
         });
 
-        Schema::create('project_technology', function (Blueprint $table) {
+        Schema::create('project_technologies', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->constrained()->onDelete('cascade');
             $table->foreignId('technology_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
 
-        Schema::create('project_funds', function (Blueprint $table) {
+        Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('project_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('gateway_id');
             $table->decimal('amount', 10, 2);
-            $table->string('transaction_id');
+            $table->string('mode');
+            $table->string('status');
+            $table->enum('payment_status', PaymentStatusTypes::toArray())->default(PaymentStatusTypes::PENDING);
             $table->timestamps();
         });
 
-        Schema::create('transactions', function (Blueprint $table) {
+        Schema::create('project_funds', function (Blueprint $table) {
             $table->id();
-            $table->string('transaction_id');
-            $table->decimal('amount', 10, 2);
-            $table->enum('payment_status', PaymentStatusTyeps::toArray())->default(PaymentStatusTyeps::PENDING);
+            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('transaction_id')->constrained('transactions')->nullable()->onDelete('cascade');
             $table->timestamps();
         });
 
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->text('content');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('post_code')->comment('used_for_routes');
+            $table->string('title', 1000)->nullable();
+            $table->text('meta_content')->nullable();
+            $table->longText('content');
             $table->integer('views')->default(0);
+            $table->boolean('is_ai_generated')->default(0);
             $table->timestamps();
         });
 
-        Schema::create('hashtags', function (Blueprint $table) {
+        Schema::create('mentions', function (Blueprint $table) {
+            $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->integer('position');
+        });
+
+        Schema::create('tags', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('created_by_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->string('name')->unique();
             $table->timestamps();
         });
 
-        Schema::create('post_hashtag', function (Blueprint $table) {
+        Schema::create('tag_associates', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('post_id')->constrained()->onDelete('cascade');
-            $table->foreignId('hashtag_id')->constrained()->onDelete('cascade');
-            $table->timestamps();
-        });
-
-        Schema::create('post_likes', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('post_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('tag_id')->constrained('tags')->onDelete('cascade');
+            $table->morphs('record'); //blogs/posts/questions
             $table->timestamps();
         });
 
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
+            $table->morphs('record');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->morphs('commentable');
-            $table->foreignId('parent_id')->nullable()->constrained('comments')->onDelete('cascade');
             $table->text('content');
-            $table->integer('likes')->default(0);
+            $table->timestamps();
+        });
+
+        Schema::create('likes', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->morphs('record');
+            $table->timestamps();
+        });
+
+        Schema::create('upvotes', function (Blueprint $table) {
+            $table->id();
+            $table->morphs('record');
+            $table->string('type');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
 
         Schema::create('bookmarks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->morphs('bookmarkable');
+            $table->morphs('record');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
 
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('title');
+            $table->string('slug')->unique();
             $table->text('content');
+            $table->text('content_html')->nullable(); // For rendered HTML content
             $table->boolean('is_solved')->default(false);
-            $table->integer('upvotes')->default(0);
-            $table->integer('downvotes')->default(0);
-            $table->integer('views')->default(0);
-            $table->string('source')->nullable(); // for scraped content
+            $table->integer('score')->default(0); // Combined score of upvotes/downvotes
+            $table->integer('view_count')->default(0);
+            $table->timestamp('last_activity_date')->nullable();
+            $table->string('source')->nullable(); // 'stackoverflow', 'github', 'internal'
             $table->string('source_url')->nullable();
+            $table->string('source_question_id')->nullable(); // Original SO question ID
+            $table->boolean('is_closed')->default(false);
+            $table->string('closed_reason')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
-
+ 
         Schema::create('answers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('question_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->text('content');
+            $table->text('content_html')->nullable(); // For rendered HTML content
             $table->boolean('is_accepted')->default(false);
-            $table->integer('upvotes')->default(0);
-            $table->integer('downvotes')->default(0);
+            $table->integer('score')->default(0); // Combined score of upvotes/downvotes
+            $table->integer('comment_count')->default(0);
+            $table->timestamp('last_activity_date')->nullable();
+            $table->string('source')->nullable(); // 'stackoverflow', 'github', 'internal'
+            $table->string('source_url')->nullable();
+            $table->string('source_answer_id')->nullable(); // Original SO answer ID
             $table->timestamps();
-        });
-
-        Schema::create('blogs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('title');
-            $table->string('slug');
-            $table->text('content');
-            $table->integer('views')->default(0);
-            $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('followers', function (Blueprint $table) {
@@ -194,8 +222,9 @@ return new class extends Migration
         Schema::create('contact_queries', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email');
-            $table->string('subject');
+            $table->string('email')->nullable();
+            $table->string('mobile')->nullable();
+            $table->string('subject')->nullable();
             $table->text('message');
             $table->enum('status', ContactStatusTypes::toArray())->default(ContactStatusTypes::PENDING);
             $table->timestamps();
@@ -206,7 +235,6 @@ return new class extends Migration
             $table->string('title');
             $table->string('slug')->unique();
             $table->text('content');
-            $table->json('tags')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -217,26 +245,28 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('pages');
-        Schema::dropIfExists('contact_queries');
-        Schema::dropIfExists('reports');
-        Schema::dropIfExists('followers');
-        Schema::dropIfExists('blogs');
-        Schema::dropIfExists('answers');
-        Schema::dropIfExists('questions');
-        Schema::dropIfExists('bookmarks');
-        Schema::dropIfExists('comments');
-        Schema::dropIfExists('post_hashtag');
-        Schema::dropIfExists('post_likes');
-        Schema::dropIfExists('hashtags');
-        Schema::dropIfExists('posts');
-        Schema::dropIfExists('project_funds');
-        Schema::dropIfExists('project_technology');
-        Schema::dropIfExists('projects');
-        Schema::dropIfExists('technologies');
-        Schema::dropIfExists('user_badges');
-        Schema::dropIfExists('badges');
-        Schema::dropIfExists('developer_profiles');
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('pages') ;
+        Schema::dropIfExists('contact_queries') ;
+        Schema::dropIfExists('reports') ;
+        Schema::dropIfExists('followers') ;
+        Schema::dropIfExists('answers') ;
+        Schema::dropIfExists('questions') ;
+        Schema::dropIfExists('bookmarks') ;
+        Schema::dropIfExists('upvotes') ;
+        Schema::dropIfExists('likes') ;
+        Schema::dropIfExists('comments') ;
+        Schema::dropIfExists('tag_associates') ;
+        Schema::dropIfExists('tags') ;
+        Schema::dropIfExists('mentions') ;
+        Schema::dropIfExists('posts') ;
+        Schema::dropIfExists('project_funds') ;
+        Schema::dropIfExists('transactions') ;
+        Schema::dropIfExists('project_technologies') ;
+        Schema::dropIfExists('projects') ;
+        Schema::dropIfExists('developer_technologies') ;
+        Schema::dropIfExists('technologies') ;
+        Schema::dropIfExists('user_badges') ;
+        Schema::dropIfExists('badges') ;
+        Schema::dropIfExists('developer_profiles') ;
     }
 };

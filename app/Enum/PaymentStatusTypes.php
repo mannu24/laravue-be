@@ -2,7 +2,7 @@
 
 namespace App\Enum;
 
-class PaymentStatusTyeps
+class PaymentStatusTypes
 {
     const PAID = 'paid';
     const FAILED = 'failed';
