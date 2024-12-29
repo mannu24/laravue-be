@@ -62,7 +62,6 @@ return new class extends Migration
 
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
-            $table->boolean('is_active');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('title',500);
             $table->string('slug',500)->unique();
@@ -74,6 +73,7 @@ return new class extends Migration
             $table->decimal('original_price', 10, 2)->nullable();
             $table->decimal('selling_price', 10, 2)->nullable();
             $table->integer('views')->default(0);
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
 
@@ -111,6 +111,7 @@ return new class extends Migration
             $table->longText('content');
             $table->integer('views')->default(0);
             $table->boolean('is_ai_generated')->default(0);
+            $table->boolean('is_blocked')->default(0);
             $table->timestamps();
         });
 
@@ -152,7 +153,6 @@ return new class extends Migration
         Schema::create('upvotes', function (Blueprint $table) {
             $table->id();
             $table->morphs('record');
-            $table->string('type');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
@@ -183,7 +183,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
- 
+
         Schema::create('answers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('question_id')->constrained()->onDelete('cascade');
