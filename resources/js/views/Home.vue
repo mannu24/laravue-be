@@ -1,5 +1,9 @@
 <script setup>
 import ProjectCard from '../components/ProjectCard.vue';
+import { useAuthStore } from '../stores/auth.js';
+
+const authStore = useAuthStore();
+console.log(authStore.isAuthenticated, authStore.user);
 
 const featuredProjects = [
   {

@@ -2,7 +2,10 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth.js';
+
 const router = useRouter();
+const authStore = useAuthStore();
 
 const loginData = ref({
   email: '',
@@ -11,7 +14,6 @@ const loginData = ref({
 
 const isOtpSent = ref(false);
 const errorMessage = ref('');
-const token = ref('');
 
 const handleOtpRequest = async () => {
   try {
@@ -30,10 +32,13 @@ const handleOtpVerification = async () => {
       email: loginData.value.email, 
       otp: loginData.value.otp 
     });
-    token.value = response.data.token;
+    
+    const { token, user } = response.data;
 
-    console.log('Authentication successful:', token.value);
+    authStore.setAuthData(token, user);
+
     errorMessage.value = '';
+
     if (response.data.is_new) {
       router.push('/profile/' + response.data?.user?.email)
     } else {

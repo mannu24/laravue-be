@@ -1,12 +1,14 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './routes';
+import { createPinia } from 'pinia';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+
+const pinia = createPinia();
+pinia.use(piniaPluginPersistedstate);
 
 const app = createApp(App);
 
-// Add router and route globally
-app.config.globalProperties.$router = router;
-app.config.globalProperties.$route = router.currentRoute; // reactive
-
+app.use(pinia);
 app.use(router);
 app.mount('#frontend');

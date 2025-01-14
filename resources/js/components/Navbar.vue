@@ -2,6 +2,10 @@
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline';
 
+import { useAuthStore } from '../stores/auth.js';
+
+const authStore = useAuthStore();
+
 const navigation = [
   { name: 'Home', href: '/', current: true },
   { name: 'Projects', href: '/projects', current: false },
@@ -31,7 +35,13 @@ const navigation = [
           </div>
         </div>
         <div class="hidden md:block">
-          <div class="ml-4 flex items-center md:ml-6">
+          <div v-if="authStore.isAuthenticated" class="ml-4 flex items-center md:ml-6">
+            <router-link :to="'/profile/' + authStore?.user?.username"
+              class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">
+              {{ authStore?.user?.name }}
+            </router-link>
+          </div>
+          <div v-else class="ml-4 flex items-center md:ml-6">
             <router-link to="/login"
               class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">
               Login
