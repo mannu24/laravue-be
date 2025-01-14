@@ -1,50 +1,108 @@
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
 const loginData = ref({
   email: '',
-  password: ''
-})
+  otp: '',
+});
 
-const handleSubmit = () => {
-  console.log('Login submitted:', loginData.value)
-}
+const isOtpSent = ref(false);
+const errorMessage = ref('');
+const token = ref('');
+
+const handleOtpRequest = async () => {
+  try {
+    const response = await axios.post('/api/auth/otp', { email: loginData.value.email });
+    console.log(response.data.message);
+    isOtpSent.value = true;
+    errorMessage.value = '';
+  } catch (error) {
+    errorMessage.value = error.response?.data?.message || 'Failed to send OTP.';
+  }
+};
+
+const handleOtpVerification = async () => {
+  // try {
+    const response = await axios.post('/api/auth/otp', { 
+      email: loginData.value.email, 
+      otp: loginData.value.otp 
+    });
+    token.value = response.data.token;
+
+    console.log('Authentication successful:', token.value);
+    errorMessage.value = '';
+    if (response.data.is_new) {
+      router.push('/profile/' + response.data?.user?.email)
+    } else {
+      router.push('/')
+    }
+  // } catch (error) {
+  //   errorMessage.value = error.response?.data?.message || 'OTP verification failed.';
+  // }
+};
 </script>
 
 <template>
   <div class="min-h-[80vh] flex items-center justify-center px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
       <div>
-        <h2 class="mt-6 text-center text-3xl font-bold text-white">Sign in to your account</h2>
+        <h2 class="mt-6 text-center text-3xl font-bold text-white">
+          Sign in to Laravue
+        </h2>
       </div>
-      <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
+      <form 
+        class="mt-8 space-y-6" 
+        @submit.prevent="isOtpSent ? handleOtpVerification() : handleOtpRequest()"
+      >
         <div class="rounded-md shadow-sm -space-y-px">
-          <div>
+          <div v-if="!isOtpSent">
             <label for="email-address" class="sr-only">Email address</label>
-            <input id="email-address" name="email" type="email" required v-model="loginData.email"
+            <input 
+              id="email-address" 
+              name="email" 
+              type="email" 
+              required 
+              v-model="loginData.email"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 text-white rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-              placeholder="Email address">
+              placeholder="Email address"
+            >
           </div>
-          <div>
-            <label for="password" class="sr-only">Password</label>
-            <input id="password" name="password" type="password" required v-model="loginData.password"
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 text-white rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-              placeholder="Password">
+
+          <div v-if="isOtpSent">
+            <label for="otp" class="sr-only">OTP</label>
+            <input 
+              id="otp" 
+              name="otp" 
+              type="text" 
+              required 
+              v-model="loginData.otp"
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 text-white rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+              placeholder="Enter OTP"
+            >
           </div>
+        </div>
+
+        <div v-if="errorMessage" class="text-red-500 text-sm">
+          {{ errorMessage }}
         </div>
 
         <div>
-          <button type="submit"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-            Sign in
+          <button 
+            type="submit"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            {{ isOtpSent ? 'Verify OTP' : 'Send OTP' }}
           </button>
         </div>
-
+<!-- 
         <div class="text-center">
           <router-link to="/signup" class="text-primary-400 hover:text-primary-300">
             Don't have an account? Sign up
           </router-link>
-        </div>
+        </div> -->
       </form>
     </div>
   </div>

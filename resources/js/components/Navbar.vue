@@ -36,10 +36,6 @@ const navigation = [
               class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">
               Login
             </router-link>
-            <router-link to="/signup"
-              class="bg-secondary-500 text-white rounded-md px-3 py-2 text-sm font-medium hover:bg-secondary-600">
-              Sign up
-            </router-link>
           </div>
         </div>
         <div class="-mr-2 flex md:hidden">
