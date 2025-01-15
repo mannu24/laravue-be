@@ -38,15 +38,7 @@
 
 <script setup>
 defineProps({
-  project: {
-    id: Number,
-    title: String,
-    description: String,
-    type: String,
-    price: String,
-    stars: Number,
-    image: String
-  }
+  project: Object
 });
 </script>
 

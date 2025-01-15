@@ -12,5 +12,6 @@ Route::post('/auth/otp', [AuthController::class, 'handleOtp']);
 
 Route::middleware(['auth:api'])->group(function () {
     Route::get('user', [UserController::class, 'user']);
+    Route::get('logout', [AuthController::class, 'logout']);
     Route::post('user', [UserController::class, 'update']);
 });

@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/auth.js';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const btn = ref('false');
 
 const loginData = ref({
   email: '',
@@ -16,22 +17,26 @@ const isOtpSent = ref(false);
 const errorMessage = ref('');
 
 const handleOtpRequest = async () => {
+  btn.value = 'loading';
   try {
     const response = await axios.post('/api/auth/otp', { email: loginData.value.email });
-    console.log(response.data.message);
     isOtpSent.value = true;
+    btn.value = false
     errorMessage.value = '';
   } catch (error) {
+    btn.value = false
     errorMessage.value = error.response?.data?.message || 'Failed to send OTP.';
   }
 };
 
 const handleOtpVerification = async () => {
   // try {
+    btn.value = 'loading';
     const response = await axios.post('/api/auth/otp', { 
       email: loginData.value.email, 
       otp: loginData.value.otp 
     });
+    btn.value = false
     
     const { token, user } = response.data;
 
@@ -45,6 +50,7 @@ const handleOtpVerification = async () => {
       router.push('/')
     }
   // } catch (error) {
+  //   btn.value = false
   //   errorMessage.value = error.response?.data?.message || 'OTP verification failed.';
   // }
 };
@@ -97,7 +103,8 @@ const handleOtpVerification = async () => {
         <div>
           <button 
             type="submit"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            :class="btn == 'loading' ? 'text-gray-300 cursor-wait bg-primary-700' : 'text-white bg-primary-600 text-gray-700'"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md hover:bg-primary-700 focus:outline-none focus:shadow-lg shadow-white"
           >
             {{ isOtpSent ? 'Verify OTP' : 'Send OTP' }}
           </button>

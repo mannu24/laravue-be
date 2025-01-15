@@ -1,9 +1,12 @@
 <script setup>
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
-import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline';
-
+import { Bars3Icon, XMarkIcon, ChevronDownIcon } from '@heroicons/vue/24/outline';
+import axios from 'axios';
 import { useAuthStore } from '../stores/auth.js';
+import { ref } from 'vue';
 
+const errorMessage = ref('');
+const btn = ref('false');
 const authStore = useAuthStore();
 
 const navigation = [
@@ -12,6 +15,18 @@ const navigation = [
   { name: 'About', href: '/about', current: false },
   { name: 'Contact', href: '/contact', current: false },
 ]
+
+const logout = async () => {
+  btn.value = 'logout'
+  try {
+    const response = await axios.get('/api/logout', authStore.config);
+    btn.value = false
+    authStore.clearAuthData()
+  } catch (error) {
+    btn.value = false
+    errorMessage.value = error.response?.data?.message || 'Server Error Occured.';
+  }
+};
 </script>
 
 <template>
@@ -35,11 +50,22 @@ const navigation = [
           </div>
         </div>
         <div class="hidden md:block">
-          <div v-if="authStore.isAuthenticated" class="ml-4 flex items-center md:ml-6">
-            <router-link :to="'/profile/' + authStore?.user?.username"
-              class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">
-              {{ authStore?.user?.name }}
+          <div v-if="authStore.isAuthenticated" class="ml-4 flex items-center md:ml-6 relative group">
+            <router-link :to="'/profile/' + authStore?.user?.username" class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">
+              <!-- Optional User Icon -->
+              <!-- <i class="fas fa-user-circle text-yellow"></i> -->
+              {{ authStore?.user?.username }}
+              <ChevronDownIcon class="inline-block h-3 w-3" aria-hidden="true" />
             </router-link>
+            <ul class="absolute top-0 right-0 mt-2 w-48 bg-white border border-gray-200 shadow-md rounded-md z-10 opacity-0 invisible transform group-hover:opacity-100 group-hover:visible group-hover:translate-y-9 transition-all duration-300 ease-in-out">
+              <li class="transition-all duration-300 ease-in-out" :class="btn == 'logout' ? 'bg-gray-200' : 'bg-white'">
+                <div @click="logout()" :class="btn == 'logout' ? 'text-gray-400 cursor-wait' : 'text-gray-700 cursor-pointer'"
+                  class="block px-4 py-2 hover:bg-gray-100 flex items-center space-x-2 transition-all duration-300 ease-in-out"
+                >
+                  <span>Logout</span>
+                </div>
+              </li>
+            </ul>
           </div>
           <div v-else class="ml-4 flex items-center md:ml-6">
             <router-link to="/login"

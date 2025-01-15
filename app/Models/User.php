@@ -55,6 +55,6 @@ class User extends Authenticatable implements HasMedia
 
     public function getProfilePhotoAttribute()
     {
-        return $this->getMedia('profile_photo')[0]->getFullUrl();
+        return count($this->getMedia('profile_photo')) ? $this->getMedia('profile_photo')[0]->getFullUrl() : '' ;
     }
 }

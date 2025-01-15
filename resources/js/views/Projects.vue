@@ -35,7 +35,7 @@ const projects = [
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <h1 class="text-3xl font-bold text-white mb-8">Browse Projects</h1>
-    <ProjectFilters @filter="(value) => console.log(value)" />
+    <!-- <ProjectFilters @filter="(value) => console.log(value)" /> -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <ProjectCard v-for="project in projects" :key="project.id" :project="project" />
     </div>
