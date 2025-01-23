@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Answer;
+use App\Policies\AnswerPolicy;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +22,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::policy(Answer::class, AnswerPolicy::class);
     }
 }

@@ -13,4 +13,9 @@ class Upvote extends Model
         'record_id',
         'record_type',
     ];
+
+    public function record()
+    {
+        return $this->morphTo();
+    }
 }

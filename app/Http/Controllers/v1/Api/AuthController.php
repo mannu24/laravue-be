@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\v1\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\HandleOtpRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Traits\HttpResponse;
 use App\Mail\OtpMail;
 use App\Models\User;
 use GuzzleHttp\Psr7\Request;
@@ -18,6 +19,9 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+
+    use HttpResponse;
+
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = User::create([
@@ -27,7 +31,15 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('Personal Access Token')->accessToken;
-        return response()->json(['token' => $token], 201);
+
+        $data = [
+            'token' => $token
+        ];
+
+        return $this->success(
+            data: $data,
+            message: 'User registered successfully.'
+        );
     }
 
     public function login(LoginRequest $request): JsonResponse
@@ -35,16 +47,29 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
+            return $this->error(
+                message: 'User not found',
+                code: 404
+            );
         }
 
         if (Auth::attempt($request->only('email', 'password'))) {
             $token = $user->createToken('Personal Access Token')->accessToken;
 
-            return response()->json(['token' => $token], 200);
+            $data = [
+                'token' => $token
+            ];
+
+            return $this->success(
+                data: $data,
+                message: 'Login successful.'
+            );
         }
 
-        return response()->json(['message' => 'Invalid credentials'], 401);
+        return $this->error(
+            message: 'Invalid credentials',
+            code: 401
+        );
     }
 
     public function handleOtp(HandleOtpRequest $request): JsonResponse
@@ -58,7 +83,9 @@ class AuthController extends Controller
 
             Mail::to($email)->send(new OtpMail($otp));
 
-            return response()->json(['message' => 'OTP sent to your email.'], 200);
+            return $this->success(
+                message: 'OTP sent to your email.'
+            );
         } else {
             $storedOtp = Cache::get("otp_{$email}");
 
@@ -79,28 +106,49 @@ class AuthController extends Controller
 
                 $token = $user->createToken('API Token')->accessToken;
 
-                return response()->json(['token' => $token, 'user' => $user, 'is_new' => $isNew], 200);
+                $data = [
+                    'token' => $token,
+                    'user' => $user,
+                    'is_new' => $isNew
+                ];
+
+                return $this->success(
+                    data: $data,
+                    message: 'OTP verified successfully.'
+                );
             } else {
-                return response()->json(['message' => 'Invalid or expired OTP.'], 401);
+                return $this->error(
+                    message: 'Invalid or expired OTP.',
+                    code: 401
+                );
             }
         }
     }
 
-    public function logout() 
+    public function logout()
     {
-        $login = auth()->user() ;
+        $login = auth()->user();
         $token = $login->token();
         $token->revoke();
 
-        return response(['status' => 'success', 'message' => 'Logout Done!']) ;
+        $data = [
+            'status' => 'success',
+            'message' => 'Logout Done!'
+        ];
+
+        return $this->success(
+            data: $data,
+            message: 'Logout Done!'
+        );
     }
 
-    private function extractNameFromEmail($email) {
+    private function extractNameFromEmail($email)
+    {
         $parts = explode('@', $email);
         $namePart = $parts[0];
-    
+
         $name = ucwords(str_replace(['.', '_'], ' ', $namePart));
-    
+
         return $name;
     }
 }

@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 class Question extends Model
 {
+    use HasSlug;
 
     protected $fillable = [
         'user_id',
@@ -23,4 +26,27 @@ class Question extends Model
         'is_closed',
         'closed_reason'
     ];
+
+    // generating slug
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('title')
+            ->saveSlugsTo('slug');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function upvotes()
+    {
+        return $this->morphMany(Upvote::class, 'record');
+    }
+
+    public function answers()
+    {
+        return $this->hasMany(Answer::class);
+    }
 }

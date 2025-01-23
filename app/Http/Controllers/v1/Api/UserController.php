@@ -1,20 +1,27 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\v1\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Traits\HttpResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
+    use HttpResponse;
+
     public function user(): JsonResponse
     {
-        return response()->json([
+        $data = [
             'user' => auth()->guard('api')->user()
-        ]);
+        ];
+
+        return $this->success(
+            data: $data
+        );
     }
 
     public function update(UpdateUserRequest $request): JsonResponse
@@ -29,18 +36,25 @@ class UserController extends Controller
             if ($request->hasFile('profile_photo')) {
                 $user->clearMediaCollection('profile_photo');
                 $user->addMedia($request->file('profile_photo'))
-                ->usingFileName(Str::random(15) . '.' . $request->file('profile_photo')->getClientOriginalExtension())
-                ->toMediaCollection('profile_photo');
+                    ->usingFileName(Str::random(15) . '.' . $request->file('profile_photo')->getClientOriginalExtension())
+                    ->toMediaCollection('profile_photo');
             }
 
             DB::commit();
-            return response()->json([
+
+            $data = [
                 'user' => $user
-            ]);
+            ];
+
+            return $this->success(
+                data: $data
+            );
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+            return $this->internalError(
+                message: "An error occurred: " . $e->getMessage()
+            );
         }
     }
 }
