@@ -45,6 +45,12 @@ const router = createRouter({
             meta: {auth: false, both: true},
         },
         {
+            path: '/feed',
+            name: 'feed',
+            component: () => import('./views/Feed.vue'),
+            meta: {auth: false, both: true},
+        },
+        {
             path: '/projects/:id',
             name: 'project-detail',
             component: () => import('./views/ProjectDetail.vue'),

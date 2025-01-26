@@ -14,6 +14,7 @@ const navigation = [
   { name: 'Projects', href: '/projects', current: false },
   { name: 'About', href: '/about', current: false },
   { name: 'Contact', href: '/contact', current: false },
+  { name: 'Feed', href: '/feed', current: false },
 ]
 
 const logout = async () => {
