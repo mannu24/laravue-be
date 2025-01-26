@@ -21,7 +21,7 @@ const fetch = () => {
 const index = async () => {
     if (loading.value) return;
     loading.value = true;
-    await axios.post('/api/feed?page='+pageNo.value, {
+    await axios.post('/api/v1/feed?page='+pageNo.value, {
         search: search.value,
     }, authStore.config).then((res) => {
         posts.value.push(...res.data.posts.data);

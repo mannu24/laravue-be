@@ -37,7 +37,7 @@ const submitPost = async () => {
           formData.append(`media[${index}]`, file);
         });
 
-        const response = await axios.post("/api/posts", formData, {
+        const response = await axios.post("/api/v1/posts", formData, {
 			headers: {
 				"Content-Type": "multipart/form-data",
 				Authorization: `Bearer ${authStore.token}`
