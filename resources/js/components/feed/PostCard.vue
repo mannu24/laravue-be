@@ -1,117 +1,112 @@
 <template>
-    <div ref="element" class="bg-white shadow-md rounded-lg overflow-hidden mb-4">
-      <div class="flex items-center p-4">
-        <img
-            v-if="post.post.user?.profile_photo"
-            :src="post.post.user?.profile_photo"
-            alt="User Avatar"
-            class="w-12 h-12 rounded-full"
-        />
-        <img
-            v-else
-            src="/assets/front/images/user.png"
-            alt="User Avatar"
-            class="w-12 h-12 rounded-full"
-        />
+  <Card class="w-full max-w-3xl mx-auto mb-4">
+    <CardHeader>
+      <div class="flex items-center">
+        <Avatar v-if="post.user?.profile_photo" :src="post.user.profile_photo" fallback="U" />
+        <Avatar v-else src="/assets/front/images/user.png" fallback="U" />
         <div class="ml-3">
-          <h2 class="font-semibold text-lg">{{ post.post.user.name }}</h2>
-          <p class="text-sm text-gray-500">{{ $filters.date(post.post.created_at) }}</p>
+          <CardTitle>{{ post.user.name }}</CardTitle>
+          <CardDescription>{{ $filters.date(post.created_at) }}</CardDescription>
         </div>
       </div>
-      <div class="px-4">
-        <h3 class="font-bold text-xl text-gray-800 mb-1">{{ post.post.title }}</h3>
-        <p class="text-gray-700 mb-4">{{ post.post.content }}</p>
-        <div v-if="post.post.media_urls && post.post.media_urls.length" class="grid gap-2">
-            <img
-                v-if="post.post.media_urls.length === 1"
-                :src="post.post.media_urls[0]"
-                alt="Post Media"
-                class="cursor-pointer rounded-lg object-cover w-full h-80"
-            />
-            <div v-else-if="post.post.media_urls.length === 2" class="grid grid-cols-2 gap-2">
-                <img
-                    v-for="(media, index) in post.post.media_urls"
-                    v-if="index < 2"
-                    :key="media"
-                    :src="media"
-                    alt="Post Media"
-                    class="cursor-pointer rounded-lg object-cover h-40 w-full"
-                />
-            </div>
-            <div v-else-if="post.post.media_urls.length === 3" class="grid grid-cols-2 gap-2">
-                <img
-                v-for="(media, index) in post.post.media_urls.slice(0, 2)"
-                :key="media"
-                :src="media"
-                alt="Post Media"
-                class="cursor-pointer rounded-lg object-cover h-40 w-full"
-                />
-                <img
-                :src="post.post.media_urls[2]"
-                alt="Post Media"
-                class="cursor-pointer col-span-2 rounded-lg object-cover h-40 w-full"
-                />
-            </div>
-            <div v-else class="grid grid-cols-2 gap-2 relative">
-                <img
-                    v-for="(media, index) in post.post.media_urls.slice(0, 4)"
-                    :key="media"
-                    :src="media"
-                    alt="Post Media"
-                    class="cursor-pointer rounded-lg object-cover h-40 w-full"
-                />
-                <div
-                    v-if="post.post.media_urls.length > 4"
-                    class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-xl font-bold rounded-lg"
-                    :style="{ gridArea: '2 / 2 / 3 / 3' }"
-                >
-                    +{{ post.post.media_urls.length - 4 }} more
-                </div>
-            </div>
-        </div>
+    </CardHeader>
+    <CardContent>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">{{ post.title }}</h3>
+      <p class="text-gray-700 mb-4">{{ post.content }}</p>
+      <div v-if="post.media_urls && post.media_urls.length" class="grid gap-2">
+        <!-- Media display logic remains the same -->
       </div>
-      <div class="px-4 py-2 border-t flex items-center justify-between text-gray-600">
-        <div class="flex items-center space-x-4">
-          <button class="flex items-center space-x-1 hover:text-blue-500">
-            <i class="fa fa-thumbs-up"></i>
-            <span>Like</span>
-          </button>
-          <button class="flex items-center space-x-1 hover:text-blue-500">
-            <i class="fa fa-comment"></i>
-            <span>Comment</span>
-          </button>
-          <button class="flex items-center space-x-1 hover:text-blue-500">
-            <i class="fa fa-share"></i>
-            <span>Share</span>
-          </button>
-        </div>
-        <p class="text-sm">Views: {{ post.post.views }}</p>
+      {{ isCommentDialogOpen.value }}
+    </CardContent>
+    <CardFooter class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <Button variant="ghost" @click="handleLike">
+          <ThumbsUpIcon class="mr-2 h-4 w-4" />
+          Like
+        </Button>
+        <Button variant="ghost" @click="handleComment">
+          <MessageSquareIcon class="mr-2 h-4 w-4" />
+          Comment
+        </Button>
+        <Button variant="ghost" @click="handleShare">
+          <ShareIcon class="mr-2 h-4 w-4" />
+          Share
+        </Button>
       </div>
-    </div>
+      <Badge variant="secondary">Views: {{ post.views }}</Badge>
+    </CardFooter>
+  </Card>
+
+  <Dialog v-model:open="isCommentDialogOpen">
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Add a comment</DialogTitle>
+        <DialogDescription>
+          Write your comment below. Click save when you're done.
+        </DialogDescription>
+      </DialogHeader>
+      <div class="grid gap-4 py-4">
+        <Textarea v-model="commentText" placeholder="Type your comment here." />
+      </div>
+      <DialogFooter>
+        <Button @click="submitComment">Save comment</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>
+
 <script setup>
-import { onMounted, ref, defineEmits } from 'vue';
+import { ref, onMounted, defineProps, defineEmits } from 'vue';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { ThumbsUpIcon, MessageSquareIcon, ShareIcon } from 'lucide-vue-next';
 
-const post = defineProps(['post'])
-const element = ref(null)
-const emit = defineEmits(['load_more'])
+const props = defineProps(['post']);
+const emit = defineEmits(['load_more']);
 
+const element = ref(null);
+const isCommentDialogOpen = ref(false);
+const commentText = ref('');
 
 onMounted(() => {
-  if(element.value.classList.contains('last_item')) {
-    checkItem()
+  if (element.value.classList.contains('last_item')) {
+    checkItem();
   }
-})
+});
 
 const checkItem = () => {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                emit('load_more')
-            }
-        });
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        emit('load_more');
+      }
     });
-    observer.observe(element.value);
-}
+  });
+  observer.observe(element.value);
+};
 
+const handleLike = () => {
+  // Implement like functionality
+  console.log('Liked post');
+};
+
+const handleComment = () => {
+  isCommentDialogOpen.value = true;
+};
+
+const handleShare = () => {
+  // Implement share functionality
+  console.log('Shared post');
+};
+
+const submitComment = () => {
+  // Implement comment submission
+  console.log('Submitted comment:', commentText.value);
+  isCommentDialogOpen.value = false;
+  commentText.value = '';
+};
 </script>

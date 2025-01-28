@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import Navbar from './components/Navbar.vue'
+import "../css/index.css"
 
 const isScrollTopVisible = ref(false)
 onMounted(() => {
@@ -13,7 +14,7 @@ const handleScrollTop = () => {
 	isScrollTopVisible.value = window.scrollY > 200;
 }
 const scollTop = () => {
-    window.scrollTo({top: 0, behaviour: 'smooth'})
+    window.scrollTo({top: 0, behavior: 'smooth'})
 }
 </script>
 <template>

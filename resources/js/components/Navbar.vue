@@ -20,7 +20,7 @@ const navigation = [
 const logout = async () => {
   btn.value = 'logout'
   try {
-    const response = await axios.get('/api/logout', authStore.config);
+    const response = await axios.get('/api/v1/logout', authStore.config);
     btn.value = false
     authStore.clearAuthData()
   } catch (error) {
