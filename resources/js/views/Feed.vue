@@ -39,6 +39,14 @@ index()
 watch(pageNo, async (value) => { index() })
 watch(search, async (value) => { index() })
 
+const post_deleted = (value) => {
+  posts.value.find((post, index) => {
+    if(post.post_code === value) {
+      posts.value.splice(index, 1)
+    }
+  })
+}
+
 const view_more = () => {
   if(l_count.value > 0) {
     pageNo.value++
@@ -50,9 +58,9 @@ const view_more = () => {
   <div class="max-w-7xl mx-auto sm:px-6 lg:px-0 pb-12">
     <PostForm v-if="authStore.isAuthenticated" @fetch="fetch"></PostForm>
   </div>
-  <div class="max-w-3xl mx-auto sm:px-6 pb-5 infinite-scroll-container">
+  <div class="max-w-2xl mx-auto sm:px-6 pb-5 infinite-scroll-container">
     <TransitionGroup name="fade" appear>
-      <PostCard v-for="post,index in posts" @load_more="view_more" :class="index == (posts.length - last_item) ? 'last_item' : ''" :key="index" :post="post" />
+      <PostCard v-for="post,index in posts" @fetch="fetch" @delete_post="post_deleted" @load_more="view_more" :class="index == (posts.length - last_item) ? 'last_item' : ''" :key="index" :post="post" />
     </TransitionGroup>
     <Transition name="fade">
       <loader v-if="loading"></loader>

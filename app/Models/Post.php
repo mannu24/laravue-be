@@ -26,6 +26,22 @@ class Post extends Model implements HasMedia
         return $this->belongsTo(User::class);
     }
 
+    public function likes() {
+        return $this->hasMany(Like::class, 'record_id', 'id')->where('likes.record_type', 'post');
+    }
+
+    public function auth_like() {
+        return $this->likes()->where('user_id', auth()->id())->exists();
+    }
+
+    public function toggleLike() {
+        if($this->likes()->where('user_id', auth()->id())->exists()) {
+            $this->likes()->detach(auth()->id());
+        } else {
+            $this->likes()->attach(auth()->id(), ['record_id' => $this->id, 'record_type' => 'post']);
+        }
+    }
+
     public function getMediaUrlsAttribute() {
         return $this->getMedia('*')->map(function ($media) {
             return $media->getUrl();

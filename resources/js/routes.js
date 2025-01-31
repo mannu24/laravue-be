@@ -68,6 +68,18 @@ const router = createRouter({
             component: () => import('./views/Profile.vue'),
             meta: { auth: true, both: false },
         },
+        {
+            path: '/:username',
+            name: 'user-feed',
+            component: () => import('./views/UserFeed.vue'),
+            meta: {auth: false, both: true},
+        },
+        {
+            path: '/:username/:post_code',
+            name: 'post-detail',
+            component: () => import('./views/PostDetail.vue'),
+            meta: {auth: false, both: true},
+        },
     ],
 });
 

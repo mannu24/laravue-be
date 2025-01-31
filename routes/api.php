@@ -16,7 +16,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/otp', 'handleOtp');
     });
 
-    Route::post('/auth/otp', [AuthController::class, 'handleOtp']);
     Route::post('feed', [PostController::class, 'index']);
 
     // Authenticated Routes
@@ -34,7 +33,10 @@ Route::prefix('v1')->group(function () {
         Route::post('questions/{question}/upvote', [QuestionController::class, 'upvote'])->name('questions.upvote');
         
         // FEED Posts Routes
-        Route::get('posts/{post_code}', [PostController::class, 'show']); // Use post_code as the parameter
+        Route::middleware(['throttle:30,1'])->get('posts/mention-suggestions', [PostController::class, 'mentionSuggestions']);
+        // Route::get('posts/duplicate/{post_code}', [PostController::class, 'duplicate']);
+        Route::get('posts/like-unlike/{post_code}', [PostController::class, 'like_unlike']);
+        Route::get('posts/{post_code}', [PostController::class, 'show']);
         Route::apiResource('posts', PostController::class)->except(['show','index']);
 
         // Answer Routes

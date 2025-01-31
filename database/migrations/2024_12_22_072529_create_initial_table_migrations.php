@@ -113,6 +113,7 @@ return new class extends Migration
             $table->boolean('is_ai_generated')->default(0);
             $table->boolean('is_blocked')->default(0);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('mentions', function (Blueprint $table) {

@@ -19,7 +19,7 @@ const errorMessage = ref('');
 const handleOtpRequest = async () => {
   btn.value = 'loading';
   try {
-    const response = await axios.post('/api/auth/otp', { email: loginData.value.email });
+    const response = await axios.post('/api/v1/auth/otp', { email: loginData.value.email });
     isOtpSent.value = true;
     btn.value = false
     errorMessage.value = '';
@@ -32,7 +32,7 @@ const handleOtpRequest = async () => {
 const handleOtpVerification = async () => {
   // try {
   btn.value = 'loading';
-  const response = await axios.post('/api/auth/otp', {
+  const response = await axios.post('/api/v1/auth/otp', {
     email: loginData.value.email,
     otp: loginData.value.otp
   });

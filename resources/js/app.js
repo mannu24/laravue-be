@@ -9,12 +9,21 @@ const emitter = mitt();
 import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import globalFunctions from './functions.js';
+import Swal from 'sweetalert2'
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2500,
+})
 const app = createApp(App);
 
+window.Swal = Swal
+window.toast = Toast
 app.config.globalProperties.emitter = emitter
 app.component('CustomInput', CustomInput);
 app.component('loader', loader);
