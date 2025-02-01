@@ -25,7 +25,7 @@
 
     <link rel="stylesheet" href="{{ asset('assets/front/css/fa6/css/all.css') }}">
     <title>Laravue</title>
-    @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/app.css'])
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 <body>
     <div id="frontend"></div>

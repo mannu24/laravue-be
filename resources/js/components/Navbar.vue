@@ -20,7 +20,7 @@ const navigation = [
 const logout = async () => {
   btn.value = 'logout'
   try {
-    const response = await axios.get('/api/logout', authStore.config);
+    const response = await axios.get('/api/v1/logout', authStore.config);
     btn.value = false
     authStore.clearAuthData()
   } catch (error) {
@@ -37,7 +37,8 @@ const logout = async () => {
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <router-link to="/" class="text-primary-500 font-bold text-xl flex items-center">
-              <span class="text-secondary-500">Lara</span>Vue
+              <!-- <span class="text-secondary-500">Lara</span>Vue -->
+              <img src="/assets/front/logo/logo.png" class="h-12 w-auto">
             </router-link>
           </div>
           <div class="hidden md:block">

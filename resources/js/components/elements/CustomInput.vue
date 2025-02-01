@@ -51,7 +51,7 @@ const inputProps = computed(() => {
 
 const computedClass = computed(() => {
     const baseClass =
-    "w-full placeholder:text-slate-400 text-sm border rounded-md px-3 py-2 transition duration-300 ease focus:outline-none shadow-sm";
+    "w-full placeholder:text-slate-400 text-white text-sm border rounded-md px-3 py-2 transition duration-300 ease focus:outline-none shadow-sm";
 
     if (["checkbox", "radio"].includes(props.type)) {
     return "appearance-none cursor-pointer w-5 h-5 border rounded focus:ring-2 focus:ring-slate-400";

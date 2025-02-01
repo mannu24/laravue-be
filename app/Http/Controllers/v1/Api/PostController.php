@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -14,22 +15,16 @@ use Str;
 class PostController extends Controller
 {
     public function index(Request $request) {
-        $query = Post::query()->with(['user:id,name,username']);
+        $query = Post::query()->with(['user:id,name,username'])->withCount('likes','comments') ;
 
-        $loggedInCheck = auth()->guard('api')->check() ;
-        
         if ($request->has('search')) {
             $search = $request->input('search');
             $query->where('title', 'LIKE', "%$search%")->orWhere('content', 'LIKE', "%$search%");
         }
 
-        $posts = $query->latest()->get()->each(function ($q) use($loggedInCheck) {
-            if($loggedInCheck) {
-                $q->owner = $q->user_id === auth()->guard('api')->id();
-            } else {
-                $q->owner = false;
-            }
-            $q->append('media_urls')->makeHidden('media','id','user_id','meta_content');
+        $posts = $query->latest()->get()->each(function ($q) {
+            $q->views_count = 10;
+            $q->makeHidden('media','id','user_id','meta_content');
             $q->user->makeHidden('id','media');
         });
 
@@ -113,7 +108,16 @@ class PostController extends Controller
 
     public function show($post_code) {
         $post = Post::where('post_code', $post_code)->firstOrFail();
-        return response()->json($post);
+        if($post) {
+            $post->load(['user:id,name,username','comments' => function ($q) {
+                $q->withCount('likes');
+            },'comments.user:id,name,username'])->loadCount('likes','comments') ;
+            $post->views_count = 10;
+            $post->makeHidden('media','id','user_id','meta_content');
+            $post->user->makeHidden('id','media');
+
+            return response()->json($post);
+        }
     }
 
     public function update(Request $request, $post_code) {
@@ -170,12 +174,45 @@ class PostController extends Controller
         }    
     }
 
+    public function add_comment (Request $request) {
+        $data = $request->validate([
+            'code' => 'required|string|exists:posts,post_code',
+            'content' => 'required|string',
+        ]);
+
+        $post = Post::where('post_code', $data['code'])->firstOrFail();
+        $comment = Comment::create([
+            'user_id' => auth()->id(),
+            'record_type' => 'post',
+            'record_id' => $post->id,
+            'content' => $data['content'],
+        ]);
+
+        $comment->load('user:id,name,username');
+
+        return response()->json(['status' => 'success', 'message' => 'Comment added successfully', 'comment' => $comment]);
+
+    }
+
+    public function delete_comment($comment_id) {
+        $comment = Comment::where('id', $comment_id)->firstOrFail();
+        $comment->delete();
+
+        return response()->json(['status' => 'success', 'message' => 'Comment deleted successfully']);
+    }
+
     public function like_unlike($postCode) {
         $post = Post::where('post_code', $postCode)->firstOrFail();
-        $post->toggleLike(auth()->id());
-        $status = $post->auth_like() ? 'Liked' : 'Unliked' ;
-        
-        return response()->json(['message' => 'Post '.$status.' successfully']);
+        $post->toggleLike();
+
+        return response()->json(['status' => 'success', 'liked' => $post->liked]);
+    }
+
+    public function like_unlike_comment($comment_id) {
+        $comment = Comment::where('id', $comment_id)->firstOrFail();
+        $comment->toggleLike();
+
+        return response()->json(['status' => 'success', 'liked' => $comment->liked]);
     }
 
     public function destroy($postCode) {

@@ -15,9 +15,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/login', 'login');
         Route::post('/auth/otp', 'handleOtp');
     });
-
-    Route::post('feed', [PostController::class, 'index']);
-
     // Authenticated Routes
     Route::middleware(['auth:api'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -33,10 +30,13 @@ Route::prefix('v1')->group(function () {
         Route::post('questions/{question}/upvote', [QuestionController::class, 'upvote'])->name('questions.upvote');
         
         // FEED Posts Routes
-        Route::middleware(['throttle:30,1'])->get('posts/mention-suggestions', [PostController::class, 'mentionSuggestions']);
         // Route::get('posts/duplicate/{post_code}', [PostController::class, 'duplicate']);
+        Route::post('/post/comment', [PostController::class, 'add_comment']);
+        Route::delete('/post/comment/{id}', [PostController::class, 'delete_comment']);
+        Route::get('comment/like-unlike/{id}', [PostController::class, 'like_unlike_comment']);
+        
+        Route::middleware(['throttle:30,1'])->get('posts/mention-suggestions', [PostController::class, 'mentionSuggestions']);
         Route::get('posts/like-unlike/{post_code}', [PostController::class, 'like_unlike']);
-        Route::get('posts/{post_code}', [PostController::class, 'show']);
         Route::apiResource('posts', PostController::class)->except(['show','index']);
 
         // Answer Routes
@@ -52,4 +52,7 @@ Route::prefix('v1')->group(function () {
             Route::post('replies', [AnswerController::class, 'storeReply'])->name('answers.storeReply');
         });
     });
+    
+    Route::post('feed', [PostController::class, 'index']);
+    Route::get('posts/{post_code}', [PostController::class, 'show']);
 });
