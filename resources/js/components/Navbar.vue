@@ -1,13 +1,30 @@
 <script setup>
-import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
-import { Bars3Icon, XMarkIcon, ChevronDownIcon } from '@heroicons/vue/24/outline';
-import axios from 'axios';
-import { useAuthStore } from '../stores/auth.js';
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from '@/components/ui/navigation-menu'
+import { Sun, Moon, Menu, X, ChevronDown, LogOut } from 'lucide-vue-next'
+import { useAuthStore } from '../stores/auth.js'
+import { useThemeStore } from '../stores/theme.js'
+import axios from 'axios'
 
-const errorMessage = ref('');
-const btn = ref('false');
-const authStore = useAuthStore();
+const router = useRouter()
+const errorMessage = ref('')
+const isLoading = ref(false)
+const isMobileMenuOpen = ref(false)
+const authStore = useAuthStore()
+const themeStore = useThemeStore()
 
 const navigation = [
   { name: 'Home', href: '/', current: true },
@@ -18,95 +35,131 @@ const navigation = [
 ]
 
 const logout = async () => {
-  btn.value = 'logout'
+  isLoading.value = true
   try {
-    const response = await axios.get('/api/v1/logout', authStore.config);
-    btn.value = false
+    await axios.get('/api/v1/logout', authStore.config)
     authStore.clearAuthData()
+    router.push('/login')
   } catch (error) {
-    btn.value = false
-    errorMessage.value = error.response?.data?.message || 'Server Error Occured.';
+    errorMessage.value = error.response?.data?.message || 'Server Error Occurred.'
+  } finally {
+    isLoading.value = false
   }
-};
+}
+
+onMounted(() => {
+  themeStore.initTheme()
+})
 </script>
 
 <template>
-  <Disclosure as="nav" class="bg-gray-900" v-slot="{ open }">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <nav :class="[
+    'sticky top-0 z-50 w-full border-b transition-colors duration-200',
+    themeStore.isDark ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'
+  ]">
+    <div class="container mx-auto px-4">
       <div class="flex h-16 items-center justify-between">
+        <!-- Logo -->
         <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <router-link to="/" class="text-primary-500 font-bold text-xl flex items-center">
-              <!-- <span class="text-secondary-500">Lara</span>Vue -->
-              <img src="/assets/front/logo/logo.png" class="h-12 w-auto">
-            </router-link>
-          </div>
-          <div class="hidden md:block">
-            <div class="ml-10 flex items-baseline space-x-4">
-              <router-link v-for="item in navigation" :key="item.name" :to="item.href"
-                :class="[item.current ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                  'rounded-md px-3 py-2 text-sm font-medium']">
-                {{ item.name }}
-              </router-link>
-            </div>
-          </div>
+          <router-link to="/" class="flex items-center space-x-2">
+            <img src="/assets/front/logo/logo.png" class="h-8 w-auto" alt="Logo" />
+          </router-link>
         </div>
-        <div class="hidden md:block">
-          <div v-if="authStore.isAuthenticated" class="ml-4 flex items-center md:ml-6 relative group">
-            <router-link :to="'/profile/' + authStore?.user?.username" class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">
-              <!-- Optional User Icon -->
-              <!-- <i class="fas fa-user-circle text-yellow"></i> -->
-              {{ authStore?.user?.username }}
-              <ChevronDownIcon class="inline-block h-3 w-3" aria-hidden="true" />
-            </router-link>
-            <ul class="absolute top-0 right-0 mt-2 w-48 bg-white border border-gray-200 shadow-md rounded-md z-10 opacity-0 invisible transform group-hover:opacity-100 group-hover:visible group-hover:translate-y-9 transition-all duration-300 ease-in-out">
-              <li class="transition-all duration-300 ease-in-out" :class="btn == 'logout' ? 'bg-gray-200' : 'bg-white'">
-                <div @click="logout()" :class="btn == 'logout' ? 'text-gray-400 cursor-wait' : 'text-gray-700 cursor-pointer'"
-                  class="block px-4 py-2 hover:bg-gray-100 flex items-center space-x-2 transition-all duration-300 ease-in-out"
-                >
-                  <span>Logout</span>
-                </div>
-              </li>
-            </ul>
-          </div>
-          <div v-else class="ml-4 flex items-center md:ml-6">
-            <router-link to="/login"
-              class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">
+
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center space-x-6">
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem v-for="item in navigation" :key="item.name">
+                <NavigationMenuLink :href="item.href" :class="[
+                  'px-3 py-2 cursor-pointer text-sm transition-colors hover:text-primary',
+                  item.current ? 'text-primary font-medium' : 'text-muted-foreground'
+                ]">
+                  {{ item.name }}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+
+          <!-- Theme Toggle -->
+          <Button variant="ghost" size="icon" @click="themeStore.toggleTheme()">
+            <Sun v-if="themeStore.isDark" class="h-5 w-5" />
+            <Moon v-else class="h-5 w-5" />
+            <span class="sr-only">Toggle theme</span>
+          </Button>
+
+          <!-- Auth Buttons -->
+          <template v-if="authStore.isAuthenticated">
+            <DropdownMenu>
+              <DropdownMenuTrigger as="div">
+                <Button variant="ghost" class="flex items-center space-x-1">
+                  <span>{{ authStore?.user?.username }}</span>
+                  <ChevronDown class="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent class="w-48">
+                <DropdownMenuItem @click="router.push(`/profile/${authStore?.user?.username}`)">
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem @click="logout" :disabled="isLoading">
+                  <LogOut class="mr-2 h-4 w-4" />
+                  <span>{{ isLoading ? 'Logging out...' : 'Logout' }}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </template>
+          <template v-else>
+            <Button variant="ghost" @click="router.push('/login')">
               Login
-            </router-link>
-          </div>
+            </Button>
+            <Button @click="router.push('/signup')">
+              Sign up
+            </Button>
+          </template>
         </div>
-        <div class="-mr-2 flex md:hidden">
-          <DisclosureButton
-            class="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
-            <span class="sr-only">Open main menu</span>
-            <Bars3Icon v-if="!open" class="block h-6 w-6" aria-hidden="true" />
-            <XMarkIcon v-else class="block h-6 w-6" aria-hidden="true" />
-          </DisclosureButton>
-        </div>
+
+        <!-- Mobile Menu Button -->
+        <Button variant="ghost" size="icon" class="md:hidden" @click="isMobileMenuOpen = !isMobileMenuOpen">
+          <Menu v-if="!isMobileMenuOpen" class="h-6 w-6" />
+          <X v-else class="h-6 w-6" />
+          <span class="sr-only">Toggle menu</span>
+        </Button>
       </div>
     </div>
 
-    <DisclosurePanel class="md:hidden">
-      <div class="space-y-1 px-2 pb-3 pt-2 sm:px-3">
+    <!-- Mobile Menu -->
+    <div v-show="isMobileMenuOpen" class="md:hidden" :class="[
+      'border-t transition-colors duration-200',
+      themeStore.isDark ? 'border-gray-800' : 'border-gray-100'
+    ]">
+      <div class="space-y-1 px-4 py-3">
         <router-link v-for="item in navigation" :key="item.name" :to="item.href"
-          :class="[item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-            'block rounded-md px-3 py-2 text-base font-medium']">
+          class="block px-3 py-2 rounded-md text-base font-medium transition-colors" :class="[
+            item.current
+              ? 'text-primary bg-primary/10'
+              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+          ]" @click="isMobileMenuOpen = false">
           {{ item.name }}
         </router-link>
       </div>
-      <div class="border-t border-gray-700 pb-3 pt-4">
-        <div class="flex items-center px-5">
-          <router-link to="/login"
-            class="block w-full text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-base font-medium">
+
+      <!-- Mobile Auth Buttons -->
+      <div class="border-t px-4 py-3" :class="themeStore.isDark ? 'border-gray-800' : 'border-gray-100'">
+        <div v-if="!authStore.isAuthenticated" class="flex flex-col space-y-2">
+          <Button variant="ghost" class="w-full justify-start" @click="router.push('/login')">
             Login
-          </router-link>
-          <router-link to="/signup"
-            class="block w-full bg-secondary-500 text-white rounded-md px-3 py-2 text-base font-medium hover:bg-secondary-600">
+          </Button>
+          <Button class="w-full justify-start" @click="router.push('/signup')">
             Sign up
-          </router-link>
+          </Button>
+        </div>
+        <div v-else>
+          <Button variant="ghost" class="w-full justify-start text-destructive" @click="logout" :disabled="isLoading">
+            <LogOut class="mr-2 h-4 w-4" />
+            {{ isLoading ? 'Logging out...' : 'Logout' }}
+          </Button>
         </div>
       </div>
-    </DisclosurePanel>
-  </Disclosure>
+    </div>
+  </nav>
 </template>

@@ -19,11 +19,11 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 153 72% 35%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 3 87% 45%;
+    --secondary-foreground: 210 40% 98%;
 
     --laravel: 3 100% 56%;
     --laravel-foreground: 3 100% 56%;
@@ -58,10 +58,10 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
 
-    --primary: 210 40% 98%;
+    --primary: 153 72% 35%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 3 87% 45%;
     --secondary-foreground: 210 40% 98%;
 
     --accent: 217.2 32.6% 17.5%;
@@ -78,6 +78,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
