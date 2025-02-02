@@ -15,29 +15,36 @@ Route::prefix('v1')->group(function () {
         Route::post('/login', 'login');
         Route::post('/auth/otp', 'handleOtp');
     });
+
+    // Question Publi Routes
+    Route::controller(QuestionController::class)->group(function () {
+        Route::get('/latest-questions', 'latest');
+        Route::get('/questions/{id}', 'show');
+    });
+
     // Authenticated Routes
     Route::middleware(['auth:api'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
-        
+
         // User Routes
         Route::controller(UserController::class)->group(function () {
             Route::get('/user', 'user');
             Route::post('/user', 'update');
         });
-        
+
+        Route::apiResource('questions', QuestionController::class)->except(['create', 'edit', 'show']);
         // Question Routes
-        Route::apiResource('questions', QuestionController::class)->except(['create', 'edit']);
         Route::post('questions/{question}/upvote', [QuestionController::class, 'upvote'])->name('questions.upvote');
-        
+
         // FEED Posts Routes
         // Route::get('posts/duplicate/{post_code}', [PostController::class, 'duplicate']);
         Route::post('/post/comment', [PostController::class, 'add_comment']);
         Route::delete('/post/comment/{id}', [PostController::class, 'delete_comment']);
         Route::get('comment/like-unlike/{id}', [PostController::class, 'like_unlike_comment']);
-        
+
         Route::middleware(['throttle:30,1'])->get('posts/mention-suggestions', [PostController::class, 'mentionSuggestions']);
         Route::get('posts/like-unlike/{post_code}', [PostController::class, 'like_unlike']);
-        Route::apiResource('posts', PostController::class)->except(['show','index']);
+        Route::apiResource('posts', PostController::class)->except(['show', 'index']);
 
         // Answer Routes
         Route::prefix('questions/{question}')->group(function () {
@@ -52,7 +59,7 @@ Route::prefix('v1')->group(function () {
             Route::post('replies', [AnswerController::class, 'storeReply'])->name('answers.storeReply');
         });
     });
-    
+
     Route::post('feed', [PostController::class, 'index']);
     Route::get('posts/{post_code}', [PostController::class, 'show']);
 });

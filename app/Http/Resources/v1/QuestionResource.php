@@ -18,7 +18,7 @@ class QuestionResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'content' => $this->content,
-            'user' => $this->user->only(['id', 'name', 'email']),
+            'user' => $this->user ? $this->user->only(['id', 'name', 'email']) : null,
             'upvotes_count' => $this->upvotes->count(),
             'created_at' => $this->created_at->toDateTimeString(),
         ];

@@ -48,9 +48,11 @@ const shareUrl = (data: string) => {
         themeStore.isDark ? 'bg-gray-950' : 'bg-gray-50'
     ]">
         <Navbar />
-        <main>
-            <router-view @share_url="shareUrl" />
-        </main>
+        <div class="container mx-auto p-4 grid gap-8">
+            <main class="container mx-auto p-4 grid gap-8">
+                <router-view @share_url="shareUrl" />
+            </main>
+        </div>
         <Transition name="fade">
             <Button v-if="isScrollTopVisible" variant="secondary" size="icon"
                 class="fixed right-6 bottom-6 rounded-full shadow-lg" @click="scrollTop">

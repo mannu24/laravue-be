@@ -5,8 +5,10 @@ namespace App\Http\Controllers\v1\Api\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\v1\User\Questions\StoreQuestionRequest;
 use App\Http\Requests\v1\User\Questions\UpdateQuestionRequest;
+use App\Http\Resources\v1\AnswerResource;
 use App\Http\Resources\v1\QuestionResource;
 use App\Http\Traits\HttpResponse;
+use App\Services\AnswerService;
 use App\Services\QuestionService;
 use Exception;
 
@@ -14,11 +16,13 @@ class QuestionController extends Controller
 {
     use HttpResponse;
 
-    protected $service;
+    protected QuestionService $service;
+    protected AnswerService $answerService;
 
-    public function __construct(QuestionService $service)
+    public function __construct(QuestionService $service, AnswerService $answerService)
     {
         $this->service = $service;
+        $this->answerService = $answerService;
     }
 
     public function index()
@@ -42,8 +46,12 @@ class QuestionController extends Controller
     public function show($id)
     {
         $question = $this->service->getQuestionById($id);
+        $answers = $this->answerService->getAnswersByQuestion($question->id);
         return $this->success(
-            data: new QuestionResource($question),
+            data: [
+                'question' => new QuestionResource($question),
+                'answers' => AnswerResource::collection($answers)
+            ],
             message: 'Question fetched successfully'
         );
     }

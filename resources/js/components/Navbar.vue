@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -20,19 +20,21 @@ import { useThemeStore } from '../stores/theme.js'
 import axios from 'axios'
 
 const router = useRouter()
+const route = useRoute()
 const errorMessage = ref('')
 const isLoading = ref(false)
 const isMobileMenuOpen = ref(false)
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
 
-const navigation = [
-  { name: 'Home', href: '/', current: true },
-  { name: 'Projects', href: '/projects', current: false },
-  { name: 'About', href: '/about', current: false },
-  { name: 'Contact', href: '/contact', current: false },
-  { name: 'Feed', href: '/feed', current: false },
-]
+const navigation = computed(() => [
+  { name: 'Home', href: '/', current: route.path === '/' },
+  { name: 'Projects', href: '/projects', current: route.path === '/projects' },
+  { name: 'About', href: '/about', current: route.path === '/about' },
+  { name: 'Contact', href: '/contact', current: route.path === '/contact' },
+  { name: 'Feed', href: '/feed', current: route.path === '/feed' },
+  { name: 'QNA', href: '/qna', current: route.path === '/qna' },
+])
 
 const logout = async () => {
   isLoading.value = true
@@ -76,6 +78,7 @@ onMounted(() => {
                   item.current ? 'text-primary font-medium' : 'text-muted-foreground'
                 ]">
                   {{ item.name }}
+                  {{ pathname }}
                 </NavigationMenuLink>
               </NavigationMenuItem>
             </NavigationMenuList>
