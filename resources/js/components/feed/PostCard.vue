@@ -7,8 +7,6 @@ import { CardFooter } from '@/components/ui/card';
 const { post } = defineProps(['post'])
 const element = ref(null)
 const showDropdown = ref(false)
-const isCommentDialogOpen = ref(false);
-const commentText = ref('');
 const emit = defineEmits(['load_more', 'fetch', 'delete_post', 'liked_action', 'share_url'])
 import { useRouter } from 'vue-router';
 
@@ -26,7 +24,6 @@ const action = async (type) => {
         showDropdown.value = false
         await axios.delete(`/api/v1/posts/${post.post_code}`, authStore.config).then(() => {
             emit('delete_post', post.post_code)
-            // Swal.fire('Deleted!', 'Your post has been deleted.', 'success')
         })
     } else {
         showDropdown.value = false
@@ -78,13 +75,6 @@ const handleComment = () => {
 const handleShare = () => {
     emit('share_url', post_url.value)
 };
-
-const submitComment = () => {
-    // Implement comment submission
-    console.log('Submitted comment:', commentText.value);
-    isCommentDialogOpen.value = false;
-    commentText.value = '';
-};
 </script>
 <template>
     <div @click="$router.push(post_url)" ref="element" class="bg-gray-800/80 shadow-md rounded-lg overflow-hidden mb-4 hover:cursor-pointer hover:bg-gray-700/40 transition-all duration-350 ease-in">
@@ -106,12 +96,12 @@ const submitComment = () => {
                     leave-from-class="transform opacity-100 scale-100"
                     leave-to-class="transform opacity-0 scale-95">
                     <div v-if="showDropdown"
-                        class="absolute right-0 z-10 mt-2 w-32 origin-top-right divide-y divide-gray-100 ring-1 shadow-lg ring-black/5 focus:outline-hidden"
+                        class="absolute right-0 z-10 w-32 origin-top-right divide-y divide-gray-100 ring-1 shadow-lg ring-black/5 focus:outline-hidden"
                         role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
                         <div class="" role="none">
                             <!-- Active: "bg-gray-100 text-gray-900 outline-hidden", Not Active: "text-gray-700" -->
                             <div @click.stop="edit_record()"
-                                class="block px-4 py-2 text-sm text-gray-700 transition-all duration-150 ease-in-out rounded-md bg-white hover:bg-gray-200">
+                                class="block px-4 py-2 text-sm text-gray-700 transition-all duration-150 ease-in-out rounded-md bg-white hover:bg-gray-200 mb-1">
                                 <i class="fas fa-pencil-alt mr-1"></i>
                                 Edit
                             </div>
@@ -145,7 +135,7 @@ const submitComment = () => {
             </div>
         </div>
         <div class="px-4">
-            <h3 class="font-bold text-xl text-white text-gray-800 mb-0">{{ post.title }}</h3>
+            <h3 class="font-bold text-xl text-white text-gray-800 mb-0" v-if="post.title">{{ post.title }}</h3>
             <p class="text-gray-700 mb-2 text-white" v-html="renderContent(post.content)" @click.stop></p>
             <div v-if="post.media_urls && post.media_urls.length" class="grid gap-2 mb-4">
                 <img v-if="post.media_urls.length === 1" :src="post.media_urls[0]" alt="Post Media"
@@ -195,6 +185,7 @@ const submitComment = () => {
     background-color: rgb(209 235 223 / var(--tw-bg-opacity, 1));
     border-radius: 0.25rem;
 }
-
-.mention-link:hover {}
+.mention-link:hover {
+    text-decoration: underline;
+}
 </style>

@@ -1,67 +1,3 @@
-<template>
-    <div v-click-outside="{ closeCondition: () => expanded, closeAction: () => expandCard(false) }"
-        class="mx-auto w-full bg-gray-800/80 rounded-lg shadow-lg p-4 transition-all duration-300 ease-in-out hover:bg-gray-700/40"
-        :class="{ 'max-w-xl h-auto': expanded, 'max-w-md h-20': !expanded }">
-        <div class="flex items-center">
-            <img v-if="authStore.user?.profile_photo" :src="authStore.user?.profile_photo" alt="User Avatar"
-                class="w-10 h-10 rounded-full mr-3" />
-            <img v-else src="/assets/front/images/user.png" alt="User Avatar" class="w-10 h-10 rounded-full mr-3" />
-            <Transition name="fade" mode="out-in">
-                <div class="w-full bg-gray-700/60 rounded-full h-10 px-4 flex items-center cursor-pointer"
-                    @click="expandCard(true)" v-if="!expanded">
-                    <p class="text-gray-500">What's on your mind?</p>
-                </div>
-                <div class="ml-1" v-else>
-                    <h2 class="font-semibold mb-0">{{ authStore.user.username }}</h2>
-                    <p class="text-xs text-gray-500">{{ $filters.date(new Date()) }}</p>
-                </div>
-            </Transition>
-        </div>
-        <form v-if="expanded" class="mt-4" @submit.prevent="submitPost">
-            <CustomInput type="text" placeholder="Title of this post" v-model="newPost.title" :error="errors.title" />
-            <div class="relative">
-                <div ref="editor" contenteditable="true" @input="handleInput" @keydown="handleKeyDown"
-                    class="w-full text-white placeholder:text-slate-400 min-h-[100px] text-sm border rounded-md px-3 py-2 transition duration-300 ease focus:outline-none shadow-sm bg-transparent text-slate-700 border-slate-200 hover:border-slate-300 focus:border-slate-400"
-                    placeholder="What's on your mind?"></div>
-                <div v-if="mentionState.active"
-                    class="absolute bottom-full left-0 w-full max-h-60 bg-white border rounded-lg shadow-lg overflow-y-auto z-50">
-                    <div v-for="user in mentionSuggestions" :key="user.id" @mousedown.prevent="insertMention(user)"
-                        class="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
-                        <img v-if="user.avatar" :src="user.avatar" class="w-8 h-8 rounded-full object-cover">
-                        <i v-else class="fas fa-user-circle fa-2x text-black/50"></i>
-                        <div>
-                            <p class="font-medium text-sm">{{ user.name }}</p>
-                            <p class="text-xs text-gray-500">@{{ user.username }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-4 flex justify-around">
-                <input type="file" @change="handle_media" accept="image/*,video/mp4,video/*" class="hidden"
-                    id="media_upload" multiple>
-                <label for="media_upload"
-                    class="flex items-center gap-2 text-green-600 hover:text-green-700 cursor-pointer">
-                    <i class="fas fa-paperclip"></i>
-                    <span>Attach Media</span>
-                </label>
-                <Button type="submit" class="bg-vue" :disabled="isSubmitting">
-                    Submit Post
-                </Button>
-            </div>
-            <div class="media-previews w-full flex flex-wrap justify-start gap-2 pt-4">
-                <div v-for="(file, index) in previews" :key="index" class="mb-1">
-                    <img v-if="file.type.startsWith('image/')" :src="file.url" class="h-32 w-32 rounded object-cover"
-                        alt="Image Preview" />
-                    <video v-if="file.type.startsWith('video/')" class="h-32 w-32 rounded object-cover" controls>
-                        <source :src="file.url" :type="file.type" />
-                        Your browser does not support the video tag.
-                    </video>
-                </div>
-            </div>
-        </form>
-    </div>
-</template>
-
 <script setup>
 import axios from 'axios';
 import { ref, defineEmits } from "vue";
@@ -324,6 +260,69 @@ const submitPost = async () => {
     }
 };
 </script>
+<template>
+    <div v-click-outside="{ closeCondition: () => expanded, closeAction: () => expandCard(false) }"
+        class="mx-auto w-full bg-gray-800/80 rounded-lg shadow-lg p-4 transition-all duration-300 ease-in-out hover:bg-gray-700/40"
+        :class="{ 'max-w-xl h-auto': expanded, 'max-w-md h-20': !expanded }">
+        <div class="flex items-center">
+            <img v-if="authStore.user?.profile_photo" :src="authStore.user?.profile_photo" alt="User Avatar"
+                class="w-10 h-10 rounded-full mr-3" />
+            <img v-else src="/assets/front/images/user.png" alt="User Avatar" class="w-10 h-10 rounded-full mr-3" />
+            <Transition name="fade" mode="out-in">
+                <div class="w-full bg-gray-700/60 rounded-full h-10 px-4 flex items-center cursor-pointer"
+                    @click="expandCard(true)" v-if="!expanded">
+                    <p class="text-gray-500">What's on your mind?</p>
+                </div>
+                <div class="ml-1" v-else>
+                    <h2 class="font-semibold mb-0">{{ authStore.user.username }}</h2>
+                    <p class="text-xs text-gray-500">{{ $filters.date(new Date()) }}</p>
+                </div>
+            </Transition>
+        </div>
+        <form v-if="expanded" class="mt-4" @submit.prevent="submitPost">
+            <CustomInput type="text" placeholder="Title of this post" v-model="newPost.title" :error="errors.title" />
+            <div class="relative">
+                <div ref="editor" contenteditable="true" @input="handleInput" @keydown="handleKeyDown"
+                    class="w-full text-white placeholder:text-slate-400 min-h-[100px] text-sm border rounded-md px-3 py-2 transition duration-300 ease focus:outline-none shadow-sm bg-transparent text-slate-700 border-slate-200 hover:border-slate-300 focus:border-slate-400"
+                    placeholder="What's on your mind?"></div>
+                <div v-if="mentionState.active"
+                    class="absolute bottom-full left-0 w-full max-h-60 bg-white border rounded-lg shadow-lg overflow-y-auto z-50">
+                    <div v-for="user in mentionSuggestions" :key="user.id" @mousedown.prevent="insertMention(user)"
+                        class="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
+                        <img v-if="user.avatar" :src="user.avatar" class="w-8 h-8 rounded-full object-cover">
+                        <i v-else class="fas fa-user-circle fa-2x text-black/50"></i>
+                        <div>
+                            <p class="font-medium text-sm">{{ user.name }}</p>
+                            <p class="text-xs text-gray-500">@{{ user.username }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-around">
+                <input type="file" @change="handle_media" accept="image/*,video/mp4,video/*" class="hidden"
+                    id="media_upload" multiple>
+                <label for="media_upload"
+                    class="flex items-center gap-2 text-green-600 hover:text-green-700 cursor-pointer">
+                    <i class="fas fa-paperclip"></i>
+                    <span>Attach Media</span>
+                </label>
+                <Button type="submit" class="bg-vue" :disabled="isSubmitting">
+                    Submit Post
+                </Button>
+            </div>
+            <div class="media-previews w-full flex flex-wrap justify-start gap-2 pt-4">
+                <div v-for="(file, index) in previews" :key="index" class="mb-1">
+                    <img v-if="file.type.startsWith('image/')" :src="file.url" class="h-32 w-32 rounded object-cover"
+                        alt="Image Preview" />
+                    <video v-if="file.type.startsWith('video/')" class="h-32 w-32 rounded object-cover" controls>
+                        <source :src="file.url" :type="file.type" />
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </form>
+    </div>
+</template>
 <style>
 .mention-link {
     --tw-text-opacity: 1;

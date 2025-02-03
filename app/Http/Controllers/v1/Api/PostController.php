@@ -17,9 +17,10 @@ class PostController extends Controller
     public function index(Request $request) {
         $query = Post::query()->with(['user:id,name,username'])->withCount('likes','comments') ;
 
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where('title', 'LIKE', "%$search%")->orWhere('content', 'LIKE', "%$search%");
+        if ($request->has('username') && $request->username) {
+            $query->whereHas('user', function ($q) {
+                $q->where('username', request()->input('username'));
+            }) ;
         }
 
         $posts = $query->latest()->get()->each(function ($q) {
@@ -37,7 +38,7 @@ class PostController extends Controller
 
     public function store(Request $request) {
         $data = $request->validate([
-            'title' => 'required|string|max:255',
+            'title' => 'nullable|string|max:500',
             'content' => 'required|string',
             'mentions' => 'array',
             'mentions.*.id' => 'required|string|exists:users,id',

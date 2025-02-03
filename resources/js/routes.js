@@ -71,7 +71,7 @@ const router = createRouter({
         {
             path: '/:username',
             name: 'user-feed',
-            component: () => import('./views/UserFeed.vue'),
+            component: () => import('./views/UserProfile.vue'),
             meta: {auth: false, both: true},
         },
         {

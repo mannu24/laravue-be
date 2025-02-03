@@ -10,11 +10,11 @@ const btn = ref('false');
 const authStore = useAuthStore();
 
 const navigation = [
-  { name: 'Home', href: '/', current: true },
-  { name: 'Projects', href: '/projects', current: false },
-  { name: 'About', href: '/about', current: false },
-  { name: 'Contact', href: '/contact', current: false },
-  { name: 'Feed', href: '/feed', current: false },
+  { name: 'Home', href: '/'},
+  { name: 'Projects', href: '/projects'},
+  { name: 'About', href: '/about'},
+  { name: 'Contact', href: '/contact'},
+  { name: 'Feed', href: '/feed'},
 ]
 
 const logout = async () => {
@@ -43,9 +43,8 @@ const logout = async () => {
           </div>
           <div class="hidden md:block">
             <div class="ml-10 flex items-baseline space-x-4">
-              <router-link v-for="item in navigation" :key="item.name" :to="item.href"
-                :class="[item.current ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                  'rounded-md px-3 py-2 text-sm font-medium']">
+              <router-link v-for="item in navigation" :key="item.name" :to="item.href" :exact-active-class="'bg-gray-800 text-white/100'"
+                class="rounded-md px-3 py-2 text-sm font-medium text-white/70">
                 {{ item.name }}
               </router-link>
             </div>
