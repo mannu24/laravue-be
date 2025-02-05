@@ -1,5 +1,6 @@
 ::-webkit-scrollbar {
     width: 10px;
+    height: 5px;
 }
 ::-webkit-scrollbar-track {
     background-color: #111827;
@@ -7,10 +8,14 @@
 ::-webkit-scrollbar-thumb {
     background-color: #41B883;
     border-radius: 10px;
+    transition: all 0.3s ease-in;
 }
 ::-webkit-scrollbar-thumb:hover {
     background-color: #ff756f;
 }
 .self-start {
     align-self: start !important;
+}
+.scroll-x {
+    overflow-x: auto;
 }

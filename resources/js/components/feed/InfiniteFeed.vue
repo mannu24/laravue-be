@@ -7,7 +7,6 @@ const authStore = useAuthStore();
 const pagination = ref(null)
 const l_count = ref(null)
 const pageNo = ref(1)
-const search = ref('')
 const posts = ref([])
 const loading = ref(false);
 const last_item = ref(1)

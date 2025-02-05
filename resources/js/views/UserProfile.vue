@@ -1,11 +1,16 @@
 <script setup>
-import { ref } from 'vue';
+import { ref,defineEmits } from 'vue';
 import { useRoute } from 'vue-router';
 import InfiniteFeed from '../components/feed/InfiniteFeed.vue'
 
 const route = useRoute();
 const username = route.params.username;
 const tab = ref('Feed');
+const emit = defineEmits(['share_url'])
+
+const share_url = (url) => {
+    emit('share_url', url)
+}
 </script>
 <template>
     <div>
@@ -23,7 +28,7 @@ const tab = ref('Feed');
             </ul>
         </div>
         <Transition name="fade" mode="out-in">
-            <InfiniteFeed v-if="tab=='Feed'" :fetchKey="null" :username="username"></InfiniteFeed>
+            <InfiniteFeed v-if="tab=='Feed'" :fetchKey="null" @share_url="share_url" :username="username"></InfiniteFeed>
             <div class="max-w-7xl mx-auto rounded-lg bg-laravel p-5" v-else-if="tab=='Projects'"></div>
             <div class="max-w-7xl mx-auto rounded-lg bg-vue p-5" v-else-if="tab=='Blogs'"></div>
         </Transition>

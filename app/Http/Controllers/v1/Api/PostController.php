@@ -9,7 +9,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use Str;
 
 class PostController extends Controller
@@ -44,7 +43,7 @@ class PostController extends Controller
             'mentions.*.id' => 'required|string|exists:users,id',
             'mentions.*.username' => 'required|string|exists:users,username',
             'media' => 'nullable|array',
-            'media.*' => 'file|mimes:jpg,jpeg,png,mp4,mov|max:5092',
+            'media.*' => 'file|mimes:jpg,jpeg,png|max:2048',
         ]);
     
         DB::beginTransaction();
@@ -63,9 +62,7 @@ class PostController extends Controller
                     $post->addMedia($file)->toMediaCollection('images');
                 }
             }
-
             // $this->handleMentionNotifications($post, $data['mentions']);
-
             DB::commit();
             return response()->json(['status' => 'success', 'message' => 'Post created successfully']);
         } catch (\Exception $e) {
@@ -122,30 +119,51 @@ class PostController extends Controller
     }
 
     public function update(Request $request, $post_code) {
-        $validator = Validator::make($request->all(), [
-            'title' => 'nullable|string|max:1000',
-            'content' => 'nullable',
-            'meta_content' => 'nullable|string',
-            'is_ai_generated' => 'boolean',
-            'is_blocked' => 'boolean',
+        $data = $request->validate([
+            'title' => 'nullable|string|max:500',
+            'content' => 'required|string',
+            'mentions' => 'array',
+            'mentions.*.id' => 'required|string|exists:users,id',
+            'mentions.*.username' => 'required|string|exists:users,username',
+            'media' => 'nullable|array',
+            'media.*' => 'file|mimes:jpg,jpeg,png|max:2048',
+            'deleted' => 'nullable|array',
         ]);
-
         
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-        
-        $post = Post::where('post_code', $post_code)->firstOrFail();
-        $post->update($request->only([
-            'title',
-            'content',
-            'meta_content',
-            'post_code',
-            'is_ai_generated',
-            'is_blocked',
-        ]));
+        if(!$request->has('mentions')) $data['mentions'] = [] ;
 
-        return response()->json(['message' => 'Post updated successfully', 'post' => $post]);
+        DB::beginTransaction();
+        try {
+
+            $post = Post::where('post_code', $post_code)->firstOrFail();
+            $post->update([
+                'title' => $data['title'],
+                'content' => $this->processContent($data['content'], $data['mentions']),
+                'meta_content' => json_encode($data['mentions']),
+            ]);
+
+            if ($request->has('deleted')) {
+                foreach ($request->deleted as $index) {
+                    $mediaItem = $post->getMedia('images')->get($index);
+                    if ($mediaItem) {
+                        $mediaItem->delete();
+                    }
+                }
+            }
+
+            if ($request->hasFile('media')) {
+                foreach ($request->file('media') as $file) {
+                    $post->addMedia($file)->toMediaCollection('images');
+                }
+            }
+            // $this->handleMentionNotifications($post, $data['mentions']);
+            DB::commit();
+            return response()->json(['status' => 'success', 'message' => 'Post updated successfully']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            dd($e) ;
+            return response()->json(['status' => 'error', 'message' => 'Error Occured']);
+        }    
     }
 
     public function duplicate($postCode) {

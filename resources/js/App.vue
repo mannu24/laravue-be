@@ -33,7 +33,7 @@ const share_url = (data) => {
         <router-view @share_url="share_url" />
         <transition name="fade">
             <button v-if="isScrollTopVisible"
-                class="fixed right-10 bottom-10 flex justify-center items-center text-white bg-vue w-10 h-10 transition-all duration-300 ease-in-out rounded-full hover:bg-laravel hover:scale-110"
+                class="fixed right-10 bottom-10 flex justify-center items-center text-white bg-vue/80 w-10 h-10 transition-all duration-300 ease-in-out rounded-full hover:bg-laravel/70 hover:scale-110"
                 type="button" @click="scollTop()">
                 <i class="fas fa-arrow-up me-0"></i>
             </button>
@@ -50,5 +50,24 @@ const share_url = (data) => {
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+}
+
+.bounce-enter-active {
+    animation: bounce-in 0.3s;
+}
+.bounce-leave-active {
+    animation: bounce-in 0.3s reverse;
+}
+@keyframes bounce-in {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.05);
+        /* margin-bottom: 60px; */
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 </style>

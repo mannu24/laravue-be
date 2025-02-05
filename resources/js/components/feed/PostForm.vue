@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios';
-import { ref, defineEmits } from "vue";
+import { ref, defineEmits, defineProps, onMounted, nextTick } from "vue";
 import CustomInput from "../elements/CustomInput.vue";
 import { useMentions } from '@/composables/useMentions';
 import { useAuthStore } from '../../stores/auth';
@@ -18,19 +18,23 @@ const newPost = ref({
     mentions: [],
     media: []
 });
-const emit = defineEmits(['fetch'])
+
+const emit = defineEmits(['fetch', 'close'])
 const authStore = useAuthStore();
+const deleted = ref([]);
 const previews = ref([]);
 const editor = ref(null);
+const props = defineProps(['post']);
 const expanded = ref(false);
 const isSubmitting = ref(false);
 const errors = ref({});
+
 const expandCard = (val) => {
     expanded.value = val;
     if (!val) {
         resetForm();
     }
-}
+};
 
 const handleInput = () => {
     newPost.value.content = editor.value.innerHTML;
@@ -217,7 +221,7 @@ const handle_media = (event) => {
             newPost.value.media.push(file);
             const url = URL.createObjectURL(file);
             previews.value.push({
-                type: file.type,
+                type: 'og',
                 url,
             });
         }
@@ -241,86 +245,159 @@ const submitPost = async () => {
             formData.append(`media[${index}]`, file);
         });
 
-        const response = await axios.post("/api/v1/posts", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-                Authorization: `Bearer ${authStore.token}`
-            },
-        });
-        isSubmitting.value = false
-        if (response.data.status == 'success') {
-            resetForm();
-            emit('fetch')
+        deleted.value.forEach(e => {
+            formData.append('deleted[]',e)
+        })
+
+        if(props.post) {
+            formData.append("_method", "PUT");
+            await axios.post("/api/v1/posts/"+props.post.post_code, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    Authorization: `Bearer ${authStore.token}`
+                },
+            }).then((response) => {
+                isSubmitting.value = false
+                if (response.data.status == 'success') {
+                    resetForm();
+                    emit('fetch')
+                }
+                else {
+                    console.error("Error creating post:", response.data.message);
+                }
+            }).catch((err) => {
+                isSubmitting.value = false
+            });
         }
         else {
-            console.error("Error creating post:", response.data.message);
+            await axios.post("/api/v1/posts", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    Authorization: `Bearer ${authStore.token}`
+                },
+            }).then((response) => {
+                isSubmitting.value = false
+                if (response.data.status == 'success') {
+                    resetForm();
+                    emit('fetch')
+                }
+                else {
+                    console.error("Error creating post:", response.data.message);
+                }
+            }).catch((err) => {
+                isSubmitting.value = false
+            });
         }
     } catch (error) {
         console.error("Error creating post:", error.response?.data || error.message);
     }
 };
+
+const removeimage = (id,type) => {
+    if(type!='url'){
+        // var temp_id = newPost.value.media.findIndex(i => i.id == id)
+        // var prev_id = previews.value.findIndex(i => i.id == id)
+        // newPost.value.media.splice(temp_id, 1)
+        previews.value.splice(id, 1)
+    }
+    else {
+        deleted.value.push(id)
+        previews.value.splice(id, 1)
+    }
+};
+
+const closeModal = () => {
+    expanded.value = false
+    emit('close');
+};
+
+onMounted(() => {
+    if(props.post) {
+        expandCard(true)
+        newPost.value.post_code = props.post.post_code;
+        newPost.value.content = props.post.content;
+        newPost.value.title = props.post.title;
+        previews.value = props.post.media_urls.map(url => {return {type:'url', url: url}});
+        nextTick(() => {
+            editor.value.innerHTML = props.post.content;
+        });
+    }
+});
 </script>
 <template>
-    <div v-click-outside="{ closeCondition: () => expanded, closeAction: () => expandCard(false) }"
-        class="mx-auto w-full bg-gray-800/80 rounded-lg shadow-lg p-4 transition-all duration-300 ease-in-out hover:bg-gray-700/40"
-        :class="{ 'max-w-xl h-auto': expanded, 'max-w-md h-20': !expanded }">
-        <div class="flex items-center">
-            <img v-if="authStore.user?.profile_photo" :src="authStore.user?.profile_photo" alt="User Avatar"
-                class="w-10 h-10 rounded-full mr-3" />
-            <img v-else src="/assets/front/images/user.png" alt="User Avatar" class="w-10 h-10 rounded-full mr-3" />
-            <Transition name="fade" mode="out-in">
-                <div class="w-full bg-gray-700/60 rounded-full h-10 px-4 flex items-center cursor-pointer"
-                    @click="expandCard(true)" v-if="!expanded">
-                    <p class="text-gray-500">What's on your mind?</p>
-                </div>
-                <div class="ml-1" v-else>
-                    <h2 class="font-semibold mb-0">{{ authStore.user.username }}</h2>
-                    <p class="text-xs text-gray-500">{{ $filters.date(new Date()) }}</p>
-                </div>
-            </Transition>
-        </div>
-        <form v-if="expanded" class="mt-4" @submit.prevent="submitPost">
-            <CustomInput type="text" placeholder="Title of this post" v-model="newPost.title" :error="errors.title" />
-            <div class="relative">
-                <div ref="editor" contenteditable="true" @input="handleInput" @keydown="handleKeyDown"
-                    class="w-full text-white placeholder:text-slate-400 min-h-[100px] text-sm border rounded-md px-3 py-2 transition duration-300 ease focus:outline-none shadow-sm bg-transparent text-slate-700 border-slate-200 hover:border-slate-300 focus:border-slate-400"
-                    placeholder="What's on your mind?"></div>
-                <div v-if="mentionState.active"
-                    class="absolute bottom-full left-0 w-full max-h-60 bg-white border rounded-lg shadow-lg overflow-y-auto z-50">
-                    <div v-for="user in mentionSuggestions" :key="user.id" @mousedown.prevent="insertMention(user)"
-                        class="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
-                        <img v-if="user.avatar" :src="user.avatar" class="w-8 h-8 rounded-full object-cover">
-                        <i v-else class="fas fa-user-circle fa-2x text-black/50"></i>
-                        <div>
-                            <p class="font-medium text-sm">{{ user.name }}</p>
-                            <p class="text-xs text-gray-500">@{{ user.username }}</p>
+    <div :class="{'fixed inset-0 z-50 flex items-center justify-center bg-black/70' : props.post}">
+        <!-- v-click-outside="{ closeCondition: () => expanded, closeAction: () => expandCard(false) }" -->
+        <div class="mx-auto w-full rounded-lg shadow-lg p-4 transition-all duration-300 ease-in-out"
+            :class="{ 'max-w-xl h-auto': expanded, 'max-w-md h-20': !expanded, 'bg-gray-800/80 hover:bg-gray-700/40' : !props.post, 'bg-gray-800' : props.post }">
+            <div class="flex items-center">
+                <img v-if="authStore.user?.profile_photo" :src="authStore.user?.profile_photo" alt="User Avatar"
+                    class="w-10 h-10 rounded-full mr-3" />
+                <img v-else src="/assets/front/images/user.png" alt="User Avatar" class="w-10 h-10 rounded-full mr-3" />
+                <Transition name="fade" mode="out-in">
+                    <div class="w-full bg-gray-700/60 rounded-full h-10 px-4 flex items-center cursor-pointer"
+                        @click="expandCard(true)" v-if="!expanded">
+                        <p class="text-gray-500">What's on your mind?</p>
+                    </div>
+                    <div class="w-full flex justify-between" v-else>
+                        <div class="text-white">
+                            <h2 class="font-semibold mb-0">{{ authStore.user.username }}</h2>
+                            <p class="text-xs text-gray-500">{{ $filters.date(new Date()) }}</p>
+                        </div>
+                        <button @click="closeModal" class="text-gray-500 transition-all duration-300 hover:text-white">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </Transition>
+            </div>
+            <form v-if="expanded" class="mt-7" @submit.prevent="submitPost">
+                <CustomInput type="text" placeholder="Title of this post" v-model="newPost.title" :error="errors.title" />
+                <div class="relative">
+                    <div ref="editor" contenteditable="true" @input="handleInput" @keydown="handleKeyDown"
+                        class="w-full text-white placeholder:text-slate-400 min-h-[100px] text-sm border rounded-md px-3 py-2 transition duration-300 ease focus:outline-none shadow-sm bg-transparent text-slate-700 border-slate-200 hover:border-slate-300 focus:border-slate-400"
+                        placeholder="What's on your mind?"></div>
+                    <div v-if="mentionState.active"
+                        class="absolute bottom-full left-0 w-full max-h-60 bg-white border rounded-lg shadow-lg overflow-y-auto z-50">
+                        <div v-for="user in mentionSuggestions" :key="user.id" @mousedown.prevent="insertMention(user)"
+                            class="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
+                            <img v-if="user.avatar" :src="user.avatar" class="w-8 h-8 rounded-full object-cover">
+                            <i v-else class="fas fa-user-circle fa-2x text-black/50"></i>
+                            <div>
+                                <p class="font-medium text-sm">{{ user.name }}</p>
+                                <p class="text-xs text-gray-500">@{{ user.username }}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="mt-4 flex justify-around">
-                <input type="file" @change="handle_media" accept="image/*,video/mp4,video/*" class="hidden"
-                    id="media_upload" multiple>
-                <label for="media_upload"
-                    class="flex items-center gap-2 text-green-600 hover:text-green-700 cursor-pointer">
-                    <i class="fas fa-paperclip"></i>
-                    <span>Attach Media</span>
-                </label>
-                <Button type="submit" class="bg-vue" :disabled="isSubmitting">
-                    Submit Post
-                </Button>
-            </div>
-            <div class="media-previews w-full flex flex-wrap justify-start gap-2 pt-4">
-                <div v-for="(file, index) in previews" :key="index" class="mb-1">
-                    <img v-if="file.type.startsWith('image/')" :src="file.url" class="h-32 w-32 rounded object-cover"
-                        alt="Image Preview" />
-                    <video v-if="file.type.startsWith('video/')" class="h-32 w-32 rounded object-cover" controls>
-                        <source :src="file.url" :type="file.type" />
-                        Your browser does not support the video tag.
-                    </video>
+                <div class="media-previews flex overflow-x-auto space-x-4 pt-4 py-2 mt-3">
+                    <TransitionGroup name="bounce" appear>
+                        <div v-for="(file, index) in previews" :key="index" class="h-32 w-32 flex-shrink-0 relative mb-1">
+                            <div @click="removeimage(index, file.type)" class="w-6 h-6 flex absolute -top-3 -right-3 bg-vue/80 cursor-pointer hover:bg-laravel/70 transition-all duration-300 rounded-full text-white">
+                                <i class="fas fa-times m-auto fa-sm"></i>
+                            </div>
+                            <img :src="file.url" class="h-full w-full rounded object-cover" alt="Image Preview" />
+                            <!-- <video v-if="typeof file == 'string'" class="h-32 w-32 rounded object-cover" controls>
+                                <source :src="file" />
+                                Your browser does not support the video tag.
+                            </video>
+                            <video v-else-if="file.type.startsWith('video/')" class="h-32 w-32 rounded object-cover" controls>
+                                <source :src="file.url" :type="file.type" />
+                                Your browser does not support the video tag.
+                            </video> -->
+                        </div>
+                    </TransitionGroup>
                 </div>
-            </div>
-        </form>
+                <div class="mt-4 flex justify-around">
+                    <input type="file" @change="handle_media" accept="image/*" class="hidden" id="media_upload" multiple>
+                    <label for="media_upload" class="flex items-center gap-2 text-vue hover:text-green-600 cursor-pointer">
+                        <i class="fas fa-paperclip"></i>
+                        <span>Attach Media</span>
+                    </label>
+                    <Button type="submit" class="bg-vue/80 hover:bg-vue transition-all duration-300" :disabled="isSubmitting">
+                        Submit Post
+                    </Button>
+                </div>
+            </form>
+        </div>
     </div>
 </template>
 <style>
