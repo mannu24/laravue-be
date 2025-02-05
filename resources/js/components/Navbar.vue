@@ -52,7 +52,7 @@ const logout = async () => {
         </div>
         <div class="hidden md:block">
           <div v-if="authStore.isAuthenticated" class="ml-4 flex items-center md:ml-6 relative group">
-            <router-link :to="'/profile/' + authStore?.user?.username" class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">
+            <router-link :to="'/profile/@' + authStore?.user?.username" class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">
               <!-- Optional User Icon -->
               <!-- <i class="fas fa-user-circle text-yellow"></i> -->
               {{ authStore?.user?.username }}

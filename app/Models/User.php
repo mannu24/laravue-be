@@ -50,11 +50,16 @@ class User extends Authenticatable implements HasMedia
     }
 
     protected $appends = [
-        'profile_photo'
+        'profile_photo',
+        'completed'
     ];
 
-    public function getProfilePhotoAttribute()
-    {
+    public function getCompletedAttribute() {
+        if(!$this->name || !$this->email || !$this->username) return false;
+        else return true ;
+    }
+
+    public function getProfilePhotoAttribute() {
         return count($this->getMedia('profile_photo')) ? $this->getMedia('profile_photo')[0]->getFullUrl() : '' ;
     }
 }

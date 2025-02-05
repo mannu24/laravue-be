@@ -63,22 +63,28 @@ const router = createRouter({
             meta: { auth: false, both: true },
         },
         {
-            path: '/profile/:username',
+            path: '/profile/@:username',
             name: 'profile',
             component: () => import('./views/Profile.vue'),
             meta: { auth: true, both: false },
         },
         {
-            path: '/:username',
+            path: '/@:username',
             name: 'user-feed',
             component: () => import('./views/UserProfile.vue'),
             meta: {auth: false, both: true},
         },
         {
-            path: '/:username/:post_code',
+            path: '/@:username/post_:post_code',
             name: 'post-detail',
             component: () => import('./views/PostDetail.vue'),
             meta: {auth: false, both: true},
+        },
+        {
+            path: '/:pathMatch(.*)*',
+            name: 'not-found',
+            component: () => import('./views/ErrorPage.vue'),
+            meta: { auth: false, both: true, },
         },
     ],
 });

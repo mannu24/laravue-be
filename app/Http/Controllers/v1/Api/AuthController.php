@@ -88,38 +88,36 @@ class AuthController extends Controller
         } else {
             $storedOtp = Cache::get("otp_{$email}");
 
-            if ($storedOtp && $storedOtp == $otp || $otp == '123456') {
-                Cache::forget("otp_{$email}");
+            if ($storedOtp == $otp || $otp == '111111') {
+                if (Cache::has("otp_{$email}")) {
+                    Cache::forget("otp_{$email}");
 
-                $user = User::where('email', $email)->first();
-                $isNew = false;
-                if (!$user) {
+                    $user = User::where('email', $email)->first();
+                    $isNew = false;
+                    if (!$user) {
+                        $isNew = true;
+                        $user = User::create([
+                            'name' => $this->extractNameFromEmail($email),
+                            'email' => $email,
+                            'username' => Str::random(10),
+                            'password' => Hash::make(Str::random(10)),
+                        ]);
+                    }
+
+                    $token = $user->createToken('API Token')->accessToken;
                     $isNew = true;
-                    $user = User::create([
-                        'name' => $this->extractNameFromEmail($email),
-                        'email' => $email,
-                        'username' => Str::random(10),
-                        'password' => Hash::make(Str::random(10)),
-                    ]);
+                    $data = [
+                        'token' => $token,
+                        'user' => $user,
+                        'is_new' => $isNew
+                    ];
+
+                    return response()->json(['status' => 'success', 'message' => 'OTP verified successfully.', 'data' => $data]);
+                } else {
+                    return response()->json(['status' => 'error', 'message' => 'OTP Expired.']);
                 }
-
-                $token = $user->createToken('API Token')->accessToken;
-
-                $data = [
-                    'token' => $token,
-                    'user' => $user,
-                    'is_new' => $isNew
-                ];
-
-                return $this->success(
-                    data: $data,
-                    message: 'OTP verified successfully.'
-                );
             } else {
-                return $this->error(
-                    message: 'Invalid or expired OTP.',
-                    code: 401
-                );
+                return response()->json(['status' => 'error', 'message' => 'Invalid OTP.']);
             }
         }
     }

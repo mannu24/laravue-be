@@ -12,10 +12,10 @@ const showDropdown = ref(false)
 const isModalVisible = ref(false)
 const emit = defineEmits(['load_more', 'fetch', 'delete_post', 'liked_action', 'share_url'])
 import { useRouter } from 'vue-router';
-
 const $router = useRouter();
 const authStore = useAuthStore()
 const post_url = computed(() => '/@' + post.user.username + '/' + post.post_code)
+
 onMounted(() => {
     if (element.value.classList.contains('last_item')) {
         checkItem();
@@ -42,7 +42,7 @@ const action = async (type) => {
 }
 
 const renderContent = (content) => {
-    return content.replace(/@(\w+)/g, '<a href="/$1">@$1</a>');
+    return content.replace(/@(\w+)/g, '<a href="/@$1">@$1</a>');
 };
 
 const checkItem = () => {

@@ -15,7 +15,7 @@ const emit = defineEmits(['share_url'])
 
 const fetchPost = async () => {
   try {
-    const response = await axios.get(`/api/v1/posts/${postcode}`, authStore.config);
+    const response = await axios.get(`/api/v1/posts/post_${postcode}`, authStore.config);
     post.value = response.data;
   } catch (error) {
     console.error('Error fetching post:', error);
