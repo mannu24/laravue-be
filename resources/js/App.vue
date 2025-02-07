@@ -1,55 +1,79 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import Navbar from './components/Navbar.vue'
+import { ArrowUp } from 'lucide-vue-next'
 import "../css/index.css"
+import "../css/custom.css"
+import { useThemeStore } from './stores/theme'
+import { toast, Toaster } from './components/ui/toast'
+
+const themeStore = useThemeStore()
 
 const isScrollTopVisible = ref(false)
+
 onMounted(() => {
-    window.addEventListener('scroll', handleScrollTop);
-});
+    window.addEventListener('scroll', handleScrollTop)
+})
+
 onBeforeUnmount(() => {
-    window.removeEventListener('scroll', handleScrollTop);
-});
+    window.removeEventListener('scroll', handleScrollTop)
+})
+
 const handleScrollTop = () => {
-    isScrollTopVisible.value = window.scrollY > 200;
+    isScrollTopVisible.value = window.scrollY > 200
 }
-const scollTop = () => {
+
+const scrollTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
 }
-const share_url = (data) => {
+
+const shareUrl = (data: string) => {
     if (navigator.share) {
         navigator.share({
-            'title': document.title,
-            'text': "Post",
-            'url': data,
-        }).then(() => console.log('Successful share'))
-        .catch(error => console.log('Error sharing:', error));
+            title: document.title,
+            text: "Check out this post",
+            url: data,
+        })
+            .then(() => toast({ title: "Shared successfully", description: "The content has been shared." }))
+            .catch(error => toast({ title: "Error sharing", description: error.message, variant: "destructive" }))
+    } else {
+        toast({ title: "Sharing not supported", description: "Your browser doesn't support the Web Share API.", variant: "destructive" })
     }
 }
 </script>
+
 <template>
-    <div class="min-h-screen bg-gray-900">
+    <div :class="[
+        'min-h-screen transition-colors duration-300',
+        themeStore.isDark ? 'bg-gray-950' : 'bg-gray-50'
+    ]">
         <Navbar />
-        <router-view @share_url="share_url" />
-        <transition name="fade">
-            <button v-if="isScrollTopVisible"
-                class="fixed right-10 bottom-10 flex justify-center items-center text-white bg-vue/80 w-10 h-10 transition-all duration-300 ease-in-out rounded-full hover:bg-laravel/70 hover:scale-110"
-                type="button" @click="scollTop()">
-                <i class="fas fa-arrow-up me-0"></i>
-            </button>
-        </transition>
+        <div class="container mx-auto p-4 grid gap-8">
+            <main class="container mx-auto p-4 grid gap-8">
+                <router-view @share_url="shareUrl" />
+            </main>
+        </div>
+        <Transition name="fade">
+            <Button v-if="isScrollTopVisible" variant="secondary" size="icon"
+                class="fixed right-6 bottom-6 rounded-full shadow-lg" @click="scrollTop">
+                <ArrowUp class="h-4 w-4" />
+                <span class="sr-only">Scroll to top</span>
+            </Button>
+        </Transition>
+        <Toaster />
     </div>
 </template>
+
 <style>
 .fade-enter-active,
 .fade-leave-active {
-    transition: all 0.3s ease;
-    transform-origin: center;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+    transform: scale(0.9);
 }
 
 .bounce-enter-active {

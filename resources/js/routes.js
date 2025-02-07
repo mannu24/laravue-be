@@ -48,7 +48,19 @@ const router = createRouter({
             path: '/feed',
             name: 'feed',
             component: () => import('./views/Feed.vue'),
-            meta: {auth: false, both: true},
+            meta: { auth: false, both: true },
+        },
+        {
+            path: '/qna',
+            name: 'qna',
+            component: () => import('./views/Qna.vue'),
+            meta: { auth: false, both: true },
+        },
+        {
+            path: '/qna/:id',
+            name: 'qna-detail',
+            component: () => import('./views/QuestionDetail.vue'),
+            meta: { auth: false, both: true },
         },
         {
             path: '/projects/:id',
@@ -78,7 +90,7 @@ const router = createRouter({
             path: '/@:username/post_:post_code',
             name: 'post-detail',
             component: () => import('./views/PostDetail.vue'),
-            meta: {auth: false, both: true},
+            meta: { auth: false, both: true },
         },
         {
             path: '/:pathMatch(.*)*',
