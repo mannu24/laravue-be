@@ -34,7 +34,7 @@ const shareUrl = (data: string) => {
             text: "Check out this post",
             url: data,
         })
-            .then(() => toast({ title: "Shared successfully", description: "The content has been shared." }))
+            .then(() => toast({ title: "Link Copied Successfully!", description: "Paste the copied link anywhere to share." }))
             .catch(error => toast({ title: "Error sharing", description: error.message, variant: "destructive" }))
     } else {
         toast({ title: "Sharing not supported", description: "Your browser doesn't support the Web Share API.", variant: "destructive" })
@@ -49,16 +49,16 @@ const shareUrl = (data: string) => {
     ]">
         <Navbar />
         <div class="container mx-auto p-4 grid gap-8">
-            <main class="container mx-auto p-4 grid gap-8">
+            <main class="container mx-auto">
                 <router-view @share_url="shareUrl" />
             </main>
         </div>
         <Transition name="fade">
-            <Button v-if="isScrollTopVisible" variant="secondary" size="icon"
-                class="fixed right-6 bottom-6 rounded-full shadow-lg" @click="scrollTop">
-                <ArrowUp class="h-4 w-4" />
-                <span class="sr-only">Scroll to top</span>
-            </Button>
+            <button v-if="isScrollTopVisible"
+                class="fixed right-10 bottom-10 flex justify-center items-center text-white bg-vue/80 w-10 h-10 transition-all duration-300 ease-in-out rounded-full hover:bg-laravel/70 hover:scale-110"
+                type="button" @click="scollTop()">
+                <i class="fas fa-arrow-up me-0"></i>
+            </button>
         </Transition>
         <Toaster />
     </div>

@@ -11,6 +11,7 @@ use App\Http\Traits\HttpResponse;
 use App\Services\AnswerService;
 use App\Services\QuestionService;
 use Exception;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class QuestionController extends Controller
 {
@@ -28,10 +29,13 @@ class QuestionController extends Controller
     public function index()
     {
         $questions = $this->service->getAllQuestions();
-        return $this->success(
-            data: QuestionResource::collection($questions),
-            message: 'Questions fetched successfully',
-        );
+        // $questions = QuestionResource::collection($questions) ;
+
+        $page = $_GET['page'];
+        $perPage = 2;
+        $paginatedData = new LengthAwarePaginator($questions->forPage($page, $perPage)->values(), $questions->count(), $perPage);
+
+        return response()->json(['status' => 'success', 'records' => $paginatedData]);
     }
 
     public function latest()
@@ -79,9 +83,9 @@ class QuestionController extends Controller
         );
     }
 
-    public function destroy($id)
+    public function destroy($slug)
     {
-        $this->service->deleteQuestion($id);
+        $this->service->deleteQuestion($slug);
         return $this->success(
             message: 'Question deleted successfully'
         );
@@ -94,6 +98,18 @@ class QuestionController extends Controller
             return $this->success(
                 message: 'Question upvoted successfully'
             );
+        } catch (Exception $e) {
+            return $this->internalError(
+                message: $e->getMessage()
+            );
+        }
+    }
+
+    public function like_unlike($slug)
+    {
+        try {
+            $liked = $this->service->like_unlike($slug);
+            return response()->json(['status' => 'success', 'liked' => $liked]);
         } catch (Exception $e) {
             return $this->internalError(
                 message: $e->getMessage()

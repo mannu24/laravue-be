@@ -2,12 +2,12 @@
 import { ref, inject } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
-import { Button } from '../ui/button'
-import { Input } from '../ui/input'
-import { Textarea } from '../ui/textarea'
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/card'
-import { useToast } from '../ui/toast'
-import { useAuthStore } from '../../stores/auth';
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Textarea } from '../components/ui/textarea'
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../components/ui/card'
+import { useToast } from '../components/ui/toast'
+import { useAuthStore } from '../stores/auth';
 
 const router = useRouter()
 const { toast } = useToast()
@@ -21,16 +21,18 @@ const newQuestion = ref({
 const submitQuestion = async () => {
     try {
         isSubmitting.value = true;
+        
         const formData = new FormData();
         formData.append("title", newQuestion.value.title);
         formData.append("content", newQuestion.value.content);
+
         const response = await axios.post('/api/v1/questions', formData, {
             headers: {
                 Authorization: `Bearer ${authStore.token}`,
                 'Content-Type': 'multipart/form-data'
             }
         })
-        router.push(`/qna/${response.data.data.id}`);
+        router.push(`/qna/${response.data.data.slug}`);
         toast({
             title: "Question submitted",
             description: "Your question has been successfully posted.",

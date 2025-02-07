@@ -19,7 +19,6 @@ export const useThemeStore = defineStore('theme', {
                 this.switchTheme();
             }
         },
-
         initTheme() {
             document.documentElement.classList.toggle('dark', this.isDark);
         }

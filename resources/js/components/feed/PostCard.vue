@@ -94,7 +94,7 @@ const closeModal = () => {
 </script>
 <template>
     <div ref="element">
-        <div @click="$router.push(post_url)" class="bg-gray-800/80 shadow-md rounded-lg overflow-hidden mb-4 hover:cursor-pointer hover:bg-gray-700/40 transition-all duration-350 ease-in">
+        <div @click="$router.push(post_url)" class="bg-gray-700/40 shadow-md rounded-lg overflow-hidden mb-4 hover:cursor-pointer hover:bg-gray-800/80 transition-all duration-350 ease-in">
             <div class="flex items-center p-4">
                 <router-link :to="'/' + post.user.username" @click.stop>
                     <img v-if="post.user?.profile_photo" :src="post.user?.profile_photo" alt="User Avatar"

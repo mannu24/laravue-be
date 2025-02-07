@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Repositories\QuestionRepository;
-use Illuminate\Support\Facades\Auth;
 
 class QuestionService
 {
@@ -31,7 +30,7 @@ class QuestionService
 
     public function createQuestion(array $data)
     {
-        $data['user_id'] = Auth::id();
+        $data['user_id'] = auth()->guard('api')->id();
         return $this->repository->create($data);
     }
 
@@ -40,13 +39,18 @@ class QuestionService
         return $this->repository->update($id, $data);
     }
 
-    public function deleteQuestion($id)
+    public function deleteQuestion($slug)
     {
-        $this->repository->delete($id);
+        $this->repository->delete($slug);
     }
 
     public function upvoteQuestion($id)
     {
-        $this->repository->upvote($id, Auth::id());
+        $this->repository->upvote($id, auth()->guard('api')->id());
+    }
+
+    public function like_unlike($slug)
+    {
+        return $this->repository->like_unlike($slug);
     }
 }

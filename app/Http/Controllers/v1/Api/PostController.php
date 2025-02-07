@@ -32,7 +32,7 @@ class PostController extends Controller
         $perPage = 2;
         $paginatedData = new LengthAwarePaginator($posts->forPage($page, $perPage)->values(), $posts->count(), $perPage);
 
-        return response()->json(['status' => 'success', 'posts' => $paginatedData]);
+        return response()->json(['status' => 'success', 'records' => $paginatedData]);
     }
 
     public function store(Request $request) {

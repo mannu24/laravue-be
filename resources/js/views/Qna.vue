@@ -1,9 +1,19 @@
 <script setup>
-import QuestionList from '../components/qna/QuestionList.vue'
-import AskQuestion from '../components/qna/AskQuestion.vue'
-</script>
+import InfiniteScroll from '../components/elements/InfiniteScroll.vue'
+import {Button} from '../components/ui/button'
 
+const emit = defineEmits(['share_url'])
+
+const share_url = (url) => {
+    emit('share_url', url)
+}
+</script>
 <template>
-    <AskQuestion />
-    <QuestionList />
+    <div>
+        <div class="flex justify-between">
+            <h1 class="text-3xl font-bold mb-6">Latest Questions</h1>
+            <Button variant="ghost" @click="$router.push('/qna/ask')">Ask a Question</Button>
+        </div>
+        <InfiniteScroll scrolling="qna" @share_url="share_url" :username="null"></InfiniteScroll>
+    </div>
 </template>

@@ -325,7 +325,7 @@ onMounted(() => {
 });
 </script>
 <template>
-    <div :class="{'fixed inset-0 z-50 flex items-center justify-center bg-black/70' : props.post}">
+    <div :class="props.post ? 'fixed inset-0 z-50 flex items-center justify-center bg-black/70' : 'none'">
         <!-- v-click-outside="{ closeCondition: () => expanded, closeAction: () => expandCard(false) }" -->
         <div class="mx-auto w-full rounded-lg shadow-lg p-4 transition-all duration-300 ease-in-out"
             :class="{ 'max-w-xl h-auto': expanded, 'max-w-md h-20': !expanded, 'bg-gray-800/80 hover:bg-gray-700/40' : !props.post, 'bg-gray-800' : props.post }">

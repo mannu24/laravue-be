@@ -16,12 +16,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/otp', 'handleOtp');
     });
 
-    // Question Publi Routes
-    Route::controller(QuestionController::class)->group(function () {
-        Route::get('/latest-questions', 'latest');
-        Route::get('/questions/{id}', 'show');
-    });
-
     // Authenticated Routes
     Route::middleware(['auth:api'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -32,10 +26,11 @@ Route::prefix('v1')->group(function () {
             Route::post('/user', 'update');
         });
 
-        Route::apiResource('questions', QuestionController::class)->except(['create', 'edit', 'show']);
         // Question Routes
         Route::post('questions/{question}/upvote', [QuestionController::class, 'upvote'])->name('questions.upvote');
-
+        Route::get('questions/like-unlike/{slug}', [QuestionController::class, 'like_unlike']);
+        Route::apiResource('questions', QuestionController::class)->except(['index', 'create', 'edit', 'show']);
+        
         // FEED Posts Routes
         // Route::get('posts/duplicate/{post_code}', [PostController::class, 'duplicate']);
         Route::post('/post/comment', [PostController::class, 'add_comment']);
@@ -44,7 +39,7 @@ Route::prefix('v1')->group(function () {
 
         Route::middleware(['throttle:30,1'])->get('posts/mention-suggestions', [PostController::class, 'mentionSuggestions']);
         Route::get('posts/like-unlike/{post_code}', [PostController::class, 'like_unlike']);
-        Route::apiResource('posts', PostController::class)->except(['show', 'index']);
+        Route::apiResource('posts', PostController::class)->except(['show', 'create', 'edit', 'index']);
 
         // Answer Routes
         Route::prefix('questions/{question}')->group(function () {
@@ -59,7 +54,17 @@ Route::prefix('v1')->group(function () {
             Route::post('replies', [AnswerController::class, 'storeReply'])->name('answers.storeReply');
         });
     });
+    
+    // Question Public Routes
+    Route::controller(QuestionController::class)->group(function () {
+        Route::post('/questions-feed', 'index');
+        Route::get('/questions/{id}', 'show');
+    });
 
-    Route::post('feed', [PostController::class, 'index']);
-    Route::get('posts/{post_code}', [PostController::class, 'show']);
+    // Feed Public Routes
+    Route::controller(PostController::class)->group(function () {
+        Route::post('feed', 'index');
+        Route::get('posts/{post_code}', 'show');
+    });
+
 });

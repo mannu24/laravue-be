@@ -57,7 +57,19 @@ const router = createRouter({
             meta: { auth: false, both: true },
         },
         {
-            path: '/qna/:id',
+            path: '/qna/ask',
+            name: 'qna-new',
+            component: () => import('./views/QuestionAsk.vue'),
+            meta: { auth: true },
+        },
+        {
+            path: '/qna/ask/:slug',
+            name: 'qna-edit',
+            component: () => import('./views/QuestionAsk.vue'),
+            meta: { auth: true },
+        },
+        {
+            path: '/qna/:slug',
             name: 'qna-detail',
             component: () => import('./views/QuestionDetail.vue'),
             meta: { auth: false, both: true },

@@ -41,10 +41,17 @@ class QuestionRepository
         return $question;
     }
 
-    public function delete($id)
+    public function delete($slug)
     {
-        $question = $this->model->findOrFail($id);
+        $question = $this->model->where('slug', $slug)->firstOrFail();
         $question->delete();
+    }
+
+    public function like_unlike($slug)
+    {
+        $question = $this->model->where('slug', $slug)->firstOrFail();
+        $question->toggleLike();
+        return $question->liked;
     }
 
     public function upvote($id, $userId)
