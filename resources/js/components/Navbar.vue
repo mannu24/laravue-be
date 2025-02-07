@@ -104,7 +104,7 @@ onMounted(() => {
                                     Profile
                                 </DropdownMenuItem>
                                 <DropdownMenuItem @click="logout" :disabled="isLoading">
-                                    <LogOut class="mr-2 h-4 w-4" />
+                                    <LogOut class="h-4 w-4" />
                                     <span>{{ isLoading ? 'Logging out...' : 'Logout' }}</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>

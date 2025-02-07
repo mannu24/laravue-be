@@ -52,9 +52,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     >
       <slot />
 
-      <DialogClose
-        class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-      >
+      <DialogClose :title="'Close'" class="absolute right-4 top-4 icon-hover w-8 h-8 rounded-full flex icon-hover text-gray-100 dark:text-gray-400 bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 dark:hover:text-white hover:text-black-900" @click.stop="showDropdown = !showDropdown">
         <X class="w-4 h-4" />
         <span class="sr-only">Close</span>
       </DialogClose>
