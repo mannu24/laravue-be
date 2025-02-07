@@ -1,20 +1,58 @@
 <script setup>
-import { onMounted, ref, defineEmits, computed, defineProps } from 'vue';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { LucideChartBar, LucideChevronLeft, LucideChevronRight, LucideDot, LucideEllipsis, LucideHeart, LucideMessageCircle, LucideShare } from 'lucide-vue-next';
+import {
+    Dialog,
+    DialogTrigger,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogClose
+} from '@/components/ui/dialog';
+import { computed, defineEmits, defineProps, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { CardFooter } from '@/components/ui/card';
-import Modal from '../elements/Modal.vue'
 import PostForm from './PostForm.vue';
-
+import { cn } from '/resources/js/lib/utils';
 const { post } = defineProps(['post'])
 const element = ref(null)
 const showDropdown = ref(false)
 const isModalVisible = ref(false)
 const emit = defineEmits(['load_more', 'fetch', 'delete_post', 'liked_action', 'share_url'])
-import { useRouter } from 'vue-router';
 const $router = useRouter();
 const authStore = useAuthStore()
 const post_url = computed(() => '/@' + post.user.username + '/' + post.post_code)
+
+// Gallery popup state:
+const isGalleryVisible = ref(false)
+const selectedImageIndex = ref(0)
+
+const handleOpenGallery = (index) => {
+    selectedImageIndex.value = index;
+    isGalleryVisible.value = true;
+};
+
+const closeGallery = () => {
+    isGalleryVisible.value = false;
+};
+
+const nextImage = () => {
+    if (selectedImageIndex.value < post.media_urls.length - 1) {
+        selectedImageIndex.value++;
+    }
+};
+
+const prevImage = () => {
+    if (selectedImageIndex.value > 0) {
+        selectedImageIndex.value--;
+    }
+};
 
 onMounted(() => {
     if (element.value.classList.contains('last_item')) {
@@ -57,12 +95,12 @@ const checkItem = () => {
 }
 
 const handleLike = async () => {
-    if(!authStore.isAuthenticated) {
+    if (!authStore.isAuthenticated) {
         $router.push('/login')
     }
     else {
         const response = await axios.get(`/api/v1/posts/like-unlike/${post.post_code}`, authStore.config)
-        if(response.data.status == 'success') {
+        if (response.data.status == 'success') {
             emit('liked_action', [post.post_code, response.data.liked])
         }
         else {
@@ -72,7 +110,7 @@ const handleLike = async () => {
 };
 
 const handleComment = () => {
-    if(!authStore.isAuthenticated) {
+    if (!authStore.isAuthenticated) {
         $router.push('/login')
     }
     else {
@@ -94,106 +132,191 @@ const closeModal = () => {
 </script>
 <template>
     <div ref="element">
-        <div @click="$router.push(post_url)" class="bg-gray-700/40 shadow-md rounded-lg overflow-hidden mb-4 hover:cursor-pointer hover:bg-gray-800/80 transition-all duration-350 ease-in">
-            <div class="flex items-center p-4">
-                <router-link :to="'/' + post.user.username" @click.stop>
+        <div class='flex flex-row border-t-[0.5px] twitter-border-color'>
+            <div class='userIcon p-3 pe-1'>
+                <router-link :to="'/' + post.user.username" @click.stop class='w-10 h-10 bg-slate-400 rounded-full'>
                     <img v-if="post.user?.profile_photo" :src="post.user?.profile_photo" alt="User Avatar"
                         class="w-12 h-12 rounded-full" />
                     <img v-else src="/assets/front/images/user.png" alt="User Avatar" class="w-12 h-12 rounded-full" />
                 </router-link>
-                <router-link @click.stop :to="'/' + post.user.username" class="ml-3">
-                    <p class="font-semibold text-white text-lg">{{ post.user.name }}</p>
-                    <p class="text-sm text-gray-500">@{{ post.user.username }}</p>
-                </router-link>
-                <div class="relative inline-block ml-auto self-start" v-if="authStore.isAuthenticated && post.owner">
-                    <i class="fas fa-ellipsis-v cursor-pointer text-white p-2" @click.stop="showDropdown = !showDropdown"></i>
-                    <transition enter-active-class="transition ease-out duration-100"
-                        enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100"
-                        leave-active-class="transition ease-in duration-75"
-                        leave-from-class="transform opacity-100 scale-100"
-                        leave-to-class="transform opacity-0 scale-95">
-                        <div v-if="showDropdown"
-                            class="absolute right-0 z-10 w-32 origin-top-right divide-y divide-gray-100 ring-1 shadow-lg ring-black/5 focus:outline-hidden"
-                            role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
-                            <div class="" role="none">
-                                <!-- Active: "bg-gray-100 text-gray-900 outline-hidden", Not Active: "text-gray-700" -->
-                                <div @click.stop="edit_post()"
-                                    class="block px-4 py-2 text-sm text-gray-700 transition-all duration-150 ease-in-out rounded-md bg-white hover:bg-gray-200 mb-1">
-                                    <i class="fas fa-pencil-alt mr-1"></i>
-                                    Edit
-                                </div>
-                                <!-- <a href="#" @click="action('duplicate')" class="block px-4 py-2 text-sm text-gray-700 transition-all duration-150 ease-in-out rounded-md bg-white hover:bg-gray-200">
-                                    <i class="fas fa-files mr-1"></i>
-                                    Duplicate
-                                </a> -->
-                                <AlertDialog>
-                                    <AlertDialogTrigger as-child>
-                                        <div @click.stop
-                                            class="block px-4 py-2 text-sm text-gray-700 transition-all duration-150 ease-in-out rounded-md bg-white hover:bg-gray-200">
-                                            <i class="fas fa-trash mr-1"></i> Delete
+            </div>
+            <div class='postContent p-1 px-2 w-full'>
+                <header class='flex flex-row w-full items-center justify-between'>
+                    <div @click="$router.push(post_url)" class='cursor-pointer flex flex-row items-center space-x-1'>
+                        <router-link @click.stop :to="'/' + post.user.username" class='font-bold text-sm'>{{
+                            post.user.name
+                        }}</router-link>
+                        <router-link @click.stop :to="'/' + post.user.username" class='text-sm text-gray-500'>@{{
+                            post.user.username }}</router-link>
+                        <p class='text-sm text-gray-500'>
+                            <LucideDot />
+                        </p>
+                        <p class='text-sm text-gray-500'>{{ post.posted_at }}</p>
+                    </div>
+                    <div :class="cn(
+                        'flex flex-row items-center justify-center h-[40px] w-[40px]',
+                        authStore?.isAuthenticated ? 'block' : 'invisible'
+                    )">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger>
+                                <p class=' icon-hover text-gray-500 hover:bg-primary/20 hover:text-primary
+                        hover:bg-opacity-25'>
+                                    <LucideEllipsis />
+                                </p>
+                            </DropdownMenuTrigger>
+                            <AlertDialog>
+                                <DropdownMenuContent>
+                                    <DropdownMenuItem>
+                                        <AlertDialogTrigger as-child>
+                                            <div @click.stop>
+                                                <i class=" fas fa-trash mr-1"></i> Delete
+                                            </div>
+                                        </AlertDialogTrigger>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                        <div @click.stop="edit_post()">
+                                            <i class="fas fa-pencil-alt mr-1"></i>
+                                            Edit
                                         </div>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This action cannot be undone. This will delete your post.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction @click.stop="action('delete')">Continue</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This action cannot be undone. This will delete your post.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction @click.stop="action('delete')">Continue
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </DropdownMenu>
+                    </div>
+                </header>
+                <div class='postText pe-2 space-y-3'>
+                    <div @click="$router.push(post_url)" class="cursor-pointer flex flex-col gap-3">
+                        <h3 class='text-lg font-semibold'>
+                            {{ post.title }}
+                        </h3>
+                        <p class='text-sm' v-html="renderContent(post.content)" @click.stop />
+                    </div>
+
+                    <!-- Media Images Collage -->
+                    <div v-if="post.media_urls && post.media_urls.length" class="mt-2 p-2 rounded-xl">
+                        <!-- Single Image -->
+                        <template v-if="post.media_urls.length === 1">
+                            <img :src="post.media_urls[0]" @click="handleOpenGallery(0)"
+                                class="w-full h-auto object-cover rounded-xl cursor-pointer" alt="Post media" />
+                        </template>
+
+                        <!-- Two Images: side-by-side -->
+                        <template v-else-if="post.media_urls.length === 2">
+                            <div class="grid grid-cols-2 gap-1">
+                                <img v-for="(url, index) in post.media_urls" :key="index" :src="url"
+                                    @click="handleOpenGallery(index)"
+                                    class="w-full h-48 object-cover rounded-xl cursor-pointer" alt="Post media" />
                             </div>
+                        </template>
+
+                        <!-- Three Images: one big image on the left, two stacked on the right -->
+                        <template v-else-if="post.media_urls.length === 3">
+                            <div class="grid grid-cols-2 gap-1">
+                                <div class="row-span-2">
+                                    <img :src="post.media_urls[0]" @click="handleOpenGallery(0)"
+                                        class="w-full h-full object-cover rounded-xl cursor-pointer" alt="Post media" />
+                                </div>
+                                <img :src="post.media_urls[1]" @click="handleOpenGallery(1)"
+                                    class="w-full h-24 object-cover rounded-xl cursor-pointer" alt="Post media" />
+                                <img :src="post.media_urls[2]" @click="handleOpenGallery(2)"
+                                    class="w-full h-24 object-cover rounded-xl cursor-pointer" alt="Post media" />
+                            </div>
+                        </template>
+
+                        <!-- Four (or more) Images: same layout as three, with overlay on the last image if more than four -->
+                        <template v-else>
+                            <div class="grid grid-cols-2 gap-1">
+                                <div class="row-span-2">
+                                    <img :src="post.media_urls[0]" @click="handleOpenGallery(0)"
+                                        class="w-full h-full object-cover rounded-xl cursor-pointer" alt="Post media" />
+                                </div>
+                                <img :src="post.media_urls[1]" @click="handleOpenGallery(1)"
+                                    class="w-full h-24 object-cover rounded-xl cursor-pointer" alt="Post media" />
+                                <img :src="post.media_urls[2]" @click="handleOpenGallery(2)"
+                                    class="w-full h-24 object-cover rounded-xl cursor-pointer" alt="Post media" />
+                                <div class="relative" @click="handleOpenGallery(3)">
+                                    <img :src="post.media_urls[3]"
+                                        class="w-full h-24 object-cover rounded-xl cursor-pointer" alt="Post media" />
+                                    <div v-if="post.media_urls.length > 4"
+                                        class="absolute cursor-pointer inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-xl">
+                                        <span class="text-white text-xl font-bold">
+                                            +{{ post.media_urls.length - 4 }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <!-- End of Media Images Collage -->
+
+                    <!-- Icons -->
+                    <div class='flex flex-row w-full justify-between space-x-1 py-3 text-slate-500'>
+                        <!-- <ReplyDialog tweet={tweet} repliesCount={repliesCount} /> -->
+                        <div class='flex flex-row gap-6'>
+                            <p @click.stop="handleComment"
+                                class='icon-hover hover:bg-primary/20 hover:text-primary hover:bg-opacity-25'>
+                                <LucideMessageCircle class="w-5 h-5" />
+                                <span :title="post.comments_count + ' Comments'" class='absolute ms-[23px]'>{{
+                                    post.comments_count }}</span>
+                            </p>
+                            <p @click.stop="handleLike"
+                                class='icon-hover hover:bg-secondary/20 hover:text-secondary hover:bg-opacity-25'>
+                                <LucideHeart class="w-5 h-5" />
+                                <span :title="post.likes_count + ' Likes'" class='absolute ms-[23px]'>{{
+                                    post.likes_count }}</span>
+                            </p>
+
+                            <p class='icon-hover hover:bg-primary/20 hover:text-primary hover:bg-opacity-25'>
+                                <LucideChartBar class="w-5 h-5 rotate-[270deg] scale-y-[-1]" />
+                                <span :title="post.views_count + ' Views'" class='absolute ms-[23px]'>{{
+                                    post.views_count
+                                }}</span>
+                            </p>
                         </div>
-                    </transition>
+                        <div class='flex flex-row '>
+                            <span :title="'Share Post'" @click.stop="handleShare"
+                                class='icon-hover hover:bg-secondary/20 hover:text-secondary hover:bg-opacity-25'>
+                                <LucideShare class="w-5 h-5" />
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="px-4">
-                <h3 class="font-bold text-xl text-white text-gray-800 mb-0" v-if="post.title">{{ post.title }}</h3>
-                <p class="text-gray-700 mb-2 text-white" v-html="renderContent(post.content)" @click.stop></p>
-                <div v-if="post.media_urls && post.media_urls.length" class="grid gap-2 mb-4">
-                    <img v-if="post.media_urls.length === 1" :src="post.media_urls[0]" alt="Post Media"
-                        class="cursor-pointer rounded-lg object-cover w-full h-80" />
-                    <div v-else-if="post.media_urls.length === 2" class="grid grid-cols-2 gap-2">
-                        <img v-for="(media, index) in post.media_urls" v-if="index < 2" :key="media" :src="media"
-                            alt="Post Media" class="cursor-pointer rounded-lg object-cover h-40 w-full" />
-                    </div>
-                    <div v-else-if="post.media_urls.length === 3" class="grid grid-cols-2 gap-2">
-                        <img v-for="(media, index) in post.media_urls.slice(0, 2)" :key="media" :src="media"
-                            alt="Post Media" class="cursor-pointer rounded-lg object-cover h-40 w-full" />
-                        <img :src="post.media_urls[2]" alt="Post Media"
-                            class="cursor-pointer col-span-2 rounded-lg object-cover h-40 w-full" />
-                    </div>
-                    <div v-else class="grid grid-cols-2 gap-2 relative">
-                        <img v-for="(media, index) in post.media_urls.slice(0, 4)" :key="media" :src="media"
-                            alt="Post Media" class="cursor-pointer rounded-lg object-cover h-40 w-full" />
-                        <div v-if="post.media_urls.length > 4"
-                            class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-xl font-bold rounded-lg"
-                            :style="{ gridArea: '2 / 2 / 3 / 3' }">
-                            +{{ post.media_urls.length - 4 }} more
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <CardFooter class="flex items-center justify-between p-4 pt-0">
-                <div class="flex items-center space-x-4">
-                    <span :title="post.likes_count+' Likes'" class="text-white hover:text-red-400"><i class="fa-heart" :class="post.liked ? 'fas text-red-500':'far'" @click.stop="handleLike"></i>&nbsp;{{ post.likes_count }}</span>
-                    <span :title="post.comments_count+' Comments'" class="text-white hover:text-red-400"><i class="far fa-messages" @click.stop="handleComment"></i>&nbsp;{{ post.comments_count }}</span>
-                    <span :title="post.views_count+' Views'" class="text-white hover:text-red-400"><i class="far fa-chart-column"></i>&nbsp;{{ post.views_count }}</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <span class="text-white text-sm">{{ post.posted_at }}</span>
-                    <span class="bg-red-400 w-[5px] h-[5px] rounded"></span>
-                    <span :title="'Share Post'" class="text-white hover:text-red-400"><i class="far fa-paper-plane-top" @click.stop="handleShare"></i></span>
-                </div>
-            </CardFooter>
         </div>
         <Transition name="fade">
             <PostForm v-if="isModalVisible" @close="closeModal" @fetch="fetch" :post="post" />
         </Transition>
+
+        <!-- Gallery Popup using shadcn ui Dialog -->
+        <Dialog v-model:open="isGalleryVisible">
+            <DialogContent class="max-w-4xl p-0">
+                <div class="relative">
+                    <img :src="post.media_urls[selectedImageIndex]" alt="Gallery image"
+                        class="w-full h-auto object-contain" />
+                    <button v-if="selectedImageIndex > 0" @click="prevImage"
+                        class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-primary/20 text-white p-2 rounded-full">
+                        <LucideChevronLeft class="w-5 h-5" />
+                    </button>
+                    <button v-if="selectedImageIndex < post.media_urls.length - 1" @click="nextImage"
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary/20 text-white p-2 rounded-full">
+                        <LucideChevronRight class="w-5 h-5" />
+                    </button>
+                </div>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>
 <style scoped>
@@ -206,6 +329,7 @@ const closeModal = () => {
     background-color: rgb(209 235 223 / var(--tw-bg-opacity, 1));
     border-radius: 0.25rem;
 }
+
 .mention-link:hover {
     text-decoration: underline;
 }

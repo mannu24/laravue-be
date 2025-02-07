@@ -30,7 +30,7 @@ Route::prefix('v1')->group(function () {
         Route::post('questions/{question}/upvote', [QuestionController::class, 'upvote'])->name('questions.upvote');
         Route::get('questions/like-unlike/{slug}', [QuestionController::class, 'like_unlike']);
         Route::apiResource('questions', QuestionController::class)->except(['index', 'create', 'edit', 'show']);
-        
+
         // FEED Posts Routes
         // Route::get('posts/duplicate/{post_code}', [PostController::class, 'duplicate']);
         Route::post('/post/comment', [PostController::class, 'add_comment']);
@@ -54,7 +54,7 @@ Route::prefix('v1')->group(function () {
             Route::post('replies', [AnswerController::class, 'storeReply'])->name('answers.storeReply');
         });
     });
-    
+
     // Question Public Routes
     Route::controller(QuestionController::class)->group(function () {
         Route::post('/questions-feed', 'index');
@@ -66,5 +66,4 @@ Route::prefix('v1')->group(function () {
         Route::post('feed', 'index');
         Route::get('posts/{post_code}', 'show');
     });
-
 });
