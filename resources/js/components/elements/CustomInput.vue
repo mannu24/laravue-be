@@ -51,22 +51,15 @@ const inputProps = computed(() => {
 
 const computedClass = computed(() => {
     const baseClass =
-    "w-full placeholder:text-slate-400 text-white text-sm border rounded-md px-3 py-2 transition duration-300 ease focus:outline-none shadow-sm";
+    "w-full placeholder:text-slate-400 dark:text-white text-gray-800 text-sm border rounded-md px-3 py-2 transition duration-300 ease focus:outline-none shadow-sm";
 
     if (["checkbox", "radio"].includes(props.type)) {
-    return "appearance-none cursor-pointer w-5 h-5 border rounded focus:ring-2 focus:ring-slate-400";
+        return "appearance-none cursor-pointer w-5 h-5 border rounded focus:ring-2 focus:ring-slate-400";
     }
 
-    if (props.type === "select") {
-    return `${baseClass} cursor-pointer ${props.disabled
-        ? "pointer-events-none bg-slate-200 text-slate-400 border-slate-200"
-        : "bg-transparent text-slate-700 border-slate-200 hover:border-slate-300 focus:border-slate-400"
-        } ${props.error ? "border-red-600 text-red-600 focus:border-red-600" : ""}`;
-    }
-
-    return `${baseClass} ${props.disabled
+    return `${baseClass} ${props.type === "select" ? 'cursor-pointer' : ''} ${props.disabled
     ? "pointer-events-none bg-slate-200 text-slate-400 border-slate-200"
-    : "bg-transparent text-slate-700 border-slate-200 hover:border-slate-300 focus:border-slate-400"
+    : "bg-transparent text-slate-700 border-gray-300 hover:border-gray-400/50 focus:border-gray-400 dark:border-slate-700 dark:hover:border-slate-600 dark:focus:border-slate-500"
     } ${props.error ? "border-red-600 text-red-600 focus:border-red-600 hover:border-red-600" : ""}`;
 });
 

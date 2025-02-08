@@ -16,8 +16,8 @@ const { fetchKey, username, scrolling } = defineProps(['fetchKey', 'username', '
 const emit = defineEmits(['share_url'])
 
 const url = computed(() => {
-    if(scrolling == 'post') return '/api/v1/feed?page='+pageNo.value ;
-    else if(scrolling == 'qna') return '/api/v1/questions-feed?page='+pageNo.value ;
+    if (scrolling == 'post') return '/api/v1/feed?page=' + pageNo.value;
+    else if (scrolling == 'qna') return '/api/v1/questions-feed?page=' + pageNo.value;
 })
 
 const fetch = () => {
@@ -80,21 +80,13 @@ watch(pageNo, async (value) => { index() })
 watch(() => fetchKey, async (value) => { fetch() })
 </script>
 <template>
-    <div class="max-w-2xl mx-auto sm:px-6 pb-5 infinite-scroll-container">
+    <div class="max-w-2xl mx-auto flex flex-col gap-4 sm:px-6 pb-5 infinite-scroll-container">
         <TransitionGroup name="fade" appear>
-            <component 
-                :is="scrolling === 'post' ? PostCard : QuestionCard" 
-                v-for="(item, index) in records" 
-                :key="index" 
-                @share_url="share_url" 
-                @fetch="fetch" 
-                @liked_action="like_action" 
-                @delete_post="post_deleted" 
-                @delete_question="question_deleted" 
-                @load_more="view_more" 
-                :class="index === (records.length - last_item) ? 'last_item' : ''" 
-                v-bind="{ [scrolling === 'post' ? 'post' : 'question']: item }"
-            />
+            <component :is="scrolling === 'post' ? PostCard : QuestionCard" v-for="(item, index) in records"
+                :key="index" @share_url="share_url" @fetch="fetch" @liked_action="like_action"
+                @delete_post="post_deleted" @delete_question="question_deleted" @load_more="view_more"
+                :class="index === (records.length - last_item) ? 'last_item' : ''"
+                v-bind="{ [scrolling === 'post' ? 'post' : 'question']: item }" />
         </TransitionGroup>
         <Transition class="mx-auto" name="fade">
             <div v-if="loading" class="gap-4 grid max-w-2xl mx-auto w-full">
