@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, defineEmits, computed, defineProps } from 'vue';
+import { ref } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import CommentCard from './elements/CommentCard.vue';
 import { Button } from '@/components/ui/button';

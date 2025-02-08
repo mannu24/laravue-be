@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios';
-import { ref, defineEmits, defineProps, onMounted, nextTick } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import CustomInput from "../elements/CustomInput.vue";
 import { useMentions } from '@/composables/useMentions';
 import { useAuthStore } from '../../stores/auth';

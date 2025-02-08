@@ -3,9 +3,7 @@ import { onMounted, ref, defineEmits, computed, defineProps } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { CardFooter } from '@/components/ui/card';
-import Modal from '../elements/Modal.vue'
 import PostForm from './PostForm.vue';
-
 const { post } = defineProps(['post'])
 const element = ref(null)
 const showDropdown = ref(false)

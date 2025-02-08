@@ -22,7 +22,7 @@
     <meta name="theme-color" content="#42b883">
     <link rel="canonical" href="https://www.laravue.in">
     <title>{{ env('APP_NAME', 'Laravue') }} - The Laravel & Vue.js Developer Community</title>
-
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="{{ asset('assets/front/css/fa6/css/all.css') }}">
     <title>Laravue</title>
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])

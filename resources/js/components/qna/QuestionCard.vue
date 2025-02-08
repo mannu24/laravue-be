@@ -54,16 +54,20 @@ const checkItem = () => {
 }
 
 const handleLike = async () => {
-    if(!authStore.isAuthenticated) {
+    if (!authStore.isAuthenticated) {
         $router.push('/login')
     }
     else {
         const response = await axios.get(`/api/v1/questions/like-unlike/${question.slug}`, authStore.config)
-        if(response.data.status == 'success') {
+        if (response.data.status == 'success') {
             emit('liked_action', [question.slug, response.data.liked])
         }
         else {
-            alert('Something went wrong')
+            toast({
+                title: "Error",
+                description: "Something went wrong",
+                variant: "destructive",
+            })
         }
     }
 };
