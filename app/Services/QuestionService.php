@@ -28,6 +28,11 @@ class QuestionService
         return $this->repository->findById($id);
     }
 
+    public function getQuestionBySlug($slug)
+    {
+        return $this->repository->findBySlug($slug);
+    }
+
     public function createQuestion(array $data)
     {
         $data['user_id'] = auth()->guard('api')->id();

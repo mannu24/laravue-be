@@ -29,11 +29,11 @@ const themeStore = useThemeStore()
 
 const navigation = computed(() => [
     { name: 'Home', href: '/', current: route.path === '/' },
-    { name: 'Projects', href: '/projects', current: route.path === '/projects' },
     { name: 'About', href: '/about', current: route.path === '/about' },
-    { name: 'Contact', href: '/contact', current: route.path === '/contact' },
+    { name: 'Projects', href: '/projects', current: route.path === '/projects' },
     { name: 'Feed', href: '/feed', current: route.path === '/feed' },
     { name: 'QNA', href: '/qna', current: route.path === '/qna' },
+    { name: 'Contact', href: '/contact', current: route.path === '/contact' },
 ])
 
 const logout = async () => {

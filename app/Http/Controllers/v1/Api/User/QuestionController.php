@@ -47,9 +47,9 @@ class QuestionController extends Controller
         );
     }
 
-    public function show($id)
+    public function show($slug)
     {
-        $question = $this->service->getQuestionById($id);
+        $question = $this->service->getQuestionBySlug($slug);
         $answers = $this->answerService->getAnswersByQuestion($question->id);
         return $this->success(
             data: [

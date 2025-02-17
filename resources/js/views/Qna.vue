@@ -12,7 +12,7 @@ const share_url = (url) => {
     <div>
         <div class="flex justify-between">
             <h1 class="text-3xl font-bold mb-6">Latest Questions</h1>
-            <Button variant="ghost" @click="$router.push('/qna/ask')">Ask a Question</Button>
+            <Button variant="default" @click="$router.push('/qna/ask')">Ask a Question</Button>
         </div>
         <InfiniteScroll scrolling="qna" @share_url="share_url" :username="null"></InfiniteScroll>
     </div>
