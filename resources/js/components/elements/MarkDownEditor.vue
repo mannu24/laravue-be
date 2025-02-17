@@ -1,22 +1,50 @@
 <template>
-    <MdEditor>
-        <template #defToolbars>
-            <NormalToolbar title="mark" @onClick="handler">
-                <template #trigger>
-                    <svg class="md-editor-icon" aria-hidden="true">
-                        <use xlink:href="#md-editor-icon-mark"></use>
-                    </svg>
-                </template>
-            </NormalToolbar>
-        </template>
-    </MdEditor>
+    <QuillEditor v-model:content="content" contentType="html" :options="editorOptions" :min-height="minHeight" />
 </template>
 
-<script setup lang="ts">
-import { MdEditor, NormalToolbar } from 'md-editor-v3';
-import 'md-editor-v3/lib/style.css';
+<script setup>
+import { ref, watch, defineProps, defineEmits } from 'vue'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
-const handler = () => {
-    console.log('NormalToolbar clicked!');
-};
+const props = defineProps({
+    modelValue: String,
+    minHeight: {
+        type: Number,
+        default: 300
+    },
+    placeholder: String
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const content = ref(props.modelValue)
+
+const editorOptions = {
+    theme: 'snow',
+    modules: {
+        toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            ['blockquote', 'code-block'],
+            [{ 'header': 1 }, { 'header': 2 }],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'script': 'sub' }, { 'script': 'super' }],
+            [{ 'indent': '-1' }, { 'indent': '+1' }],
+            [{ 'direction': 'rtl' }],
+            [{ 'size': ['small', false, 'large', 'huge'] }],
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['clean'],
+            // ['link', 'image', 'video']
+            ['link']
+        ],
+    },
+    placeholder: props.placeholder
+}
+
+watch(content, (newContent) => {
+    emit('update:modelValue', newContent)
+})
 </script>

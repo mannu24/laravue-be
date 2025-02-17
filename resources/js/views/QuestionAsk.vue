@@ -95,12 +95,11 @@ const previewQuestion = () => {
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="content">Question Details (Markdown supported)</Label>
-                        <MarkDownEditor v-model="newQuestion.content" id="content"
-                            placeholder="Provide more context about your question..." rows="10" class="font-mono" />
+                        <Label for="content">Question Details</Label>
+                        <MarkDownEditor v-model="newQuestion.content"
+                            placeholder="Provide more context about your question..." :min-height="300" />
                         <p class="text-sm text-muted-foreground">
-                            Include all the information someone would need to answer your question. Markdown is
-                            supported.
+                            Include all the information someone would need to answer your question.
                         </p>
                     </div>
 
@@ -111,26 +110,18 @@ const previewQuestion = () => {
                             Add up to 5 tags to describe what your question is about.
                         </p>
                     </div>
-
-                    <!-- <div class="space-y-2">
-                        <Label>Attachments (optional)</Label>
-                        <FileUpload @files-selected="handleFileUpload" />
-                        <p class="text-sm text-muted-foreground">
-                            You can attach images or code snippets to better illustrate your question.
-                        </p>
-                    </div> -->
                 </form>
             </CardContent>
             <CardFooter class="flex justify-between">
-                <!-- <Button variant="outline" @click="previewQuestion">
+                <Button variant="outline" @click="previewQuestion">
                     Preview
-                </Button> -->
+                </Button>
                 <Button @click="submitQuestion" :disabled="isSubmitting">
                     {{ isSubmitting ? 'Submitting...' : 'Post Your Question' }}
                 </Button>
             </CardFooter>
         </Card>
 
-        <!-- <QuestionPreviewModal v-if="showPreview" :question="newQuestion" @close="showPreview = false" /> -->
+        <QuestionPreviewModal v-if="showPreview" :question="newQuestion" @close="showPreview = false" />
     </div>
 </template>
