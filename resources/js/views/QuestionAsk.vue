@@ -1,3 +1,81 @@
+
+<script setup>
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import axios from 'axios'
+import { ref } from 'vue'
+import MarkDownEditor from '../components/elements/MarkDownEditor.vue'
+import { useAuthStore } from '../stores/auth'
+import router from '../routes'
+// import QuestionPreviewModal from '../components/qna/QuestionPreviewModal.vue'
+
+const isSubmitting = ref(false)
+const showPreview = ref(false)
+const authStore = useAuthStore() ;
+
+const newQuestion = ref({
+    title: '',
+    content: '',
+    tags: [],
+    attachments: []
+})
+
+const handleFileUpload = (files) => {
+    newQuestion.value.attachments = files
+}
+
+const submitQuestion = async () => {
+    if (!validateForm()) return
+
+    try {
+        isSubmitting.value = true
+
+        const formData = new FormData()
+        formData.append("title", newQuestion.value.title)
+        formData.append("content", newQuestion.value.content)
+        formData.append("tags", JSON.stringify(newQuestion.value.tags))
+
+        newQuestion.value.attachments.forEach((file, index) => {
+            formData.append(`attachment_${index}`, file)
+        })
+
+        const response = await axios.post('/api/v1/questions', formData, {
+            headers: {
+                Authorization: `Bearer ${authStore.token}`,
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+
+        router.push(`/qna/${response.data.data.slug}`)
+        alert("Your question has been successfully posted.")
+    } catch (error) {
+        console.error('Error submitting question:', error)
+        alert("Failed to submit question. Please try again.")
+    } finally {
+        isSubmitting.value = false
+    }
+}
+
+const validateForm = () => {
+    if (newQuestion.value.title.length < 15) {
+        alert("Title should be at least 15 characters long.")
+        return false
+    }
+    if (newQuestion.value.content.length < 30) {
+        alert("Question details should be at least 30 characters long.")
+        return false
+    }
+    return true
+}
+
+const previewQuestion = () => {
+    if (validateForm()) {
+        showPreview.value = true
+    }
+}
+</script>
 <template>
     <div class="max-w-3xl mx-auto py-8 px-4">
         <Card class="overflow-hidden">
@@ -56,78 +134,3 @@
         <!-- <QuestionPreviewModal v-if="showPreview" :question="newQuestion" @close="showPreview = false" /> -->
     </div>
 </template>
-
-<script setup>
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import axios from 'axios'
-import { ref } from 'vue'
-// import QuestionPreviewModal from '../components/qna/QuestionPreviewModal.vue'
-import MarkDownEditor from '../components/elements/MarkDownEditor.vue'
-
-const isSubmitting = ref(false)
-const showPreview = ref(false)
-
-const newQuestion = ref({
-    title: '',
-    content: '',
-    tags: [],
-    attachments: []
-})
-
-const handleFileUpload = (files) => {
-    newQuestion.value.attachments = files
-}
-
-const submitQuestion = async () => {
-    if (!validateForm()) return
-
-    try {
-        isSubmitting.value = true
-
-        const formData = new FormData()
-        formData.append("title", newQuestion.value.title)
-        formData.append("content", newQuestion.value.content)
-        formData.append("tags", JSON.stringify(newQuestion.value.tags))
-
-        newQuestion.value.attachments.forEach((file, index) => {
-            formData.append(`attachment_${index}`, file)
-        })
-
-        const response = await axios.post('/api/v1/questions', formData, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                'Content-Type': 'multipart/form-data'
-            }
-        })
-
-        router.push(`/qna/${response.data.data.slug}`)
-        alert("Your question has been successfully posted.")
-    } catch (error) {
-        console.error('Error submitting question:', error)
-        alert("Failed to submit question. Please try again.")
-    } finally {
-        isSubmitting.value = false
-    }
-}
-
-const validateForm = () => {
-    if (newQuestion.value.title.length < 15) {
-        alert("Title should be at least 15 characters long.")
-        return false
-    }
-    if (newQuestion.value.content.length < 30) {
-        alert("Question details should be at least 30 characters long.")
-        return false
-    }
-    return true
-}
-
-const previewQuestion = () => {
-    if (validateForm()) {
-        showPreview.value = true
-    }
-}
-</script>
