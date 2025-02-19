@@ -6,6 +6,7 @@
         </div>
 
         <div v-else-if="question" class="space-y-6">
+            <BackNavigator :items="questionBreadcrumbs" />
             <Card>
                 <CardHeader>
                     <div class="flex items-center justify-between">
@@ -19,7 +20,7 @@
                         <UserIcon class="h-4 w-4" />
                         <span>{{ question.user ? question.user.name : 'Anonymous' }}</span>
                         <span>•</span>
-                        <span>{{ formatDate(question.created_at) }}</span>
+                        <span>{{ (question.created_at) }}</span>
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -43,43 +44,28 @@
                 </CardFooter>
             </Card>
 
-            <div ref="answersSection">
-                <h2 class="text-xl font-bold mb-4">{{ answers.length }} Answers</h2>
-                <Card v-for="answer in answers" :key="answer.id" class="mb-4">
-                    <CardContent class="pt-4">
-                        <div class="flex space-x-4">
-                            <Avatar>
-                                <AvatarImage :src="answer.user?.avatar_url" />
-                                <AvatarFallback>{{ getInitials(answer.user?.name) }}</AvatarFallback>
-                            </Avatar>
-                            <div class="flex-1">
-                                <div v-html="answer.content" class="prose max-w-none"></div>
-                                <div class="flex justify-between items-center mt-4">
-                                    <CardDescription class="text-sm text-gray-500">
-                                        Answered by {{ answer.user ? answer.user.name : 'Anonymous' }} • {{
-                                            formatDate(answer.created_at) }}
-                                    </CardDescription>
-                                    <Button variant="ghost" size="sm">Share</Button>
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+            <!-- Add this button after the question card and before the answers section -->
+            <div class="flex justify-end mt-4">
+                <Button variant="outline" size="lg" @click="showAnswerForm = !showAnswerForm" class="gap-2">
+                    <PenLine class="h-4 w-4" />
+                    {{ showAnswerForm ? 'Hide Answer Form' : 'Write an Answer' }}
+                </Button>
             </div>
 
-            <Card v-if="authToken">
+            <!-- Replace the existing answer form Card with this -->
+            <Card v-if="showAnswerForm && authToken" class="mt-4">
                 <CardHeader>
                     <CardTitle>Your Answer</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Textarea v-model="newAnswer" placeholder="Write your answer here..." class="min-h-[150px]" />
+                    <MarkDownEditor v-model="newAnswer" placeholder="Write your answer..." :min-height="300" />
                 </CardContent>
                 <CardFooter class="flex justify-end">
                     <Button @click="submitAnswer">Post Your Answer</Button>
                 </CardFooter>
             </Card>
 
-            <Card v-else>
+            <Card v-else-if="showAnswerForm && !authToken">
                 <CardContent class="text-center py-6">
                     <LockIcon class="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <p class="text-lg font-semibold mb-2">Sign up or log in to answer</p>
@@ -90,6 +76,13 @@
                     </div>
                 </CardContent>
             </Card>
+
+            <!-- Answers Section -->
+            <div class="space-y-4">
+                <h2 class="text-lg font-medium">{{ answers.length }} Answers</h2>
+                <RecursiveAnswers :items="answers" :auth-user-id="authUserId" @reply="handleReply"
+                    @upvote="handleUpvote" />
+            </div>
         </div>
 
         <div v-else class="text-center py-12">
@@ -112,107 +105,141 @@ import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/avatar'
 import { useToast } from '../components/ui/toast'
 import { useAuthStore } from '../stores/auth'
 import { CircleChevronUp, UserIcon, MessageSquareIcon, EyeIcon, LockIcon, AlertCircleIcon } from 'lucide-vue-next'
+import BackNavigator from '../components/elements/BackNavigator.vue'
+import MarkDownEditor from '../components/elements/MarkDownEditor.vue'
+import RecursiveAnswers from '../components/elements/RecursiveAnswers.vue'
+import { defineEmits } from 'vue'
+import { PenLine } from 'lucide-vue-next'
 
-const route = useRoute()
-const router = useRouter()
-const { toast } = useToast()
-const authStore = useAuthStore()
-const authToken = computed(() => authStore.token)
+const route = useRoute();
+const router = useRouter();
+const { toast } = useToast();
+const authStore = useAuthStore();
+const authToken = computed(() => authStore.token);
+const showAnswerForm = ref(false);
 
-const question = ref(null)
-const answers = ref([])
-const newAnswer = ref('')
-const loading = ref(true)
-const showFullContent = ref(false)
-const answersSection = ref(null)
+const question = ref(null);
+const answers = ref([]);
+const newAnswer = ref('');
+const loading = ref(true);
+const showFullContent = ref(false);
+
+const questionBreadcrumbs = [
+    { name: 'Questions', href: '/qna' },
+    { name: route.params.slug, href: '/qna/' + route.params.slug }
+];
 
 const truncatedContent = computed(() => {
-    if (!question.value) return ''
-    const maxLength = 300
-    if (question.value.content.length <= maxLength || showFullContent.value) {
-        return question.value.content
-    }
-    return question.value.content.slice(0, maxLength) + '...'
-})
+    if (!question.value) return '';
+    const maxLength = 300;
+    return question.value.content.length <= maxLength || showFullContent.value
+        ? question.value.content
+        : question.value.content.slice(0, maxLength) + '...';
+});
 
-const isContentTruncated = computed(() => {
-    return question.value && question.value.content.length > 300
-})
+const isContentTruncated = computed(() => question.value && question.value.content.length > 300);
 
 onMounted(async () => {
     try {
-        const response = await axios.get(`/api/v1/questions/${route.params.slug}`)
-        question.value = response.data.data.question
-        answers.value = response.data.data.answers
-        loading.value = false
+        const response = await axios.get(`/api/v1/questions/${route.params.slug}`);
+        question.value = response.data.data.question;
+        answers.value = response.data.data.answers;
     } catch (error) {
-        console.error('Error fetching question:', error)
-        loading.value = false
         toast({
-            title: "Error",
-            description: error?.response?.data?.message ??"Failed to fetch question details. Please try again.",
-            variant: "destructive",
-        })
+            title: 'Error',
+            description: error?.response?.data?.message || 'Failed to fetch question details.',
+            variant: 'destructive'
+        });
+    } finally {
+        loading.value = false;
     }
-})
+});
 
 const submitAnswer = async () => {
     try {
-        const response = await axios.post(`/api/v1/questions/${question.value.id}/answers`, {
-            content: newAnswer.value
-        }, {
-            headers: { Authorization: `Bearer ${authToken.value}` }
-        })
-        answers.value.push(response.data.data)
-        newAnswer.value = ''
-        toast({
-            title: "Answer submitted",
-            description: "Your answer has been successfully posted.",
-        })
+        const response = await axios.post(
+            `/api/v1/questions/${question.value.id}/answers`,
+            { content: newAnswer.value },
+            { headers: { Authorization: `Bearer ${authToken.value}` } }
+        );
+        answers.value.push(response.data.data);
+        newAnswer.value = '';
+        showAnswerForm.value = false
+        toast({ title: 'Answer submitted', description: 'Your answer has been posted.' });
     } catch (error) {
-        console.error('Error submitting answer:', error)
         toast({
-            title: "Error",
-            description: error?.response?.data?.message ?? "Failed to submit answer. Please try again.",
-            variant: "destructive",
-        })
+            title: 'Error',
+            description: error?.response?.data?.message || 'Failed to submit answer.',
+            variant: 'destructive'
+        });
     }
-}
+};
 
 const upvoteQuestion = async () => {
     if (!authToken.value) {
-        toast({
-            title: "Authentication required",
-            description: "Please log in to upvote questions.",
-            variant: "warning",
-        })
-        return
+        return toast({ title: 'Authentication required', description: 'Log in to upvote.', variant: 'warning' });
     }
     try {
-        await axios.post(`/api/v1/questions/${question.value.id}/upvote`, {}, {
-            headers: { Authorization: `Bearer ${authToken.value}` }
-        })
-        question.value.upvotes_count++
-        toast({
-            title: "Upvoted",
-            description: "You have successfully upvoted this question.",
-        })
+        await axios.post(
+            `/api/v1/questions/${question.value.id}/upvote`,
+            {},
+            { headers: { Authorization: `Bearer ${authToken.value}` } }
+        );
+        question.value.upvotes_count++;
+        toast({ title: 'Upvoted', description: 'You upvoted this question.' });
     } catch (error) {
-        console.error('Error upvoting question:', error)
         toast({
-            title: "Error",
-            description: error?.response?.data?.message ?? "Failed to upvote question. Please try again.",
-            variant: "destructive",
-        })
+            title: 'Error',
+            description: error?.response?.data?.message || 'Failed to upvote question.',
+            variant: 'destructive'
+        });
     }
-}
+};
 
-const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
-    return new Date(dateString).toLocaleDateString('en-US', options)
-}
+const handleReply = async ({ parentId, content }) => {
+    if (!authToken.value) {
+        return toast({ title: 'Authentication required', description: 'Log in to reply.', variant: 'warning' });
+    }
+    try {
+        const response = await axios.post(
+            `/api/v1/answers/${parentId}/replies`,
+            { content },
+            { headers: { Authorization: `Bearer ${authToken.value}` } }
+        );
+        const answer = answers.value.find(a => a.id === parentId);
+        if (answer) {
+            answer.replies = answer.replies || [];
+            answer.replies.push(response.data.data);
+        }
+        toast({ title: 'Reply submitted', description: 'Your reply has been posted.' });
+    } catch (error) {
+        toast({
+            title: 'Error',
+            description: error?.response?.data?.message || 'Failed to submit reply.',
+            variant: 'destructive'
+        });
+    }
+};
 
-const getInitials = (name) => {
-    return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '?'
-}
+const handleUpvote = async (answerId) => {
+    if (!authToken.value) {
+        return toast({ title: 'Authentication required', description: 'Log in to upvote.', variant: 'warning' });
+    }
+    try {
+        await axios.post(
+            `/api/v1/answers/${answerId}/upvote`,
+            {},
+            { headers: { Authorization: `Bearer ${authToken.value}` } }
+        );
+        const answer = answers.value.find(a => a.id === answerId);
+        if (answer) answer.upvotes_count++;
+        toast({ title: 'Upvoted', description: 'You upvoted this answer.' });
+    } catch (error) {
+        toast({
+            title: 'Error',
+            description: error?.response?.data?.message || 'Failed to upvote answer.',
+            variant: 'destructive'
+        });
+    }
+};
 </script>

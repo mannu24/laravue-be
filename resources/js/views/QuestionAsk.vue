@@ -1,5 +1,6 @@
 <template>
     <div class="max-w-3xl mx-auto py-8 px-4">
+        <BackNavigator :items="askQuestionBreadcrumbs" />
         <Card class="overflow-hidden">
             <CardHeader>
                 <CardTitle>Ask a Question</CardTitle>
@@ -59,10 +60,19 @@ import { Label } from '@/components/ui/label'
 import QuestionPreviewModal from '../components/qna/QuestionPreviewModal.vue'
 import TagInput from '../components/elements/TagInput.vue'
 import MarkDownEditor from '../components/elements/MarkDownEditor.vue'
+import { toast } from '../components/ui/toast'
+import { useAuthStore } from '../stores/auth'
+import BackNavigator from '../components/elements/BackNavigator.vue'
 
+const authStore = useAuthStore();
 const router = useRouter()
 const isSubmitting = ref(false)
 const showPreview = ref(false)
+
+const askQuestionBreadcrumbs = [
+    { name: 'Questions', href: '/qna' },
+    { name: 'Ask', href: '/qna/ask' }
+]
 
 const newQuestion = ref({
     title: '',
@@ -84,24 +94,31 @@ const submitQuestion = async () => {
         const formData = new FormData()
         formData.append("title", newQuestion.value.title)
         formData.append("content", newQuestion.value.content)
-        formData.append("tags", JSON.stringify(newQuestion.value.tags))
+        newQuestion.value.tags.forEach((tag, index) => {
+            formData.append("tags[]", tag)
+        });
 
-        newQuestion.value.attachments.forEach((file, index) => {
-            formData.append(`attachment_${index}`, file)
-        })
+        // newQuestion.value.attachments.forEach((file, index) => {
+        //     formData.append(`attachment_${index}`, file)
+        // })
 
         const response = await axios.post('/api/v1/questions', formData, {
             headers: {
-                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                Authorization: `Bearer ${authStore.token}`,
                 'Content-Type': 'multipart/form-data'
             }
         })
 
         router.push(`/qna/${response.data.data.slug}`)
-        alert("Your question has been successfully posted.")
+        toast({
+            description: "Your question has been successfully posted."
+        });
     } catch (error) {
         console.error('Error submitting question:', error)
-        alert("Failed to submit question. Please try again.")
+        toast({
+            variant: 'destructive',
+            description: "Failed to submit question. Please try again."
+        });
     } finally {
         isSubmitting.value = false
     }
@@ -109,11 +126,24 @@ const submitQuestion = async () => {
 
 const validateForm = () => {
     if (newQuestion.value.title.length < 15) {
-        alert("Title should be at least 15 characters long.")
+        toast({
+            variant: 'destructive',
+            description: "Title should be at least 15 characters long."
+        });
         return false
     }
     if (newQuestion.value.content.length < 30) {
-        alert("Question details should be at least 30 characters long.")
+        toast({
+            variant: 'destructive',
+            description: "Question details should be at least 30 characters long."
+        })
+        return false
+    }
+    if (newQuestion.value.tags.length < 1) {
+        toast({
+            variant: 'destructive',
+            description: "Atleast 1 Tag is required!"
+        })
         return false
     }
     return true

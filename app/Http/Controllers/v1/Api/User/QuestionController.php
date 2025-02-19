@@ -63,13 +63,18 @@ class QuestionController extends Controller
     public function store(StoreQuestionRequest $request)
     {
         $validated = $request->validated();
+        try {
+            $question = $this->service->createQuestion($validated);
 
-        $question = $this->service->createQuestion($validated);
-
-        return $this->success(
-            data: new QuestionResource($question),
-            message: 'Question created successfully'
-        );
+            return $this->success(
+                data: new QuestionResource($question),
+                message: 'Question created successfully'
+            );
+        } catch (Exception $e) {
+            return $this->internalError(
+                message: 'Failed to add Question!'
+            );
+        }
     }
 
     public function update(UpdateQuestionRequest $request, $id)

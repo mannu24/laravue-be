@@ -17,7 +17,9 @@ class QuestionRepository
 
     public function getAll()
     {
-        return $this->model->with('user', 'upvotes')->paginate(10);
+        return $this->model->with('user', 'upvotes')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
     }
 
     public function getLatest()
