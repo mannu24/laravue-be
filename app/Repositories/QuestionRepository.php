@@ -22,6 +22,11 @@ class QuestionRepository
             ->paginate(10);
     }
 
+    public function upvotes()
+    {
+        return $this->morphMany(Upvote::class, 'record');
+    }
+
     public function getLatest()
     {
         return $this->model->with('user', 'upvotes')->latest()->take(10)->get();
@@ -34,7 +39,7 @@ class QuestionRepository
 
     public function findBySlug($slug)
     {
-        return $this->model->with(['user', 'upvotes'])->where('slug', $slug)->firstOrFail();
+        return $this->model->with(['user', 'upvotes', 'tags'])->where('slug', $slug)->firstOrFail();
     }
 
     public function create(array $data)

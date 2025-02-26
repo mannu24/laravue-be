@@ -12,7 +12,7 @@ Route::prefix('v1')->group(function () {
     // Authentication Routes
     Route::controller(AuthController::class)->group(function () {
         Route::post('/register', 'register');
-        Route::post('/login', 'login');
+        Route::post('/login', 'login')->name('login');
         Route::post('/auth/otp', 'handleOtp');
     });
 
@@ -50,6 +50,7 @@ Route::prefix('v1')->group(function () {
 
         // Additional Answer Routes
         Route::prefix('answers/{answer}')->group(function () {
+            Route::post('upvote', [AnswerController::class, 'upvote'])->name('answers.upvote');
             Route::get('replies', [AnswerController::class, 'getReplies'])->name('answers.replies');
             Route::post('replies', [AnswerController::class, 'storeReply'])->name('answers.storeReply');
         });

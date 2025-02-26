@@ -52,7 +52,20 @@ class QuestionService
 
     public function updateQuestion($id, array $data)
     {
-        return $this->repository->update($id, $data);
+        $data['user_id'] = auth()->guard('api')->id();
+        $question = $this->repository->update($id, $data);
+        // deleting old tags
+        $this->tagService->deleteTags(
+            recordId: $id,
+        );
+        // adding new tags
+        $this->tagService->addTags(
+            tags: $data['tags'],
+            recordId: $id,
+            recordType: 'questions',
+            userId: $data['user_id']
+        );
+        return $question;
     }
 
     public function deleteQuestion($slug)

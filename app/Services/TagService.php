@@ -32,4 +32,9 @@ class TagService
             return false;
         }
     }
+
+    public function deleteTags(int $recordId)
+    {
+        $this->tagRepository->deleteTags($recordId);
+    }
 }

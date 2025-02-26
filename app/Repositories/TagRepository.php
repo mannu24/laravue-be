@@ -35,4 +35,9 @@ class TagRepository
             'record_type' => $recordType,
         ]);
     }
+
+    public function deleteTags(int $recordId)
+    {
+        $this->associate->where('record_id', $recordId)->delete();
+    }
 }

@@ -30,7 +30,6 @@ class QuestionController extends Controller
     {
         $questions = $this->service->getAllQuestions();
         // $questions = QuestionResource::collection($questions) ;
-
         $page = $_GET['page'];
         $perPage = 2;
         $paginatedData = new LengthAwarePaginator($questions->forPage($page, $perPage)->values(), $questions->count(), $perPage);
@@ -79,13 +78,29 @@ class QuestionController extends Controller
 
     public function update(UpdateQuestionRequest $request, $id)
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
 
-        $question = $this->service->updateQuestion($id, $validated);
-        return $this->success(
-            data: new QuestionResource($question),
-            message: 'Question updated successfully'
-        );
+            // Ensure the authenticated user owns the question
+            $question = $this->service->getQuestionById($id);
+            if ($question->user_id !== auth()->guard('api')->id()) {
+                return $this->error(
+                    message: 'You are not authorized to edit this question.',
+                    code: 403
+                );
+            }
+
+            $updatedQuestion = $this->service->updateQuestion($id, $validated);
+
+            return $this->success(
+                data: new QuestionResource($updatedQuestion),
+                message: 'Question updated successfully'
+            );
+        } catch (Exception $e) {
+            return $this->internalError(
+                message: 'Failed to update question: ' . $e->getMessage()
+            );
+        }
     }
 
     public function destroy($slug)

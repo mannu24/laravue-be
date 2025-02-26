@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import { ref, watch, defineProps, defineEmits } from 'vue'
+import { ref, watch, defineProps, defineEmits, computed } from 'vue'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
@@ -20,7 +20,15 @@ const emit = defineEmits(['update:modelValue'])
 
 const content = ref(props.modelValue)
 
-const editorOptions = {
+watch(() => props.modelValue, (newValue) => {
+    content.value = newValue
+})
+
+watch(content, (newContent) => {
+    emit('update:modelValue', newContent)
+}, { immediate: true })
+
+const editorOptions = computed(() => ({
     theme: 'snow',
     modules: {
         toolbar: [
@@ -37,14 +45,9 @@ const editorOptions = {
             [{ 'font': [] }],
             [{ 'align': [] }],
             ['clean'],
-            // ['link', 'image', 'video']
             ['link']
         ],
     },
     placeholder: props.placeholder
-}
-
-watch(content, (newContent) => {
-    emit('update:modelValue', newContent)
-})
+}))
 </script>

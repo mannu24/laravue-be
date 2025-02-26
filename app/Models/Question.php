@@ -52,25 +52,35 @@ class Question extends Model
     {
         return $this->hasMany(Answer::class);
     }
-    
-    public function getOwnerAttribute() {
+
+    public function getOwnerAttribute()
+    {
         return $this->user_id === auth()->guard('api')->id();
     }
-    
-    public function getLikedAttribute() {
+
+    public function getLikedAttribute()
+    {
         return !auth()->guard('api')->check() ? false : $this->likes()->where('user_id', auth()->guard('api')->id())->exists();
     }
-    
-    public function getPostedAtAttribute() {
-        return Carbon::parse($this->created_at)->diffForHumans() ;
+
+    public function getPostedAtAttribute()
+    {
+        return Carbon::parse($this->created_at)->diffForHumans();
     }
 
-    public function likes() {
+    public function likes()
+    {
         return $this->hasMany(Like::class, 'record_id', 'id')->where('likes.record_type', 'question');
     }
 
-    public function toggleLike() {
-        if($this->likes()->where('user_id', auth()->guard('api')->id())->exists()) {
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'tag_associates', 'record_id', 'tag_id');
+    }
+
+    public function toggleLike()
+    {
+        if ($this->likes()->where('user_id', auth()->guard('api')->id())->exists()) {
             Like::where('user_id', auth()->guard('api')->id())->where('record_id', $this->id)->where('record_type', 'question')->delete();
         } else {
             Like::create([
