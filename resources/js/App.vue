@@ -43,6 +43,10 @@ const shareUrl = (data: string) => {
 </script>
 
 <template>
+
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    </head>
     <div :class="[
         'min-h-screen transition-colors duration-300',
         themeStore.isDark ? 'bg-gray-950' : 'bg-gray-50'
@@ -56,7 +60,7 @@ const shareUrl = (data: string) => {
         <Transition name="fade">
             <button v-if="isScrollTopVisible"
                 class="fixed right-10 bottom-10 flex justify-center items-center text-white bg-vue/80 w-10 h-10 transition-all duration-300 ease-in-out rounded-full hover:bg-laravel/70 hover:scale-110"
-                type="button" @click="scollTop()">
+                type="button" @click="scrollTop()">
                 <i class="fas fa-arrow-up me-0"></i>
             </button>
         </Transition>
@@ -79,17 +83,21 @@ const shareUrl = (data: string) => {
 .bounce-enter-active {
     animation: bounce-in 0.3s;
 }
+
 .bounce-leave-active {
     animation: bounce-in 0.3s reverse;
 }
+
 @keyframes bounce-in {
     0% {
         transform: scale(0);
     }
+
     50% {
         transform: scale(1.05);
         /* margin-bottom: 60px; */
     }
+
     100% {
         transform: scale(1);
     }

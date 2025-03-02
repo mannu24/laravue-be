@@ -6,6 +6,7 @@ use App\Http\Controllers\v1\Api\PostController;
 use App\Http\Controllers\v1\Api\AuthController;
 use App\Http\Controllers\v1\Api\User\AnswerController;
 use App\Http\Controllers\v1\Api\User\QuestionController;
+use App\Http\Controllers\v1\Api\User\SocialLinkController;
 use App\Http\Controllers\v1\Api\UserController;
 
 Route::prefix('v1')->group(function () {
@@ -25,6 +26,9 @@ Route::prefix('v1')->group(function () {
             Route::get('/user', 'user');
             Route::post('/user', 'update');
         });
+
+        Route::get('/social-links/types', [SocialLinkController::class, 'types']);
+        Route::apiResource('/social-links', SocialLinkController::class);
 
         // Question Routes
         Route::post('questions/{question}/upvote', [QuestionController::class, 'upvote'])->name('questions.upvote');
