@@ -22,6 +22,14 @@ onMounted(() => {
     }
 });
 
+const errorFallbackImage = (event) => {
+    event.target.src = '/placeholder.svg'
+}
+
+const errorFallbackUserImage = (event) => {
+    event.target.src = '/assets/front/images/user.png'
+}
+
 const edit_post = () => {
     isModalVisible.value = true
     showDropdown.value = false
@@ -98,8 +106,8 @@ const closeModal = () => {
             <div class="flex items-center p-4">
                 <router-link :to="'/' + post.user.username" @click.stop>
                     <img v-if="post.user?.profile_photo" :src="post.user?.profile_photo" alt="User Avatar"
-                        class="w-12 h-12 rounded-full" />
-                    <img v-else src="/assets/front/images/user.png" alt="User Avatar" class="w-12 h-12 rounded-full" />
+                        class="w-12 h-12 rounded-full" @error="errorFallbackUserImage" />
+                    <img v-else src="/assets/front/images/user.png" alt="User Avatar" class="w-12 h-12 rounded-full" @error="errorFallbackUserImage" />
                 </router-link>
                 <router-link @click.stop :to="'/' + post.user.username" class="ml-3">
                     <p class="font-semibold text-white text-lg">{{ post.user.name }}</p>
@@ -156,20 +164,20 @@ const closeModal = () => {
                 <p class="text-gray-700 mb-2 text-white" v-html="renderContent(post.content)" @click.stop></p>
                 <div v-if="post.media_urls && post.media_urls.length" class="grid gap-2 mb-4">
                     <img v-if="post.media_urls.length === 1" :src="post.media_urls[0]" alt="Post Media"
-                        class="cursor-pointer rounded-lg object-cover w-full h-80" />
+                        class="cursor-pointer rounded-lg object-cover w-full h-80" @error="errorFallbackImage" />
                     <div v-else-if="post.media_urls.length === 2" class="grid grid-cols-2 gap-2">
                         <img v-for="(media, index) in post.media_urls" v-if="index < 2" :key="media" :src="media"
-                            alt="Post Media" class="cursor-pointer rounded-lg object-cover h-40 w-full" />
+                            alt="Post Media" class="cursor-pointer rounded-lg object-cover h-40 w-full" @error="errorFallbackImage" />
                     </div>
                     <div v-else-if="post.media_urls.length === 3" class="grid grid-cols-2 gap-2">
                         <img v-for="(media, index) in post.media_urls.slice(0, 2)" :key="media" :src="media"
-                            alt="Post Media" class="cursor-pointer rounded-lg object-cover h-40 w-full" />
+                            alt="Post Media" class="cursor-pointer rounded-lg object-cover h-40 w-full" @error="errorFallbackImage" />
                         <img :src="post.media_urls[2]" alt="Post Media"
-                            class="cursor-pointer col-span-2 rounded-lg object-cover h-40 w-full" />
+                            class="cursor-pointer col-span-2 rounded-lg object-cover h-40 w-full" @error="errorFallbackImage" />
                     </div>
                     <div v-else class="grid grid-cols-2 gap-2 relative">
                         <img v-for="(media, index) in post.media_urls.slice(0, 4)" :key="media" :src="media"
-                            alt="Post Media" class="cursor-pointer rounded-lg object-cover h-40 w-full" />
+                            alt="Post Media" class="cursor-pointer rounded-lg object-cover h-40 w-full" @error="errorFallbackImage" />
                         <div v-if="post.media_urls.length > 4"
                             class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-xl font-bold rounded-lg"
                             :style="{ gridArea: '2 / 2 / 3 / 3' }">

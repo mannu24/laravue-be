@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth.js';
 import CustomInput from "../components/elements/CustomInput.vue";
+import { PinInput, PinInputGroup, PinInputSlot, PinInputSeparator } from '../../../src/components/ui/pin-input';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -37,65 +38,9 @@ const otp = computed(() => {
     return loginData.value.otp.join('');
 })
 
-const init_form = () => {
-    const form = document.getElementById('otp-form')
-    const inputs = [...form.querySelectorAll('input[type=password]')]
-    const submit = form.querySelector('button[type=submit]')
-
-    const handleKeyDown = (e) => {
-        if (
-            !/^[0-9]{1}$/.test(e.key)
-            && e.key !== 'Backspace'
-            && e.key !== 'Delete'
-            && e.key !== 'Tab'
-            && !e.metaKey
-        ) {
-            e.preventDefault()
-        }
-
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-            const index = inputs.indexOf(e.target);
-            if (index > 0) {
-                inputs[index - 1].value = '';
-                inputs[index - 1].focus();
-            }
-        }
-    }
-
-    const handleInput = (e) => {
-        const { target } = e
-        const index = inputs.indexOf(target)
-        if (target.value) {
-            if (index < inputs.length - 1) {
-                inputs[index + 1].focus()
-            } else {
-                submit.focus()
-            }
-        }
-    }
-
-    const handleFocus = (e) => {
-        e.target.select()
-    }
-
-    const handlePaste = (e) => {
-        e.preventDefault()
-        const text = e.clipboardData.getData('text')
-        if (!new RegExp(`^[0-9]{${inputs.length}}$`).test(text)) {
-            return
-        }
-        const digits = text.split('')
-        inputs.forEach((input, index) => input.value = digits[index])
-        submit.focus()
-    }
-
-    inputs.forEach((input) => {
-        input.addEventListener('input', handleInput)
-        input.addEventListener('keydown', handleKeyDown)
-        input.addEventListener('focus', handleFocus)
-        input.addEventListener('paste', handlePaste)
-    })
-};
+const handleComplete = (value) => {
+    loginData.value.otp = value;
+}
 
 const handleOtpRequest = async () => {
     btn.value = 'loading';
@@ -104,7 +49,6 @@ const handleOtpRequest = async () => {
         btn.value = false
         errorMessage.value = '';
         nextTick(() => {
-            init_form()
             init_timer()
         })
     }).catch((error) => {
@@ -125,7 +69,7 @@ const handleOtpVerification = async () => {
         otp: otp.value
     }).then((response) => {
         btn.value = false
-        if(response.data.status == 'success') {
+        if(response.data.status === 'success') {
             const data = response.data.data;
             const { token, user } = data;
             authStore.setAuthData(token, user);
@@ -166,20 +110,32 @@ const handleOtpVerification = async () => {
                 <form v-else id="otp-form" @submit.prevent="handleOtpVerification()" class="max-w-md mx-auto text-center bg-gray-800/80 px-4 sm:px-8 py-10 rounded-xl shadow">
                     <header class="mb-8">
                         <h1 class="text-2xl font-bold mb-3 text-white">Email Verification</h1>
-                        <p class="text-[15px] text-slate-400">Enter the 4-digit verification code that was sent to <br>
+                        <p class="text-[15px] text-slate-400">Enter the 6-digit verification code that was sent to <br>
                             <div class="flex gap-2 items-center justify-center mt-1">
                                 <b>"{{ loginData.email }}"</b>
                                 <i class="fas fa-pencil-alt hover:text-white cursor-pointer" @click="edit_email"></i>
                             </div>
                         </p>
                     </header>
-                    <div class="flex items-center justify-center gap-3">
-                        <input type="password" v-model="loginData.otp[0]" class="w-12 h-12 text-center text-2xl font-extrabold text-gray-100 bg-gray-700 border border-transparent hover:border-slate-200 appearance-none rounded p-4 outline-none focus:bg-gray-500 focus:border-vue/90 focus:ring-2 focus:ring-vue/40" pattern="\d*" maxlength="1" />
-                        <input type="password" v-model="loginData.otp[1]" class="w-12 h-12 text-center text-2xl font-extrabold text-gray-100 bg-gray-700 border border-transparent hover:border-slate-200 appearance-none rounded p-4 outline-none focus:bg-gray-500 focus:border-vue/90 focus:ring-2 focus:ring-vue/40" pattern="\d*" maxlength="1" />
-                        <input type="password" v-model="loginData.otp[2]" class="w-12 h-12 text-center text-2xl font-extrabold text-gray-100 bg-gray-700 border border-transparent hover:border-slate-200 appearance-none rounded p-4 outline-none focus:bg-gray-500 focus:border-vue/90 focus:ring-2 focus:ring-vue/40" pattern="\d*" maxlength="1" />
-                        <input type="password" v-model="loginData.otp[3]" class="w-12 h-12 text-center text-2xl font-extrabold text-gray-100 bg-gray-700 border border-transparent hover:border-slate-200 appearance-none rounded p-4 outline-none focus:bg-gray-500 focus:border-vue/90 focus:ring-2 focus:ring-vue/40" pattern="\d*" maxlength="1" />
-                        <input type="password" v-model="loginData.otp[4]" class="w-12 h-12 text-center text-2xl font-extrabold text-gray-100 bg-gray-700 border border-transparent hover:border-slate-200 appearance-none rounded p-4 outline-none focus:bg-gray-500 focus:border-vue/90 focus:ring-2 focus:ring-vue/40" pattern="\d*" maxlength="1" />
-                        <input type="password" v-model="loginData.otp[5]" class="w-12 h-12 text-center text-2xl font-extrabold text-gray-100 bg-gray-700 border border-transparent hover:border-slate-200 appearance-none rounded p-4 outline-none focus:bg-gray-500 focus:border-vue/90 focus:ring-2 focus:ring-vue/40" pattern="\d*" maxlength="1" />
+                    <div class="flex items-center justify-center">
+                        <PinInput
+                            id="pin-input"
+                            v-model="loginData.otp"
+                            placeholder="○"
+                            @complete="handleComplete"
+                        >
+                            <PinInputGroup class="gap-1">
+                                <template v-for="(id, index) in 6" :key="id">
+                                    <PinInputSlot
+                                        class="rounded-md border w-12 h-12 text-center text-2xl font-extrabold text-gray-100 bg-gray-700 border-transparent hover:border-slate-200 focus:bg-gray-500 focus:border-vue/90 focus:ring-2 focus:ring-vue/40"
+                                        :index="index"
+                                    />
+                                    <template v-if="index !== 5">
+                                        <PinInputSeparator />
+                                    </template>
+                                </template>
+                            </PinInputGroup>
+                        </PinInput>
                     </div>
                     <div v-if="errorMessage" class="text-laravel/80 text-sm mt-3">
                         {{ errorMessage }}

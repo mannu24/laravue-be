@@ -2,7 +2,7 @@
     <div class="space-y-4">
         <div v-for="item in items" :key="item.id" class="relative" :class="{ 'pl-[20px]': depth > 0 }">
             <!-- Answer Container -->
-            <div class="flex gap-4 p-4 bg-white dark:bg-gray-950 border-[1px] rounded-lg shadow">
+            <div class="flex gap-4 p-4 dark:bg-gray-950 border-[1px] rounded-lg shadow">
                 <!-- Upvote Section -->
                 <div v-if="item.user?.id !== authUserId" class="flex flex-col items-center">
                     <button @click="() => $emit('upvote', item.id)"
