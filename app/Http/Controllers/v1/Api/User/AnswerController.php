@@ -44,6 +44,20 @@ class AnswerController extends Controller
         );
     }
 
+    public function upvote($id)
+    {
+        try {
+            $this->service->upvoteAnswer($id);
+            return $this->success(
+                message: 'Question upvoted successfully'
+            );
+        } catch (Exception $e) {
+            return $this->internalError(
+                message: $e->getMessage()
+            );
+        }
+    }
+
     public function show($answerId)
     {
         $answer = $this->service->getAnswer($answerId);

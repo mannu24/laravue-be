@@ -30,7 +30,6 @@ class QuestionController extends Controller
     {
         $questions = $this->service->getAllQuestions();
         // $questions = QuestionResource::collection($questions) ;
-
         $page = $_GET['page'];
         $perPage = 2;
         $paginatedData = new LengthAwarePaginator($questions->forPage($page, $perPage)->values(), $questions->count(), $perPage);
@@ -47,9 +46,9 @@ class QuestionController extends Controller
         );
     }
 
-    public function show($id)
+    public function show($slug)
     {
-        $question = $this->service->getQuestionById($id);
+        $question = $this->service->getQuestionBySlug($slug);
         $answers = $this->answerService->getAnswersByQuestion($question->id);
         return $this->success(
             data: [
@@ -63,24 +62,45 @@ class QuestionController extends Controller
     public function store(StoreQuestionRequest $request)
     {
         $validated = $request->validated();
+        try {
+            $question = $this->service->createQuestion($validated);
 
-        $question = $this->service->createQuestion($validated);
-
-        return $this->success(
-            data: new QuestionResource($question),
-            message: 'Question created successfully'
-        );
+            return $this->success(
+                data: new QuestionResource($question),
+                message: 'Question created successfully'
+            );
+        } catch (Exception $e) {
+            return $this->internalError(
+                message: 'Failed to add Question!'
+            );
+        }
     }
 
     public function update(UpdateQuestionRequest $request, $id)
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
 
-        $question = $this->service->updateQuestion($id, $validated);
-        return $this->success(
-            data: new QuestionResource($question),
-            message: 'Question updated successfully'
-        );
+            // Ensure the authenticated user owns the question
+            $question = $this->service->getQuestionById($id);
+            if ($question->user_id !== auth()->guard('api')->id()) {
+                return $this->error(
+                    message: 'You are not authorized to edit this question.',
+                    code: 403
+                );
+            }
+
+            $updatedQuestion = $this->service->updateQuestion($id, $validated);
+
+            return $this->success(
+                data: new QuestionResource($updatedQuestion),
+                message: 'Question updated successfully'
+            );
+        } catch (Exception $e) {
+            return $this->internalError(
+                message: 'Failed to update question: ' . $e->getMessage()
+            );
+        }
     }
 
     public function destroy($slug)

@@ -28,5 +28,10 @@ export default defineConfig({
         chunkSizeWarningLimit: 1600,
         sourcemap: true,
     },
-
+    ssr: {
+        noExternal: ['md-editor-v3']
+    },
+    optimizeDeps: {
+        include: ['md-editor-v3']
+    }
 });

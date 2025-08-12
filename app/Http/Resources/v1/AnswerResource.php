@@ -18,6 +18,7 @@ class AnswerResource extends JsonResource
             'id' => $this->id,
             'content' => $this->content,
             'is_accepted' => $this->is_accepted,
+            'upvotes' => $this->upvotes_count ?? 0,
             'user' => $this->user ? [
                 'id' => $this->user->id,
                 'name' => $this->user->name,

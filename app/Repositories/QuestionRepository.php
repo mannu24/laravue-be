@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Question;
 use App\Models\Upvote;
+use Illuminate\Container\Attributes\Auth;
 
 class QuestionRepository
 {
@@ -16,7 +17,14 @@ class QuestionRepository
 
     public function getAll()
     {
-        return $this->model->with('user', 'upvotes')->paginate(10);
+        return $this->model->with('user', 'upvotes')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+    }
+
+    public function upvotes()
+    {
+        return $this->morphMany(Upvote::class, 'record');
     }
 
     public function getLatest()
@@ -27,6 +35,11 @@ class QuestionRepository
     public function findById($id)
     {
         return $this->model->with(['user', 'upvotes'])->findOrFail($id);
+    }
+
+    public function findBySlug($slug)
+    {
+        return $this->model->with(['user', 'upvotes', 'tags'])->where('slug', $slug)->firstOrFail();
     }
 
     public function create(array $data)
@@ -58,8 +71,12 @@ class QuestionRepository
     {
         $question = $this->model->findOrFail($id);
 
+        if ($question->user_id === Auth()->id()) {
+            throw new \Exception("You cannot upvote your own question.");
+        }
+
         if ($question->upvotes()->where('user_id', $userId)->exists()) {
-            throw new \Exception('User has already upvoted this question.');
+            throw new \Exception("You have already upvoted this question.");
         }
 
         $question->upvotes()->create(['user_id' => $userId]);

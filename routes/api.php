@@ -6,13 +6,14 @@ use App\Http\Controllers\v1\Api\PostController;
 use App\Http\Controllers\v1\Api\AuthController;
 use App\Http\Controllers\v1\Api\User\AnswerController;
 use App\Http\Controllers\v1\Api\User\QuestionController;
+use App\Http\Controllers\v1\Api\User\SocialLinkController;
 use App\Http\Controllers\v1\Api\UserController;
 
 Route::prefix('v1')->group(function () {
     // Authentication Routes
     Route::controller(AuthController::class)->group(function () {
         Route::post('/register', 'register');
-        Route::post('/login', 'login');
+        Route::post('/login', 'login')->name('login');
         Route::post('/auth/otp', 'handleOtp');
     });
 
@@ -25,6 +26,9 @@ Route::prefix('v1')->group(function () {
             Route::get('/user', 'user');
             Route::post('/user', 'update');
         });
+
+        Route::get('/social-links/types', [SocialLinkController::class, 'types']);
+        Route::apiResource('/social-links', SocialLinkController::class);
 
         // Question Routes
         Route::post('questions/{question}/upvote', [QuestionController::class, 'upvote'])->name('questions.upvote');
@@ -50,6 +54,7 @@ Route::prefix('v1')->group(function () {
 
         // Additional Answer Routes
         Route::prefix('answers/{answer}')->group(function () {
+            Route::post('upvote', [AnswerController::class, 'upvote'])->name('answers.upvote');
             Route::get('replies', [AnswerController::class, 'getReplies'])->name('answers.replies');
             Route::post('replies', [AnswerController::class, 'storeReply'])->name('answers.storeReply');
         });
