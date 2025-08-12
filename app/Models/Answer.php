@@ -46,6 +46,6 @@ class Answer extends Model
     // Relationship for child answers (replies)
     public function replies()
     {
-        return $this->hasMany(Answer::class, 'parent_id');
+        return $this->hasMany(Answer::class, 'parent_id')->latest();
     }
 }

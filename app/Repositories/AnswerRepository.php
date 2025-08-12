@@ -18,6 +18,7 @@ class AnswerRepository
             ->whereNull('parent_id')
             ->with(['user', 'replies'])
             ->withCount('upvotes')
+            ->latest()
             ->paginate(10);
     }
 

@@ -58,7 +58,7 @@
                     <CardTitle>Your Answer</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <MarkDownEditor v-model="newAnswer" placeholder="Write your answer..." :min-height="300" />
+                    <!-- <MarkDownEditor v-model="newAnswer" placeholder="Write your answer..." :min-height="300" /> -->
                 </CardContent>
                 <CardFooter class="flex justify-end">
                     <Button @click="submitAnswer">Post Your Answer</Button>
@@ -80,7 +80,7 @@
             <!-- Answers Section -->
             <div class="space-y-4">
                 <h2 class="text-lg font-medium">{{ answers.length }} Answers</h2>
-                <RecursiveAnswers :items="answers" :auth-user-id="authUserId" @reply="handleReply"
+                <AnswersWithReplies :items="answers" :auth-user-id="authUserId" :max-replies="2" @reply="handleReply"
                     @upvote="handleUpvote" />
             </div>
         </div>
@@ -108,6 +108,7 @@ import { CircleChevronUp, UserIcon, MessageSquareIcon, EyeIcon, LockIcon, AlertC
 import BackNavigator from '../components/elements/BackNavigator.vue'
 import MarkDownEditor from '../components/elements/MarkDownEditor.vue'
 import RecursiveAnswers from '../components/elements/RecursiveAnswers.vue'
+import AnswersWithReplies from '../components/elements/AnswersWithReplies.vue'
 import { defineEmits } from 'vue'
 import { PenLine } from 'lucide-vue-next'
 
