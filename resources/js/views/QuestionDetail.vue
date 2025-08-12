@@ -141,9 +141,7 @@ const isContentTruncated = computed(() => question.value && question.value.conte
 
 onMounted(async () => {
     try {
-        const response = await axios.get(`/api/v1/questions/${route.params.slug}`);
-        question.value = response.data.data.question;
-        answers.value = response.data.data.answers;
+        await fetchQuestionData();
     } catch (error) {
         toast({
             title: 'Error',
@@ -154,6 +152,12 @@ onMounted(async () => {
         loading.value = false;
     }
 });
+
+const fetchQuestionData = async () => {
+    const response = await axios.get(`/api/v1/questions/${route.params.slug}`);
+    question.value = response.data.data.question;
+    answers.value = response.data.data.answers;
+}
 
 const submitAnswer = async () => {
     try {
@@ -206,12 +210,8 @@ const handleReply = async ({ parentId, content }) => {
             { content },
             { headers: { Authorization: `Bearer ${authToken.value}` } }
         );
-        const answer = answers.value.find(a => a.id === parentId);
-        if (answer) {
-            answer.replies = answer.replies || [];
-            answer.replies.push(response.data.data);
-        }
         toast({ title: 'Reply submitted', description: 'Your reply has been posted.' });
+        await fetchQuestionData();
     } catch (error) {
         toast({
             title: 'Error',
