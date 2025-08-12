@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios';
-import { ref, defineEmits, defineProps, onMounted, nextTick } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import CustomInput from "../elements/CustomInput.vue";
 import { useMentions } from '@/composables/useMentions';
 import { useAuthStore } from '../../stores/auth';
@@ -325,50 +325,51 @@ onMounted(() => {
 });
 </script>
 <template>
-    <div :class="props.post ? 'fixed inset-0 z-50 flex items-center justify-center bg-black/70' : 'none'">
+    <div :class="props.post ? 'fixed inset-0 z-50 flex items-center justify-center bg-black/60' : 'none'">
         <!-- v-click-outside="{ closeCondition: () => expanded, closeAction: () => expandCard(false) }" -->
         <div class="mx-auto w-full rounded-lg shadow-lg p-4 transition-all duration-300 ease-in-out"
-            :class="{ 'max-w-xl h-auto': expanded, 'max-w-md h-20': !expanded, 'bg-gray-800/80 hover:bg-gray-700/40' : !props.post, 'bg-gray-800' : props.post }">
+            :class="{ 'max-w-xl h-auto': expanded, 'max-w-lg h-20': !expanded, 'bg-gray-200 hover:bg-gray-300/40 dark:bg-gray-900/80 shadow-md dark:hover:bg-gray-900' : !props.post, 'bg-gray-200 dark:bg-gray-900 shadow-md' : props.post }">
             <div class="flex items-center">
                 <img v-if="authStore.user?.profile_photo" :src="authStore.user?.profile_photo" alt="User Avatar"
                     class="w-10 h-10 rounded-full mr-3" />
                 <img v-else src="/assets/front/images/user.png" alt="User Avatar" class="w-10 h-10 rounded-full mr-3" />
                 <Transition name="fade" mode="out-in">
-                    <div class="w-full bg-gray-700/60 rounded-full h-10 px-4 flex items-center cursor-pointer"
+                    <div class="w-full rounded-full h-10 px-4 bg-gray-300 dark:bg-gray-800/80 flex items-center cursor-pointer"
                         @click="expandCard(true)" v-if="!expanded">
-                        <p class="text-gray-500">What's on your mind?</p>
+                        <p class="text-gray-600 dark:text-gray-200">What's on your mind?</p>
                     </div>
                     <div class="w-full flex justify-between" v-else>
-                        <div class="text-white">
+                        <div class="dark:text-white text-gray-800">
                             <h2 class="font-semibold mb-0">{{ authStore.user.username }}</h2>
-                            <p class="text-xs text-gray-500">{{ $filters.date(new Date()) }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $filters.date(new Date()) }}</p>
                         </div>
-                        <button @click="closeModal" class="text-gray-500 transition-all duration-300 hover:text-white">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        <p :title="'Close'" class="icon-hover w-8 h-8 rounded-full flex icon-hover text-gray-100 dark:text-gray-400 bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 dark:hover:text-white hover:text-black-900" @click.stop="closeModal">
+                            <i class="fas fa-times m-auto fa-lg"></i>
+                        </p>
                     </div>
                 </Transition>
             </div>
             <form v-if="expanded" class="mt-7" @submit.prevent="submitPost">
                 <CustomInput type="text" placeholder="Title of this post" v-model="newPost.title" :error="errors.title" />
                 <div class="relative">
-                    <div ref="editor" contenteditable="true" @input="handleInput" @keydown="handleKeyDown"
-                        class="w-full text-white placeholder:text-slate-400 min-h-[100px] text-sm border rounded-md px-3 py-2 transition duration-300 ease focus:outline-none shadow-sm bg-transparent text-slate-700 border-slate-200 hover:border-slate-300 focus:border-slate-400"
-                        placeholder="What's on your mind?"></div>
-                    <div v-if="mentionState.active"
-                        class="absolute bottom-full left-0 w-full max-h-60 bg-white border rounded-lg shadow-lg overflow-y-auto z-50">
-                        <div v-for="user in mentionSuggestions" :key="user.id" @mousedown.prevent="insertMention(user)"
-                            class="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
-                            <img v-if="user.avatar" :src="user.avatar" class="w-8 h-8 rounded-full object-cover">
-                            <i v-else class="fas fa-user-circle fa-2x text-black/50"></i>
-                            <div>
-                                <p class="font-medium text-sm">{{ user.name }}</p>
-                                <p class="text-xs text-gray-500">@{{ user.username }}</p>
+                    <div ref="editor" contenteditable="true" @input="handleInput" @keydown="handleKeyDown" placeholder="What's on your mind?"
+                        class="w-full dark:text-white text-gray-800 placeholder:text-slate-400 min-h-[100px] text-sm border rounded-md px-3 py-2 transition duration-300 ease focus:outline-none shadow-sm bg-transparent text-slate-700 border-gray-300 hover:border-gray-400/50 focus:border-gray-400 dark:border-slate-700 dark:hover:border-slate-600 dark:focus:border-slate-500"
+                    ></div>
+                    <Transition name="fade">
+                        <div v-if="mentionSuggestions.length" class="absolute bottom-full left-0 w-full max-h-60 bg-white border rounded-lg shadow-lg overflow-y-auto z-50">
+                            <div v-for="user,i in mentionSuggestions" :key="i" @mousedown.prevent="insertMention(user)"
+                                class="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
+                                <img v-if="user.avatar" :src="user.avatar" class="w-8 h-8 rounded-full object-cover">
+                                <i v-else class="fas fa-user-circle fa-2x text-black/50"></i>
+                                <div>
+                                    <p class="font-medium text-sm">{{ user.name }}</p>
+                                    <p class="text-xs text-gray-500">@{{ user.username }}</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </Transition>
                 </div>
-                <div class="media-previews flex overflow-x-auto space-x-4 pt-4 py-2 mt-3">
+                <div class="media-previews flex overflow-x-auto space-x-4" :class="{'pt-5':previews.length}">
                     <TransitionGroup name="bounce" appear>
                         <div v-for="(file, index) in previews" :key="index" class="h-32 w-32 flex-shrink-0 relative mb-1">
                             <div @click="removeimage(index, file.type)" class="w-6 h-6 flex absolute -top-3 -right-3 bg-vue/80 cursor-pointer hover:bg-laravel/70 transition-all duration-300 rounded-full text-white">
@@ -386,13 +387,13 @@ onMounted(() => {
                         </div>
                     </TransitionGroup>
                 </div>
-                <div class="mt-4 flex justify-around">
+                <div class="mt-2 flex justify-around">
                     <input type="file" @change="handle_media" accept="image/*" class="hidden" id="media_upload" multiple>
-                    <label for="media_upload" class="flex items-center gap-2 text-vue hover:text-green-600 cursor-pointer">
+                    <label for="media_upload" class="flex items-center gap-2 text-green-600/60 hover:text-green-600/80 cursor-pointer">
                         <i class="fas fa-paperclip"></i>
                         <span>Attach Media</span>
                     </label>
-                    <Button type="submit" class="bg-vue/80 hover:bg-vue transition-all duration-300" :disabled="isSubmitting">
+                    <Button type="submit" class="bg-vue/80 hover:bg-vue text-white transition-all duration-300" :disabled="isSubmitting">
                         Submit Post
                     </Button>
                 </div>
