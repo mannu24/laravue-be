@@ -4,6 +4,9 @@ import vue from '@vitejs/plugin-vue';
 import path from 'path';
 
 export default defineConfig({
+    server: {
+        // port: '8001',
+    },
     plugins: [
         laravel({
             input: ['resources/sass/app.scss', 'resources/js/app.js'],

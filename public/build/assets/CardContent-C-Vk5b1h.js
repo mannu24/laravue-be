@@ -1,0 +1,2 @@
+import{o as r,b as t,M as n,n as o,e as l,s as c}from"./app-BYKYNp4m.js";const u={__name:"Card",props:{class:{type:null,required:!1}},setup(s){const e=s;return(a,p)=>(r(),t("div",{class:o(l(c)("rounded-lg border bg-card text-card-foreground shadow-sm",e.class))},[n(a.$slots,"default")],2))}},_={__name:"CardContent",props:{class:{type:null,required:!1}},setup(s){const e=s;return(a,p)=>(r(),t("div",{class:o(l(c)("p-6 pt-0",e.class))},[n(a.$slots,"default")],2))}};export{_,u as a};
+//# sourceMappingURL=CardContent-C-Vk5b1h.js.map

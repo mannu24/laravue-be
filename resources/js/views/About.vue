@@ -62,7 +62,7 @@ const values = [
 </script>
 
 <template>
-  <div :class="['min-h-screen transition-colors duration-300',
+  <div :class="['min-h-screen transition-colors duration-300 space-y-12',
     themeStore.isDark ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-900'
   ]">
     <!-- Hero Section -->
@@ -83,7 +83,7 @@ const values = [
         </div>
       </div>
 
-      <div class="container mx-auto px-4 py-24 sm:px-6 lg:px-8">
+      <div class="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div class="text-center max-w-4xl mx-auto">
           <div class="flex items-center justify-center mb-6">
             <div
@@ -123,45 +123,40 @@ const values = [
         </div>
       </div>
     </div>
-
     <!-- Stats Section -->
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-10">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <Card v-for="stat in stats" :key="stat.label" :class="['text-center transition-all duration-300 hover:scale-105 border-0 shadow-xl backdrop-blur-sm',
-          themeStore.isDark ? 'bg-gray-800/90' : 'bg-white/90'
-        ]">
-          <CardContent class="p-6">
-            <div class="flex justify-center mb-3">
-              <div
-                class="w-12 h-12 rounded-full bg-gradient-to-r from-primary to-primary/80 flex items-center justify-center">
-                <component :is="stat.icon" class="h-6 w-6 text-primary-foreground" />
-              </div>
-            </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <Card v-for="stat in stats" :key="stat.label" :class="['text-center transition-all duration-300 hover:scale-105 border-0 shadow-xl backdrop-blur-sm',
+        themeStore.isDark ? 'bg-gray-800/90' : 'bg-white/90'
+      ]">
+        <CardContent class="p-6">
+          <div class="flex justify-center mb-3">
             <div
-              class="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-              {{ stat.value }}
+              class="w-12 h-12 rounded-full bg-gradient-to-r from-primary to-primary/80 flex items-center justify-center">
+              <component :is="stat.icon" class="h-6 w-6 text-primary-foreground" />
             </div>
-            <div class="text-sm font-medium" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-600'">
-              {{ stat.label }}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          <div
+            class="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            {{ stat.value }}
+          </div>
+          <div class="text-sm font-medium" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-600'">
+            {{ stat.label }}
+          </div>
+        </CardContent>
+      </Card>
     </div>
-
     <!-- Mission Section -->
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-24">
-      <div class="text-center mb-16">
+    <div class="max-w-3xl mx-auto space-y-12">
+      <div class="text-center mb-10">
         <h2 class="text-4xl font-bold mb-6" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
           Our Mission
         </h2>
-        <p class="text-xl max-w-3xl mx-auto leading-relaxed"
+        <p class="text-xl max-w-3xl mx-auto leading-relaxed text-justify"
           :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
           We believe in fostering a vibrant developer ecosystem where creativity meets opportunity.
           Our mission is to provide a platform that empowers developers to reach their full potential.
         </p>
       </div>
-
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card v-for="feature in features" :key="feature.title" :class="['group transition-all duration-300 hover:-translate-y-2 border-0 shadow-xl',
           themeStore.isDark ? 'bg-gray-800/90' : 'bg-white/90'
@@ -183,50 +178,48 @@ const values = [
         </Card>
       </div>
     </div>
-
-    <!-- Values Section -->
-    <div :class="['py-24 transition-colors duration-300',
-      themeStore.isDark ? 'bg-gray-800/50' : 'bg-gray-100/50'
-    ]">
-      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <h2 class="text-4xl font-bold mb-6" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
-            Our Values
-          </h2>
-          <p class="text-xl max-w-3xl mx-auto" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
-            These core principles guide everything we do at LaraVue.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          <div v-for="value in values" :key="value" :class="['flex items-center p-4 rounded-lg transition-all duration-300 hover:scale-105',
-            themeStore.isDark ? 'bg-gray-700/50' : 'bg-white/50'
-          ]">
-            <CheckCircle class="h-6 w-6 text-primary mr-3 flex-shrink-0" />
-            <span class="font-medium" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
-              {{ value }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CTA Section -->
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-24">
-      <Card :class="['relative overflow-hidden border-0 shadow-2xl',
+    <div class="max-w-7xl mx-auto space-y-12">
+      <Card :class="['relative overflow-hidden border-0 shadow-2xl ',
         themeStore.isDark ? 'bg-gray-800' : 'bg-white'
       ]">
         <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary via-primary/80 to-secondary"></div>
-
+        <div class="py-12 px-4">
+          <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold mb-6" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+              Our Values
+            </h2>
+            <p class="text-xl max-w-3xl mx-auto" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
+              These core principles guide everything we do at LaraVue.
+            </p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div v-for="value in values" :key="value" :class="['flex items-center p-4 rounded-lg transition-all duration-300 hover:scale-105',
+              themeStore.isDark ? 'bg-gray-700/50' : 'bg-white/50'
+            ]">
+              <CheckCircle class="h-6 w-6 text-primary mr-3 flex-shrink-0" />
+              <span class="font-medium" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+                {{ value }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+    <div class="max-w-3xl mx-auto space-y-12">
+      <Card :class="['relative overflow-hidden border-0 shadow-2xl mb-12',
+        themeStore.isDark ? 'bg-gray-800' : 'bg-white'
+      ]">
+        <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary via-primary/80 to-secondary"></div>
+  
         <CardContent class="p-12 text-center">
-          <h2 class="text-4xl font-bold mb-6" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+          <h2 class="text-2xl md:text-3xl font-bold mb-6" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
             Ready to Join Our Community?
           </h2>
-          <p class="text-xl mb-8 max-w-2xl mx-auto" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
+          <p class="text-base md:text-lg tracking-wide mb-8 max-w-2xl mx-auto" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
             Whether you're a seasoned developer or just starting out, LaraVue welcomes you to join our
             growing community. Share your projects, contribute to others' work, and be part of something bigger.
           </p>
-
+  
           <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button
               class="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground px-8 py-3 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300"
@@ -239,7 +232,7 @@ const values = [
               Contact Us
             </Button>
           </div>
-
+  
           <div class="flex justify-center space-x-6">
             <a href="#" class="text-gray-400 hover:text-primary transition-colors duration-300">
               <Github class="h-6 w-6" />

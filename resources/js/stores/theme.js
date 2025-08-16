@@ -10,7 +10,7 @@ export const useThemeStore = defineStore('theme', {
         switchTheme() {
             this.isDark = !this.isDark;
             localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
-            document.documentElement.classList.toggle('dark', this.isDark);
+            document.documentElement.classList.toggle('dark');
         },
         toggleTheme() {
             if (document.startViewTransition) {
@@ -20,7 +20,7 @@ export const useThemeStore = defineStore('theme', {
             }
         },
         initTheme() {
-            document.documentElement.classList.toggle('dark', this.isDark);
+            document.documentElement.classList.add('dark');
         }
     }
 });

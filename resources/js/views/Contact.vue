@@ -223,8 +223,8 @@ const officeHours = [
                   themeStore.isDark ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
                 ]">
                   <div
-                    class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mr-4 flex-shrink-0">
-                    <Mail class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    class="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center mr-4 flex-shrink-0">
+                    <Mail class="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                   </div>
                   <div>
                     <h3 class="font-medium mb-1" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
@@ -234,13 +234,33 @@ const officeHours = [
                       For general inquiries and support
                     </p>
                     <a href="mailto:support@LaraVue.com"
-                      class="text-blue-600 dark:text-blue-400 hover:underline flex items-center">
+                      class="text-yellow-600 dark:text-yellow-400 hover:underline flex items-center">
                       support@LaraVue.com
                       <ExternalLink class="h-3 w-3 ml-1" />
                     </a>
                   </div>
                 </div>
-
+                <div :class="['flex items-start p-4 rounded-lg transition-all duration-300',
+                  themeStore.isDark ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
+                ]">
+                  <div
+                    class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center mr-4 flex-shrink-0">
+                    <Phone class="h-5 w-5 text-blue-700 dark:text-blue-300" />
+                  </div>
+                  <div>
+                    <h3 class="font-medium mb-1" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+                      Phone
+                    </h3>
+                    <p class="text-sm mb-2" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
+                      For urgent matters and direct support
+                    </p>
+                    <a href="tel:+1-555-123-4567"
+                      class="text-blue-600 dark:text-blue-400 hover:underline flex items-center">
+                      +1 (555) 123-4567
+                      <ExternalLink class="h-3 w-3 ml-1" />
+                    </a>
+                  </div>
+                </div>
                 <div :class="['flex items-start p-4 rounded-lg transition-all duration-300',
                   themeStore.isDark ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
                 ]">
@@ -267,8 +287,8 @@ const officeHours = [
                   themeStore.isDark ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
                 ]">
                   <div
-                    class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mr-4 flex-shrink-0">
-                    <Github class="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                    class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mr-4 flex-shrink-0">
+                    <Github class="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
                     <h3 class="font-medium mb-1" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
@@ -278,30 +298,8 @@ const officeHours = [
                       Contribute to our open source projects
                     </p>
                     <a href="https://github.com/LaraVue" target="_blank" rel="noopener noreferrer"
-                      class="text-gray-700 dark:text-gray-300 hover:underline flex items-center">
-                      github.com/LaraVue
-                      <ExternalLink class="h-3 w-3 ml-1" />
-                    </a>
-                  </div>
-                </div>
-
-                <div :class="['flex items-start p-4 rounded-lg transition-all duration-300',
-                  themeStore.isDark ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
-                ]">
-                  <div
-                    class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mr-4 flex-shrink-0">
-                    <Phone class="h-5 w-5 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <h3 class="font-medium mb-1" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
-                      Phone
-                    </h3>
-                    <p class="text-sm mb-2" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
-                      For urgent matters and direct support
-                    </p>
-                    <a href="tel:+1-555-123-4567"
                       class="text-green-600 dark:text-green-400 hover:underline flex items-center">
-                      +1 (555) 123-4567
+                      github.com/LaraVue
                       <ExternalLink class="h-3 w-3 ml-1" />
                     </a>
                   </div>

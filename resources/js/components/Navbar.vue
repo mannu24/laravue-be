@@ -114,12 +114,12 @@ onMounted(() => {
                 <!-- Right side controls -->
                 <div class="flex items-center space-x-3">
                     <!-- Theme Toggle -->
-                    <Button variant="ghost" size="icon" @click="themeStore.toggleTheme()"
+                    <!-- <Button variant="ghost" size="icon" @click="themeStore.toggleTheme()"
                         class="relative overflow-hidden hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300">
                         <Sun v-if="themeStore.isDark" class="h-5 w-5 rotate-0 scale-100 transition-all duration-300" />
                         <Moon v-else class="h-5 w-5 rotate-0 scale-100 transition-all duration-300" />
                         <span class="sr-only">Toggle theme</span>
-                    </Button>
+                    </Button> -->
 
                     <!-- Auth Section -->
                     <template v-if="authStore.isAuthenticated">
@@ -166,14 +166,14 @@ onMounted(() => {
                     </template>
 
                     <template v-else>
-                        <Button variant="ghost" @click="router.push('/login')"
+                        <!-- <Button variant="ghost" @click="router.push('/login')"
                             class="hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300">
                             Login
-                        </Button>
-                        <Button @click="router.push('/signup')"
+                        </Button> -->
+                        <Button @click="router.push('/login')"
                             class="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300">
-                            <Zap class="h-4 w-4 mr-2" />
-                            Sign up
+                            <Zap class="mr-50" />
+                            Sign In
                         </Button>
                     </template>
 

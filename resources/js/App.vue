@@ -52,11 +52,9 @@ const shareUrl = (data: string) => {
         themeStore.isDark ? 'bg-gray-950' : 'bg-gray-50'
     ]">
         <Navbar />
-        <div class="container mx-auto p-4 grid gap-8">
-            <main class="container mx-auto">
-                <router-view @share_url="shareUrl" />
-            </main>
-        </div>
+        <main class="container px-4 sm:px-0">
+            <router-view @share_url="shareUrl" />
+        </main>
         <Transition name="fade">
             <button v-if="isScrollTopVisible"
                 class="fixed right-10 bottom-10 flex justify-center items-center text-white bg-vue/80 w-10 h-10 transition-all duration-300 ease-in-out rounded-full hover:bg-laravel/70 hover:scale-110"
