@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\v1\Api\PostController;
 use App\Http\Controllers\v1\Api\AuthController;
+use App\Http\Controllers\v1\Api\ProjectController;
 use App\Http\Controllers\v1\Api\User\AnswerController;
 use App\Http\Controllers\v1\Api\User\QuestionController;
 use App\Http\Controllers\v1\Api\UserController;
@@ -55,4 +56,19 @@ Route::prefix('v1')->group(function () {
     
     Route::post('feed', [PostController::class, 'index']);
     Route::get('posts/{post_code}', [PostController::class, 'show']);
+
+    // Route::prefix('projects')->group(function () {
+    //     Route::get('/', [ProjectController::class, 'index']);
+    //     Route::post('/', [ProjectController::class, 'store']);
+    //     Route::get('/{project}', [ProjectController::class, 'view']);
+    //     Route::post('/update', [ProjectController::class, 'update']);
+    //     Route::get('/delete/{project}', [ProjectController::class, 'destroy']);
+    // });
+
+    // Route::apiResource('projects', ProjectController::class);
+
+    Route::apiResource('projects', ProjectController::class)->except(['index', 'show'])->middleware('auth:api');
+
+    Route::get('projects', [ProjectController::class, 'index']);
+    Route::get('projects/{project}', [ProjectController::class, 'show']);
 });
