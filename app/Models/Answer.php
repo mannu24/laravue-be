@@ -32,6 +32,11 @@ class Answer extends Model
         return $this->belongsTo(Question::class);
     }
 
+    public function upvotes()
+    {
+        return $this->morphMany(Upvote::class, 'record');
+    }
+
     // Relationship for parent answer
     public function parent()
     {
@@ -41,6 +46,6 @@ class Answer extends Model
     // Relationship for child answers (replies)
     public function replies()
     {
-        return $this->hasMany(Answer::class, 'parent_id');
+        return $this->hasMany(Answer::class, 'parent_id')->latest();
     }
 }

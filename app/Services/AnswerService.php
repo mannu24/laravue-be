@@ -33,6 +33,11 @@ class AnswerService
         return $this->repository->updateAnswer($data, $answerId);
     }
 
+    public function upvoteAnswer($id)
+    {
+        $this->repository->upvote($id, auth()->guard('api')->id());
+    }
+
     public function deleteAnswer($answerId)
     {
         return $this->repository->deleteAnswer($answerId);

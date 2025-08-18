@@ -13,47 +13,58 @@ use Str;
 
 class PostController extends Controller
 {
-    public function index(Request $request) {
-        $query = Post::query()->with(['user:id,name,username'])->withCount('likes','comments') ;
+    public function index(Request $request)
+    {
+        $query = Post::query()->with(['user:id,name,username'])->withCount('likes', 'comments');
 
         if ($request->has('username') && $request->username) {
             $query->whereHas('user', function ($q) {
                 $q->where('username', request()->input('username'));
-            }) ;
+            });
         }
 
         $posts = $query->latest()->get()->each(function ($q) {
             $q->views_count = 10;
-            $q->makeHidden('media','id','user_id','meta_content');
-            $q->user->makeHidden('id','media');
+            $q->makeHidden('media', 'id', 'user_id', 'meta_content');
+            $q->user->makeHidden('id', 'media');
         });
 
         $page = $_GET['page'];
         $perPage = 2;
         $paginatedData = new LengthAwarePaginator($posts->forPage($page, $perPage)->values(), $posts->count(), $perPage);
 
-        return response()->json(['status' => 'success', 'posts' => $paginatedData]);
+        return response()->json(['status' => 'success', 'records' => $paginatedData]);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $data = $request->validate([
             'title' => 'nullable|string|max:500',
             'content' => 'required|string',
             'mentions' => 'array',
             'mentions.*.id' => 'required|string|exists:users,id',
             'mentions.*.username' => 'required|string|exists:users,username',
-            'media' => 'nullable|array',
-            'media.*' => 'file|mimes:jpg,jpeg,png|max:2048',
+            'media' => [
+                'nullable',
+                'array',
+                'max:5'
+            ],
+            'media.*' => [
+                'file',
+                'mimes:jpg,jpeg,png,svg,webp',
+                'max:2048'
+            ]
         ]);
-    
+
         DB::beginTransaction();
         try {
+            $mentions = isset($data['mentions']) ? $data['mentions'] : [];
             $post = Post::create([
                 'user_id' => auth()->id(),
                 'post_code' => uniqid('post_'),
                 'title' => $data['title'],
-                'content' => $this->processContent($data['content'], $data['mentions']),
-                'meta_content' => json_encode($data['mentions']),
+                'content' => $this->processContent($data['content'], $mentions),
+                'meta_content' => json_encode($mentions),
                 'is_ai_generated' => $request->is_ai_generated ?? 0,
                 'is_blocked' => $request->is_blocked ?? 0,
             ]);
@@ -68,13 +79,14 @@ class PostController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['status' => 'error', 'message' => 'Error Occured']);
-        }    
+        }
     }
 
-    private function processContent($content, $mentions) {
+    private function processContent($content, $mentions)
+    {
         $cleanContent = Str::of($content)
-        // ->stripTags(config('feed.allowed_tags'))
-        ->replaceMatches('/<script.*?>.*?<\/script>/si', '');
+            // ->stripTags(config('feed.allowed_tags'))
+            ->replaceMatches('/<script.*?>.*?<\/script>/si', '');
 
         return preg_replace_callback('/@\[([^\]]+)\]\((\d+)\)/', function ($matches) use ($mentions) {
             $userId = $matches[2];
@@ -83,10 +95,11 @@ class PostController extends Controller
         }, $cleanContent);
     }
 
-    public function mentionSuggestions(Request $request) {
+    public function mentionSuggestions(Request $request)
+    {
         $query = $request->input('q', '');
 
-        return User::where('username', 'like', $query.'%')
+        return User::where('username', 'like', $query . '%')
             // ->whereDoesntHave('blockers', function ($q) use ($request) {
             //     $q->where('blocked_user_id', $request->user()->id);
             // })
@@ -104,21 +117,23 @@ class PostController extends Controller
             });
     }
 
-    public function show($post_code) {
+    public function show($post_code)
+    {
         $post = Post::where('post_code', $post_code)->firstOrFail();
-        if($post) {
-            $post->load(['user:id,name,username','comments' => function ($q) {
+        if ($post) {
+            $post->load(['user:id,name,username', 'comments' => function ($q) {
                 $q->withCount('likes');
-            },'comments.user:id,name,username'])->loadCount('likes','comments') ;
+            }, 'comments.user:id,name,username'])->loadCount('likes', 'comments');
             $post->views_count = 10;
-            $post->makeHidden('media','id','user_id','meta_content');
-            $post->user->makeHidden('id','media');
+            $post->makeHidden('media', 'id', 'user_id', 'meta_content');
+            $post->user->makeHidden('id', 'media');
 
             return response()->json($post);
         }
     }
 
-    public function update(Request $request, $post_code) {
+    public function update(Request $request, $post_code)
+    {
         $data = $request->validate([
             'title' => 'nullable|string|max:500',
             'content' => 'required|string',
@@ -129,8 +144,8 @@ class PostController extends Controller
             'media.*' => 'file|mimes:jpg,jpeg,png|max:2048',
             'deleted' => 'nullable|array',
         ]);
-        
-        if(!$request->has('mentions')) $data['mentions'] = [] ;
+
+        if (!$request->has('mentions')) $data['mentions'] = [];
 
         DB::beginTransaction();
         try {
@@ -161,14 +176,15 @@ class PostController extends Controller
             return response()->json(['status' => 'success', 'message' => 'Post updated successfully']);
         } catch (\Exception $e) {
             DB::rollBack();
-            dd($e) ;
+            dd($e);
             return response()->json(['status' => 'error', 'message' => 'Error Occured']);
-        }    
+        }
     }
 
-    public function duplicate($postCode) {
+    public function duplicate($postCode)
+    {
         $post = Post::where('post_code', $postCode)->firstOrFail();
-        
+
         DB::beginTransaction();
         try {
             $newPost = Post::create([
@@ -190,10 +206,11 @@ class PostController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['status' => 'error', 'message' => 'Error Occured']);
-        }    
+        }
     }
 
-    public function add_comment (Request $request) {
+    public function add_comment(Request $request)
+    {
         $data = $request->validate([
             'code' => 'required|string|exists:posts,post_code',
             'content' => 'required|string',
@@ -210,31 +227,34 @@ class PostController extends Controller
         $comment->load('user:id,name,username');
 
         return response()->json(['status' => 'success', 'message' => 'Comment added successfully', 'comment' => $comment]);
-
     }
 
-    public function delete_comment($comment_id) {
+    public function delete_comment($comment_id)
+    {
         $comment = Comment::where('id', $comment_id)->firstOrFail();
         $comment->delete();
 
         return response()->json(['status' => 'success', 'message' => 'Comment deleted successfully']);
     }
 
-    public function like_unlike($postCode) {
+    public function like_unlike($postCode)
+    {
         $post = Post::where('post_code', $postCode)->firstOrFail();
         $post->toggleLike();
 
         return response()->json(['status' => 'success', 'liked' => $post->liked]);
     }
 
-    public function like_unlike_comment($comment_id) {
+    public function like_unlike_comment($comment_id)
+    {
         $comment = Comment::where('id', $comment_id)->firstOrFail();
         $comment->toggleLike();
 
         return response()->json(['status' => 'success', 'liked' => $comment->liked]);
     }
 
-    public function destroy($postCode) {
+    public function destroy($postCode)
+    {
         $post = Post::where('post_code', $postCode)->firstOrFail();
         $post->delete();
 

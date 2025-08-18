@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+
 class User extends Authenticatable implements HasMedia
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -54,12 +55,19 @@ class User extends Authenticatable implements HasMedia
         'completed'
     ];
 
-    public function getCompletedAttribute() {
-        if(!$this->name || !$this->email || !$this->username) return false;
-        else return true ;
+    public function getCompletedAttribute()
+    {
+        if (!$this->name || !$this->email || !$this->username) return false;
+        else return true;
     }
 
-    public function getProfilePhotoAttribute() {
-        return count($this->getMedia('profile_photo')) ? $this->getMedia('profile_photo')[0]->getFullUrl() : '' ;
+    public function getProfilePhotoAttribute()
+    {
+        return count($this->getMedia('profile_photo')) ? $this->getMedia('profile_photo')[0]->getFullUrl() : '';
+    }
+
+    public function socialLinks()
+    {
+        return $this->hasMany(UserSocialLink::class)->orderBy('position');
     }
 }

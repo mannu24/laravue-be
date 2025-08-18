@@ -18,10 +18,11 @@ class AnswerResource extends JsonResource
             'id' => $this->id,
             'content' => $this->content,
             'is_accepted' => $this->is_accepted,
-            'user' => [
+            'upvotes' => $this->upvotes_count ?? 0,
+            'user' => $this->user ? [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
-            ],
+            ] : null,
             'question_id' => $this->question_id,
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),

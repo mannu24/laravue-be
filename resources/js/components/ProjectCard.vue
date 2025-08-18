@@ -1,4 +1,9 @@
-<template>
+
+<script setup>
+defineProps({
+  project: Object
+});
+</script><template>
   <article class="flex flex-col items-start bg-gray-800 rounded-lg overflow-hidden">
     <div class="relative w-full">
       <img :src="project.image" :alt="project.title"
@@ -35,13 +40,6 @@
     </div>
   </article>
 </template>
-
-<script setup>
-defineProps({
-  project: Object
-});
-</script>
-
 <style scoped>
 /* Add your styles here, if necessary */
 </style>

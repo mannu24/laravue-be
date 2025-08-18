@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, defineEmits, defineProps } from 'vue';
+import { ref } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 import { CardFooter } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'

@@ -8,18 +8,18 @@ import CommentSection from '../components/CommentSection.vue'
 
 const route = useRoute();
 const router = useRouter();
-const authStore = useAuthStore() ;
+const authStore = useAuthStore();
 const postcode = route.params.post_code;
 const post = ref(null);
 const emit = defineEmits(['share_url'])
 
 const fetchPost = async () => {
-  try {
-    const response = await axios.get(`/api/v1/posts/post_${postcode}`, authStore.config);
-    post.value = response.data;
-  } catch (error) {
-    console.error('Error fetching post:', error);
-  }
+    try {
+        const response = await axios.get(`/api/v1/posts/post_${postcode}`, authStore.config);
+        post.value = response.data;
+    } catch (error) {
+        console.error('Error fetching post:', error);
+    }
 };
 
 const share_url = (url) => {
@@ -61,10 +61,13 @@ onMounted(fetchPost);
 
 <template>
     <div class="max-w-2xl mx-auto mt-[40px] sm:px-6 pb-5">
-        <h4 class="text-vue hover:text-laravel transition-all duration-300 ease-in mb-5 cursor-pointer" @click="router.push('/feed')">
+        <h4 class="text-vue hover:text-laravel transition-all duration-300 ease-in mb-5 cursor-pointer"
+            @click="router.push('/feed')">
             <i class="fas fa-chevron-left fa-sm"></i><span class="text-lg"> Back</span>
         </h4>
-        <PostCard @share_url="share_url" @liked_action="like_action" @delete_post="post_deleted" v-if="post" :post="post" />
-        <CommentSection @commentLiked="handleLike" @commentDeleted="handleDelete" @commentAdded="commentAdded" type="post" :post_code="post.post_code" v-if="post" :comments="post.comments" />
+        <PostCard @share_url="share_url" @liked_action="like_action" @delete_post="post_deleted" v-if="post"
+            :post="post" />
+        <CommentSection @commentLiked="handleLike" @commentDeleted="handleDelete" @commentAdded="commentAdded"
+            type="post" :post_code="post.post_code" v-if="post" :comments="post.comments" />
     </div>
 </template>

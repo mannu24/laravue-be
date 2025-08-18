@@ -1,7 +1,7 @@
 <script setup>
 import { ref,defineEmits } from 'vue';
 import { useRoute } from 'vue-router';
-import InfiniteFeed from '../components/feed/InfiniteFeed.vue'
+import InfiniteScroll from '../components/elements/InfiniteScroll.vue'
 
 const route = useRoute();
 const username = route.params.username;
@@ -28,7 +28,7 @@ const share_url = (url) => {
             </ul>
         </div>
         <Transition name="fade" mode="out-in">
-            <InfiniteFeed v-if="tab=='Feed'" :fetchKey="null" @share_url="share_url" :username="username"></InfiniteFeed>
+            <InfiniteScroll scrolling="post" v-if="tab=='Feed'" :fetchKey="null" @share_url="share_url" :username="username"></InfiniteScroll>
             <div class="max-w-7xl mx-auto rounded-lg bg-laravel p-5" v-else-if="tab=='Projects'"></div>
             <div class="max-w-7xl mx-auto rounded-lg bg-vue p-5" v-else-if="tab=='Blogs'"></div>
         </Transition>
