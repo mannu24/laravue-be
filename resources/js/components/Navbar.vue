@@ -1,5 +1,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+defineOptions({
+  name: 'Navbar'
+})
 import { useRouter, useRoute } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import {
@@ -51,6 +54,9 @@ const logout = async () => {
 
 onMounted(() => {
     themeStore.initTheme()
+})
+defineOptions({
+  name: 'Navbar'
 })
 </script>
 
