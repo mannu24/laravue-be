@@ -70,4 +70,19 @@ class User extends Authenticatable implements HasMedia
     {
         return $this->hasMany(UserSocialLink::class)->orderBy('position');
     }
+
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    public function upvotes()
+    {
+        return $this->hasMany(Upvote::class);
+    }
+
+    public function projectFunds()
+    {
+        return $this->hasMany(ProjectFund::class);
+    }
 }

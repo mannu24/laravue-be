@@ -8,8 +8,7 @@
                 </Button>
             </Badge>
         </div>
-        <Input v-model="newTag" @keydown.enter.prevent="addTag" @keydown.tab.prevent="addTag"
-            @keydown.188.prevent="addTag" :placeholder="placeholder" />
+        <Input v-model="newTag" @keydown="handleKeydown" :placeholder="placeholder" />
     </div>
 </template>
 
@@ -38,6 +37,13 @@ const addTag = () => {
     if (tag && !props.modelValue.includes(tag) && props.modelValue.length < props.maxTags) {
         emit('update:modelValue', [...props.modelValue, tag])
         newTag.value = ''
+    }
+}
+
+const handleKeydown = (event) => {
+    if (event.key === 'Enter' || event.key === 'Tab' || event.key === ',') {
+        event.preventDefault()
+        addTag()
     }
 }
 

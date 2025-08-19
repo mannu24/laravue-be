@@ -1,94 +1,540 @@
-<script setup >
-import { ref } from 'vue';
-import { useRoute } from 'vue-router';
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useThemeStore } from '../stores/theme'
+import { useAuthStore } from '../stores/auth'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  ArrowLeft,
+  Star,
+  Eye,
+  Github,
+  Globe,
+  DollarSign,
+  Heart,
+  Share2,
+  Edit,
+  Trash2,
+  Calendar,
+  User,
+  Code2,
+  Loader2,
+  ExternalLink
+} from 'lucide-vue-next'
+import axios from 'axios'
+import { toast } from '@/components/ui/toast'
 
 const route = useRoute()
-const project = ref({
-  id: 1,
-  title: 'Project Management Tool',
-  description: 'A comprehensive project management solution built with Vue and Laravel. Features include task management, team collaboration, real-time updates, and more.',
-  type: 'Premium',
-  price: '$49',
-  stars: 245,
-  image: 'https://picsum.photos/800/400',
-  github: 'https://github.com/example/project',
-  demo: 'https://demo.example.com',
-  author: {
-    name: 'John Doe',
-    avatar: 'https://picsum.photos/50/50',
-    username: 'johndoe'
-  },
-  technologies: ['Vue.js', 'Laravel', 'Tailwind CSS', 'PostgreSQL']
+const router = useRouter()
+const themeStore = useThemeStore()
+const authStore = useAuthStore()
+
+// Reactive data
+const project = ref(null)
+const loading = ref(true)
+const fundingAmount = ref('')
+const showFundingDialog = ref(false)
+const fundingLoading = ref(false)
+
+// Computed
+const isOwner = computed(() => {
+  return authStore.isAuthenticated && project.value?.user?.id === authStore.user?.id
+})
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(price)
+}
+
+// Methods
+const fetchProject = async () => {
+  try {
+    const response = await axios.get(`/api/v1/projects/${route.params.id}`)
+    project.value = response.data.data
+  } catch (error) {
+    console.error('Error fetching project:', error)
+    toast({
+      title: "Error",
+      description: "Failed to load project",
+      variant: "destructive"
+    })
+    router.push('/projects')
+  } finally {
+    loading.value = false
+  }
+}
+
+const upvoteProject = async () => {
+  if (!authStore.isAuthenticated) {
+    toast({
+      title: "Authentication Required",
+      description: "Please login to upvote projects",
+      variant: "destructive"
+    })
+    return
+  }
+
+  try {
+    const response = await axios.post(`/api/v1/projects/${project.value.id}/upvote`, {}, authStore.config)
+    project.value.is_upvoted_by_user = response.data.data.is_upvoted
+    project.value.upvotes_count = response.data.data.upvotes_count
+    
+    toast({
+      title: "Success",
+      description: response.data.message,
+    })
+  } catch (error) {
+    console.error('Error upvoting project:', error)
+    toast({
+      title: "Error",
+      description: "Failed to upvote project",
+      variant: "destructive"
+    })
+  }
+}
+
+const fundProject = async () => {
+  if (!authStore.isAuthenticated) {
+    toast({
+      title: "Authentication Required",
+      description: "Please login to fund projects",
+      variant: "destructive"
+    })
+    return
+  }
+
+  if (!fundingAmount.value || parseFloat(fundingAmount.value) <= 0) {
+    toast({
+      title: "Error",
+      description: "Please enter a valid amount",
+      variant: "destructive"
+    })
+    return
+  }
+
+  fundingLoading.value = true
+
+  try {
+    const response = await axios.post(`/api/v1/projects/${project.value.id}/fund`, {
+      amount: parseFloat(fundingAmount.value)
+    }, authStore.config)
+    
+    toast({
+      title: "Success",
+      description: response.data.message,
+    })
+    
+    showFundingDialog.value = false
+    fundingAmount.value = ''
+    
+    // Refresh project data to show updated funding
+    await fetchProject()
+  } catch (error) {
+    console.error('Error funding project:', error)
+    toast({
+      title: "Error",
+      description: error.response?.data?.message || "Failed to fund project",
+      variant: "destructive"
+    })
+  } finally {
+    fundingLoading.value = false
+  }
+}
+
+const deleteProject = async () => {
+  if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+    return
+  }
+
+  try {
+    await axios.delete(`/api/v1/projects/${project.value.id}`, authStore.config)
+    
+    toast({
+      title: "Success",
+      description: "Project deleted successfully",
+    })
+    
+    router.push('/projects')
+  } catch (error) {
+    console.error('Error deleting project:', error)
+    toast({
+      title: "Error",
+      description: "Failed to delete project",
+      variant: "destructive"
+    })
+  }
+}
+
+const shareProject = () => {
+  if (navigator.share) {
+    navigator.share({
+      title: project.value.title,
+      text: project.value.description,
+      url: window.location.href,
+    })
+  } else {
+    navigator.clipboard.writeText(window.location.href)
+    toast({
+      title: "Link Copied",
+      description: "Project link copied to clipboard",
+    })
+  }
+}
+
+// Lifecycle
+onMounted(() => {
+  fetchProject()
 })
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="bg-gray-800 rounded-lg overflow-hidden">
-      <img :src="project.image" :alt="project.title" class="w-full h-64 object-cover">
-      <div class="p-8">
-        <div class="flex items-center justify-between mb-6">
-          <h1 class="text-3xl font-bold text-white">{{ project.title }}</h1>
-          <div class="flex items-center space-x-4">
-            <span :class="[
-              project.type === 'Premium' ? 'bg-yellow-500' : 'bg-green-500',
-              'rounded-full px-4 py-1 text-white font-medium'
-            ]">{{ project.type }}</span>
-            <div class="flex items-center">
-              <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-              </svg>
-              <span class="ml-1 text-white">{{ project.stars }}</span>
+  <div :class="['min-h-screen transition-colors duration-300',
+    themeStore.isDark ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-900'
+  ]">
+    <!-- Loading State -->
+    <div v-if="loading" class="flex items-center justify-center min-h-screen">
+      <Loader2 class="h-12 w-12 animate-spin text-blue-500" />
+    </div>
+
+    <!-- Project Content -->
+    <div v-else-if="project" class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="mb-8">
+        <Button 
+          variant="ghost" 
+          class="mb-4"
+          @click="router.back()"
+        >
+          <ArrowLeft class="h-4 w-4 mr-2" />
+          Back to Projects
+        </Button>
+      </div>
+
+      <!-- Project Hero -->
+      <Card :class="['border-0 shadow-xl overflow-hidden mb-8',
+        themeStore.isDark ? 'bg-gray-800' : 'bg-white'
+      ]">
+        <!-- Featured Image -->
+        <div class="relative h-64 md:h-96">
+          <img 
+            :src="project.featured_image || 'https://picsum.photos/1200/400?random=' + project.id" 
+            :alt="project.title"
+            class="w-full h-full object-cover"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+          
+          <!-- Project Badge -->
+          <div class="absolute top-4 right-4">
+            <Badge :class="[
+              'text-white font-medium shadow-lg',
+              project.is_sellable
+                ? 'bg-gradient-to-r from-yellow-500 to-orange-500'
+                : 'bg-gradient-to-r from-green-500 to-emerald-500'
+            ]">
+              {{ project.is_sellable ? 'Premium' : 'Open Source' }}
+            </Badge>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="absolute bottom-4 right-4 flex gap-2">
+            <Button 
+              variant="secondary"
+              size="sm"
+              @click="shareProject"
+            >
+              <Share2 class="h-4 w-4 mr-1" />
+              Share
+            </Button>
+            
+            <Button 
+              v-if="isOwner"
+              variant="secondary"
+              size="sm"
+              @click="router.push(`/projects/${project.id}/edit`)"
+            >
+              <Edit class="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+            
+            <Button 
+              v-if="isOwner"
+              variant="destructive"
+              size="sm"
+              @click="deleteProject"
+            >
+              <Trash2 class="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+          </div>
+        </div>
+
+        <!-- Project Info -->
+        <CardContent class="p-8">
+          <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+            <!-- Main Content -->
+            <div class="flex-1">
+              <div class="flex items-center gap-4 mb-4">
+                <h1 class="text-3xl font-bold" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+                  {{ project.title }}
+                </h1>
+                
+                <div v-if="project.selling_price" class="text-2xl font-bold text-yellow-500">
+                  {{ formatPrice(project.selling_price) }}
+                </div>
+              </div>
+
+              <!-- Author Info -->
+              <div class="flex items-center gap-3 mb-6">
+                <div class="flex items-center gap-2">
+                  <User class="h-4 w-4 text-gray-500" />
+                  <span class="text-sm text-gray-500">by</span>
+                  <router-link 
+                    :to="`/@${project.user?.username}`"
+                    class="font-medium hover:text-blue-500 transition-colors"
+                  >
+                    {{ project.user?.name }}
+                  </router-link>
+                </div>
+                
+                <span class="text-gray-500">•</span>
+                
+                <div class="flex items-center gap-2">
+                  <Calendar class="h-4 w-4 text-gray-500" />
+                  <span class="text-sm text-gray-500">{{ formatDate(project.created_at) }}</span>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <p class="text-lg leading-relaxed mb-6" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
+                {{ project.description }}
+              </p>
+
+              <!-- Technologies -->
+              <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+                  Technologies Used
+                </h3>
+                <div class="flex flex-wrap gap-2">
+                  <Badge 
+                    v-for="tech in project.technologies" 
+                    :key="tech.id"
+                    variant="secondary"
+                    class="text-sm"
+                  >
+                    <Code2 class="h-3 w-3 mr-1" />
+                    {{ tech.name }}
+                  </Badge>
+                </div>
+              </div>
+
+              <!-- Stats -->
+              <div class="flex items-center gap-6 mb-6">
+                <button 
+                  @click="upvoteProject"
+                  class="flex items-center gap-2 hover:text-blue-500 transition-colors"
+                  :class="project.is_upvoted_by_user ? 'text-blue-500' : 'text-gray-500'"
+                >
+                  <Star class="h-5 w-5" :class="project.is_upvoted_by_user ? 'fill-current' : ''" />
+                  <span class="font-medium">{{ project.upvotes_count || 0 }} upvotes</span>
+                </button>
+                
+                <div class="flex items-center gap-2 text-gray-500">
+                  <Eye class="h-5 w-5" />
+                  <span class="font-medium">{{ project.views?.toLocaleString() || 0 }} views</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="lg:w-80 space-y-4">
+              <!-- Action Buttons -->
+              <div class="space-y-3">
+                <Button 
+                  v-if="project.github_url"
+                  variant="outline"
+                  class="w-full"
+                  @click="window.open(project.github_url, '_blank')"
+                >
+                  <Github class="h-4 w-4 mr-2" />
+                  View on GitHub
+                  <ExternalLink class="h-4 w-4 ml-2" />
+                </Button>
+                
+                <Button 
+                  v-if="project.demo_url"
+                  class="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                  @click="window.open(project.demo_url, '_blank')"
+                >
+                  <Globe class="h-4 w-4 mr-2" />
+                  Live Demo
+                  <ExternalLink class="h-4 w-4 ml-2" />
+                </Button>
+                
+                <Button 
+                  v-if="project.is_sellable"
+                  variant="outline"
+                  class="w-full"
+                >
+                  <DollarSign class="h-4 w-4 mr-2" />
+                  Buy Now - {{ formatPrice(project.selling_price) }}
+                </Button>
+              </div>
+
+              <!-- Funding Section -->
+              <Card :class="['border-0 shadow-lg',
+                themeStore.isDark ? 'bg-gray-700' : 'bg-gray-50'
+              ]">
+                <CardHeader>
+                  <CardTitle class="text-lg flex items-center">
+                    <Heart class="h-5 w-5 mr-2 text-red-500" />
+                    Support this Project
+                  </CardTitle>
+                </CardHeader>
+                <CardContent class="space-y-4">
+                  <p class="text-sm" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
+                    Help the developer continue working on this project by making a contribution.
+                  </p>
+                  
+                  <Dialog v-model:open="showFundingDialog">
+                    <DialogTrigger as="div">
+                      <Button class="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600">
+                        <Heart class="h-4 w-4 mr-2" />
+                        Fund Project
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Fund {{ project.title }}</DialogTitle>
+                        <DialogDescription>
+                          Enter the amount you'd like to contribute to support this project.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div class="space-y-4">
+                        <div>
+                          <label class="text-sm font-medium">Amount (USD)</label>
+                          <Input
+                            v-model="fundingAmount"
+                            type="number"
+                            min="1"
+                            step="0.01"
+                            placeholder="10.00"
+                            class="mt-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      <DialogFooter>
+                        <Button variant="outline" @click="showFundingDialog = false">
+                          Cancel
+                        </Button>
+                        <Button 
+                          @click="fundProject"
+                          :disabled="fundingLoading"
+                          class="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
+                        >
+                          <Loader2 v-if="fundingLoading" class="h-4 w-4 mr-2 animate-spin" />
+                          <Heart v-else class="h-4 w-4 mr-2" />
+                          {{ fundingLoading ? 'Processing...' : 'Fund Project' }}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </CardContent>
+              </Card>
+
+              <!-- Project Details -->
+              <Card :class="['border-0 shadow-lg',
+                themeStore.isDark ? 'bg-gray-700' : 'bg-gray-50'
+              ]">
+                <CardHeader>
+                  <CardTitle class="text-lg">Project Details</CardTitle>
+                </CardHeader>
+                <CardContent class="space-y-3">
+                  <div class="flex justify-between">
+                    <span class="text-sm text-gray-500">Type</span>
+                    <span class="text-sm font-medium">{{ project.project_type === 'open' ? 'Open Source' : 'Closed Source' }}</span>
+                  </div>
+                  
+                  <div class="flex justify-between">
+                    <span class="text-sm text-gray-500">Status</span>
+                    <span class="text-sm font-medium">{{ project.is_active ? 'Active' : 'Inactive' }}</span>
+                  </div>
+                  
+                  <div v-if="project.is_sellable" class="flex justify-between">
+                    <span class="text-sm text-gray-500">Original Price</span>
+                    <span class="text-sm font-medium">{{ formatPrice(project.original_price) }}</span>
+                  </div>
+                  
+                  <div class="flex justify-between">
+                    <span class="text-sm text-gray-500">Created</span>
+                    <span class="text-sm font-medium">{{ formatDate(project.created_at) }}</span>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div class="flex items-center mb-6">
-          <router-link :to="`/profile/${project.author.username}`" class="flex items-center">
-            <img :src="project.author.avatar" :alt="project.author.name" class="w-10 h-10 rounded-full">
-            <span class="ml-2 text-white">{{ project.author.name }}</span>
-          </router-link>
-        </div>
-
-        <p class="text-gray-300 mb-6">{{ project.description }}</p>
-
-        <div class="flex flex-wrap gap-2 mb-6">
-          <span v-for="tech in project.technologies" :key="tech"
-            class="px-3 py-1 bg-gray-700 rounded-full text-sm text-white">
-            {{ tech }}
-          </span>
-        </div>
-
-        <div class="flex space-x-4 mb-8">
-          <a :href="project.github" target="_blank" rel="noopener noreferrer"
-            class="inline-flex items-center px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">
-            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path>
-            </svg>
-            View on GitHub
-          </a>
-          <a :href="project.demo" target="_blank" rel="noopener noreferrer"
-            class="inline-flex items-center px-4 py-2 bg-primary-600 rounded-md hover:bg-primary-700">
-            Live Demo
-          </a>
-          <button v-if="project.type === 'Premium'"
-            class="inline-flex items-center px-4 py-2 bg-green-600 rounded-md hover:bg-green-700">
-            Buy Now - {{ project.price }}
-          </button>
-        </div>
-
-        <div class="border-t border-gray-700 pt-6">
-          <h2 class="text-xl font-semibold text-white mb-4">Support this project</h2>
-          <div class="flex space-x-4">
-            <button class="px-4 py-2 bg-purple-600 rounded-md hover:bg-purple-700">
-              Fund Project
-            </button>
-            <button class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">
-              Contribute
-            </button>
+      <!-- Funding History -->
+      <Card v-if="project.funds && project.funds.length > 0" :class="['border-0 shadow-xl mb-8',
+        themeStore.isDark ? 'bg-gray-800' : 'bg-white'
+      ]">
+        <CardHeader>
+          <CardTitle class="flex items-center">
+            <Heart class="h-5 w-5 mr-2 text-red-500" />
+            Recent Funding
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="space-y-3">
+            <div 
+              v-for="fund in project.funds.slice(0, 5)" 
+              :key="fund.id"
+              class="flex items-center justify-between p-3 rounded-lg"
+              :class="themeStore.isDark ? 'bg-gray-700' : 'bg-gray-50'"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center">
+                  <Heart class="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p class="font-medium">{{ fund.user?.name }}</p>
+                  <p class="text-sm text-gray-500">{{ formatDate(fund.created_at) }}</p>
+                </div>
+              </div>
+              <div class="text-lg font-bold text-green-500">
+                {{ formatPrice(fund.amount) }}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>

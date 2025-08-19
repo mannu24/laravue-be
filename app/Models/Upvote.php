@@ -6,13 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Upvote extends Model
 {
-    protected $table = 'upvotes';
-
     protected $fillable = [
         'user_id',
         'record_id',
-        'record_type',
+        'record_type'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function record()
     {
