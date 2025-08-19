@@ -13,4 +13,18 @@ class Technology extends Model
         'name',
         'is_active'
     ];
+
+    protected $casts = [
+        'is_active' => 'boolean'
+    ];
+
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class, 'project_technologies');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by_id');
+    }
 }

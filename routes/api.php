@@ -61,20 +61,17 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    // Route::prefix('projects')->group(function () {
-    //     Route::get('/', [ProjectController::class, 'index']);
-    //     Route::post('/', [ProjectController::class, 'store']);
-    //     Route::get('/{project}', [ProjectController::class, 'view']);
-    //     Route::post('/update', [ProjectController::class, 'update']);
-    //     Route::get('/delete/{project}', [ProjectController::class, 'destroy']);
-    // });
-
-    // Route::apiResource('projects', ProjectController::class);
-
-    Route::apiResource('projects', ProjectController::class)->except(['index', 'show'])->middleware('auth:api');
-
+    // Project Routes
     Route::get('projects', [ProjectController::class, 'index']);
+    Route::get('projects/technologies', [ProjectController::class, 'getTechnologies']);
     Route::get('projects/{project}', [ProjectController::class, 'show']);
+
+    Route::middleware(['auth:api'])->group(function () {
+        Route::apiResource('projects', ProjectController::class)->except(['index', 'show']);
+        Route::post('projects/{project}/upvote', [ProjectController::class, 'upvote']);
+        Route::post('projects/{project}/fund', [ProjectController::class, 'fund']);
+        Route::post('technologies', [ProjectController::class, 'createTechnology']);
+    });
 
     // Question Public Routes
     Route::controller(QuestionController::class)->group(function () {
