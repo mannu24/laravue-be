@@ -1,45 +1,174 @@
 
 <script setup>
-defineProps({
-  project: Object
-});
-</script><template>
-  <article class="flex flex-col items-start bg-gray-800 rounded-lg overflow-hidden">
-    <div class="relative w-full">
-      <img :src="project.image" :alt="project.title"
-        class="aspect-[16/9] w-full bg-gray-100 object-cover sm:aspect-[2/1] lg:aspect-[3/2]">
-      <div class="absolute inset-0 rounded-t-lg ring-1 ring-inset ring-gray-900/10"></div>
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useThemeStore } from '../stores/theme'
+import { useAuthStore } from '../stores/auth'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Star,
+  Eye,
+  Calendar,
+  User,
+  Code2,
+  ArrowRight
+} from 'lucide-vue-next'
+import axios from 'axios'
+import { toast } from '@/components/ui/toast'
+
+const props = defineProps({
+  project: {
+    type: Object,
+    required: true
+  }
+})
+
+const router = useRouter()
+const themeStore = useThemeStore()
+const authStore = useAuthStore()
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = Math.abs(now - date)
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 1) return '1 day ago'
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
+  return `${Math.floor(diffDays / 365)} years ago`
+}
+
+const upvoteProject = async (event) => {
+  event.stopPropagation()
+  
+  if (!authStore.isAuthenticated) {
+    toast({
+      title: "Authentication Required",
+      description: "Please login to upvote projects",
+      variant: "destructive"
+    })
+    return
+  }
+
+  try {
+    const response = await axios.post(`/api/v1/projects/${props.project.id}/upvote`, {}, authStore.config)
+    props.project.is_upvoted_by_user = response.data.data.is_upvoted
+    props.project.upvotes_count = response.data.data.upvotes_count
+    
+    toast({
+      title: "Success",
+      description: response.data.message,
+    })
+  } catch (error) {
+    console.error('Error upvoting project:', error)
+    toast({
+      title: "Error",
+      description: "Failed to upvote project",
+      variant: "destructive"
+    })
+  }
+}
+
+const navigateToProject = () => {
+  router.push(`/projects/${props.project.id}`)
+}
+</script>
+
+<template>
+  <Card :class="['group transition-all duration-300 hover:-translate-y-2 border-0 shadow-xl cursor-pointer overflow-hidden',
+    themeStore.isDark ? 'bg-gray-800/90 hover:bg-gray-800' : 'bg-white/90 hover:bg-white'
+  ]" @click="navigateToProject">
+    <!-- Project Image -->
+    <div class="relative overflow-hidden">
+      <img 
+        :src="project.featured_image || 'https://picsum.photos/400/250?random=' + project.id" 
+        :alt="project.title"
+        class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+      <div class="absolute top-4 right-4">
+        <Badge :class="[
+          'text-white font-medium shadow-lg',
+          project.is_sellable
+            ? 'bg-gradient-to-r from-yellow-500 to-orange-500'
+            : 'bg-gradient-to-r from-green-500 to-emerald-500'
+        ]">
+          {{ project.is_sellable ? 'Premium' : 'Open Source' }}
+        </Badge>
+      </div>
     </div>
-    <div class="max-w-xl p-6">
-      <div class="flex items-center gap-x-4 text-xs">
-        <span :class="[
-          project.type === 'Premium' ? 'bg-yellow-500' : 'bg-green-500',
-          'rounded-full px-3 py-1.5 font-medium text-white'
-        ]">{{ project.type }}</span>
-        <div class="flex items-center gap-x-1">
-          <svg class="h-4 w-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
-            </path>
-          </svg>
-          <span class="text-gray-300">{{ project.stars }}</span>
+
+    <!-- Project Content -->
+    <CardContent class="p-6">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex-1">
+          <h3 class="text-xl font-bold mb-2 group-hover:text-blue-500 transition-colors duration-300"
+            :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+            {{ project.title }}
+          </h3>
+          <div class="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
+            <User class="h-4 w-4" />
+            <span>{{ project.user?.name }}</span>
+            <span>•</span>
+            <Calendar class="h-4 w-4" />
+            <span>{{ formatDate(project.created_at) }}</span>
+          </div>
+        </div>
+        <div v-if="project.selling_price" class="text-lg font-bold text-yellow-500">
+          ${{ project.selling_price }}
         </div>
       </div>
-      <div class="group relative">
-        <h3 class="mt-3 text-lg font-semibold leading-6 text-white">
-          <router-link :to="'/projects/' + project.id">
-            <span class="absolute inset-0"></span>
-            {{ project.title }}
-          </router-link>
-        </h3>
-        <p class="mt-5 line-clamp-3 text-sm leading-6 text-gray-300">{{ project.description }}</p>
+
+      <p class="text-sm mb-4 line-clamp-3 leading-relaxed"
+        :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
+        {{ project.description }}
+      </p>
+
+      <!-- Tags -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <Badge v-for="tech in project.technologies?.slice(0, 3)" :key="tech.id" variant="secondary" class="text-xs">
+          {{ tech.name }}
+        </Badge>
+        <Badge v-if="project.technologies?.length > 3" variant="secondary" class="text-xs">
+          +{{ project.technologies.length - 3 }}
+        </Badge>
       </div>
-      <div v-if="project.price" class="mt-4">
-        <span class="text-primary-400 font-semibold">{{ project.price }}</span>
+
+      <!-- Stats -->
+      <div class="flex items-center justify-between pt-4 border-t"
+        :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'">
+        <div class="flex items-center space-x-4 text-sm text-muted-foreground">
+          <button 
+            @click="upvoteProject"
+            class="flex items-center hover:text-blue-500 transition-colors"
+            :class="project.is_upvoted_by_user ? 'text-blue-500' : ''"
+          >
+            <Star class="h-4 w-4 mr-1" :class="project.is_upvoted_by_user ? 'fill-current' : ''" />
+            <span>{{ project.upvotes_count || 0 }}</span>
+          </button>
+          <div class="flex items-center">
+            <Eye class="h-4 w-4 mr-1" />
+            <span>{{ project.views?.toLocaleString() || 0 }}</span>
+          </div>
+        </div>
+
+        <ArrowRight
+          class="h-4 w-4 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300" />
       </div>
-    </div>
-  </article>
+    </CardContent>
+  </Card>
 </template>
+
 <style scoped>
-/* Add your styles here, if necessary */
+/* Line clamp utility */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 </style>

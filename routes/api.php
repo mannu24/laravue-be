@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\v1\Api\PostController;
 use App\Http\Controllers\v1\Api\AuthController;
+use App\Http\Controllers\v1\Api\ProjectController;
 use App\Http\Controllers\v1\Api\User\AnswerController;
 use App\Http\Controllers\v1\Api\User\QuestionController;
 use App\Http\Controllers\v1\Api\User\SocialLinkController;
@@ -58,6 +59,18 @@ Route::prefix('v1')->group(function () {
             Route::get('replies', [AnswerController::class, 'getReplies'])->name('answers.replies');
             Route::post('replies', [AnswerController::class, 'storeReply'])->name('answers.storeReply');
         });
+    });
+
+    // Project Routes
+    Route::get('projects', [ProjectController::class, 'index']);
+    Route::get('projects/technologies', [ProjectController::class, 'getTechnologies']);
+    Route::get('projects/{project}', [ProjectController::class, 'show']);
+
+    Route::middleware(['auth:api'])->group(function () {
+        Route::apiResource('projects', ProjectController::class)->except(['index', 'show']);
+        Route::post('projects/{project}/upvote', [ProjectController::class, 'upvote']);
+        Route::post('projects/{project}/fund', [ProjectController::class, 'fund']);
+        Route::post('technologies', [ProjectController::class, 'createTechnology']);
     });
 
     // Question Public Routes

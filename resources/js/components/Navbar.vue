@@ -52,6 +52,9 @@ const logout = async () => {
 onMounted(() => {
     themeStore.initTheme()
 })
+defineOptions({
+  name: 'Navbar'
+})
 </script>
 
 <template>

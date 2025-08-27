@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import Navbar from './components/Navbar.vue'
+import { onBeforeUnmount, onMounted, ref, defineAsyncComponent } from 'vue'
+const Navbar = defineAsyncComponent(() => import('./components/Navbar.vue'))
 import { ArrowUp } from 'lucide-vue-next'
 import "../css/index.css"
 import "../css/custom.css"
