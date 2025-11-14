@@ -228,6 +228,9 @@ onBeforeUnmount(() => {
     document.removeEventListener('keydown', handleKeydown)
     document.removeEventListener('keydown', handleGlobalKeydown)
 })
+defineOptions({
+  name: 'Navbar'
+})
 </script>
 
 <template>

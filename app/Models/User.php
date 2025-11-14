@@ -60,13 +60,13 @@ class User extends Authenticatable implements HasMedia
 
     public function getCompletedAttribute()
     {
-        if (!$this->name || !$this->email || !$this->username) return false;
+        if (!$this->getAttribute('name') || !$this->getAttribute('email') || !$this->getAttribute('username')) return false;
         else return true;
     }
 
     public function getProfilePhotoAttribute()
     {
-        return count($this->getMedia('profile_photo')) ? $this->getMedia('profile_photo')[0]->getFullUrl() : '';
+        return count($this->getMedia('profile_photo')->toArray()) ? $this->getMedia('profile_photo')[0]->getFullUrl() : '';
     }
 
     public function socialLinks()
@@ -117,5 +117,20 @@ class User extends Authenticatable implements HasMedia
     public function getFollowingCountAttribute()
     {
         return $this->following()->count();
+    }
+
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    public function upvotes()
+    {
+        return $this->hasMany(Upvote::class);
+    }
+
+    public function projectFunds()
+    {
+        return $this->hasMany(ProjectFund::class);
     }
 }

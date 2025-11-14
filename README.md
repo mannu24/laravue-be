@@ -1,66 +1,203 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravue - Community Platform for Laravel & Vue.js Developers
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="public/assets/front/logo/logo.png" alt="Laravue Logo" width="200">
 </p>
 
-## About Laravel
+<p align="center">
+  <strong>A comprehensive community platform for Laravel and Vue.js developers to connect, collaborate, and grow together.</strong>
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 About Laravue
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Laravue is a community-based platform designed specifically for Laravel and Vue.js developers to connect, share knowledge, showcase projects, and expand their professional network. Built with modern technologies and best practices, it provides a complete ecosystem for developers to interact, learn, and collaborate.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## ✨ Key Features
 
-## Learning Laravel
+### 🔐 Authentication & User Management
+- **OTP-based Email Authentication** - Secure login without passwords
+- **User Registration & Profile Management** - Complete user profiles with social links
+- **Role-based Access Control** - Admin and User roles with appropriate permissions
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 🏠 Homepage & Static Content
+- **Dynamic Content Management** - About, Terms & Conditions, Contact, References, Partners, Sponsors, Testimonials
+- **Contact Query System** - Store and manage user inquiries in database
+- **Responsive Design** - Modern UI with dark/light theme support
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 💼 Project Showcase
+- **Project Management** - Add, edit, and showcase projects with rich details
+- **Project Types** - Open source, closed source, and sellable projects
+- **Technology Stack** - Tag-based technology filtering for easy discovery
+- **Project Funding** - Crowdfunding support for innovative projects
+- **Advanced Filtering** - Filter by type, popularity, technology stack
+- **Upvoting System** - Community-driven project ranking
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 📱 Social Feed
+- **Developer Profiles** - Comprehensive developer portfolios with badges
+- **Follow System** - Follow developers across different sections
+- **Post Management** - Create, edit, and manage posts with AI assistance
+- **Rich Content** - Support for hashtags, bookmarks, views, likes, comments
+- **Advanced Features** - Repost, comment threading, bookmarking, sharing
+- **Content Moderation** - Report system for posts and developers
+- **Smart Recommendations** - AI-powered content discovery
 
-## Laravel Sponsors
+### ❓ Q&A Platform
+- **Stack Overflow Integration** - Scrape and display relevant questions
+- **GitHub Integration** - Connect with GitHub repositories and issues
+- **Question Management** - CRUD operations for questions and answers
+- **Voting System** - Upvote/downvote questions and answers
+- **AI-Powered Answers** - Get intelligent answers with developer and project linking
+- **Advanced Search** - Powerful search with trending and personalized feeds
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 📝 Blog System
+- **Blog Management** - Create and manage developer blogs
+- **AI Writing Assistant** - AI-powered content creation
+- **Subscription System** - Follow and subscribe to developer blogs
+- **Interactive Features** - Comments, likes, and social sharing
 
-### Premium Partners
+## 🛠️ Technology Stack
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### Backend
+- **Laravel 11** - Modern PHP framework with latest features
+- **Laravel Passport** - OAuth2 authentication system
+- **Spatie Media Library** - Advanced media management
+- **Spatie Sluggable** - SEO-friendly URL generation
+- **MySQL/PostgreSQL** - Robust database support
 
-## Contributing
+### Frontend
+- **Vue.js 3** - Progressive JavaScript framework with Composition API
+- **Vue Router 4** - Client-side routing
+- **Pinia** - State management with persistence
+- **Tailwind CSS** - Utility-first CSS framework
+- **Vite** - Fast build tool and dev server
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Additional Features
+- **Markdown Support** - Rich text editing with markdown
+- **Real-time Updates** - Live notifications and updates
+- **Responsive Design** - Mobile-first approach
+- **Dark/Light Themes** - User preference support
+- **Internationalization** - Multi-language support ready
 
-## Code of Conduct
+## 🚀 Quick Start
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Prerequisites
+- PHP 8.4+
+- Composer
+- Node.js 18+
+- MySQL/PostgreSQL
 
-## Security Vulnerabilities
+### Installation
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd laravue
+   ```
 
-## License
+2. **Install PHP dependencies**
+   ```bash
+   composer install
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+3. **Install Node.js dependencies**
+   ```bash
+   npm install
+   ```
+
+4. **Environment setup**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+5. **Database setup**
+   ```bash
+   php artisan migrate
+   php artisan db:seed
+   ```
+
+6. **Build assets**
+   ```bash
+   npm run build
+   ```
+
+7. **Start development server**
+   ```bash
+   php artisan serve
+   npm run dev
+   ```
+
+### Development Commands
+
+```bash
+# Start all services (server, queue, logs, vite)
+composer run dev
+
+# Run tests
+php artisan test
+
+# Clear caches
+php artisan optimize:clear
+```
+
+## 📁 Project Structure
+
+```
+laravue/
+├── app/                    # Laravel application logic
+│   ├── Http/             # Controllers, Requests, Resources
+│   ├── Models/           # Eloquent models
+│   ├── Services/         # Business logic services
+│   └── Repositories/     # Data access layer
+├── resources/js/         # Vue.js frontend
+│   ├── components/       # Vue components
+│   ├── views/           # Page components
+│   ├── stores/          # Pinia state management
+│   └── composables/     # Vue composables
+├── database/            # Migrations, seeders, factories
+└── routes/              # API and web routes
+```
+
+## 🔧 Configuration
+
+### Key Configuration Files
+- `.env` - Environment variables
+- `config/auth.php` - Authentication settings
+- `config/database.php` - Database configuration
+- `tailwind.config.js` - Tailwind CSS configuration
+- `vite.config.js` - Vite build configuration
+
+## 🤝 Contributing
+
+We welcome contributions from the community! Please read our contributing guidelines and submit pull requests for any improvements.
+
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## 🆘 Support
+
+- **Documentation**: Check the project wiki for detailed guides
+- **Issues**: Report bugs and feature requests on GitHub
+- **Discussions**: Join community discussions for help and ideas
+
+## 🌟 Features Roadmap
+
+- [ ] Advanced AI integration for content generation
+- [ ] Real-time chat and collaboration tools
+- [ ] Advanced analytics and insights
+- [ ] Mobile app development
+- [ ] API rate limiting and optimization
+- [ ] Enhanced security features
+- [ ] Performance monitoring and optimization
+
+---
+
+**Built with ❤️ by the Laravel & Vue.js community**
