@@ -48,4 +48,26 @@ class Answer extends Model
     {
         return $this->hasMany(Answer::class, 'parent_id')->latest();
     }
+
+    /**
+     * Boot method to track activities
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($answer) {
+            $answer->load(['user', 'question']);
+            \App\Models\Activity::createActivity(
+                $answer->user_id,
+                \App\Models\Activity::TYPE_ANSWER_CREATED,
+                $answer,
+                ($answer->user->name ?? 'User') . ' answered a question',
+                [
+                    'question_id' => $answer->question_id,
+                    'question_title' => $answer->question->title ?? null,
+                ]
+            );
+        });
+    }
 }

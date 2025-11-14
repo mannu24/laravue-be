@@ -52,7 +52,10 @@ class User extends Authenticatable implements HasMedia
 
     protected $appends = [
         'profile_photo',
-        'completed'
+        'completed',
+        'is_following',
+        'followers_count',
+        'following_count'
     ];
 
     public function getCompletedAttribute()
@@ -69,5 +72,50 @@ class User extends Authenticatable implements HasMedia
     public function socialLinks()
     {
         return $this->hasMany(UserSocialLink::class)->orderBy('position');
+    }
+
+    /**
+     * Users that this user is following
+     */
+    public function following()
+    {
+        return $this->belongsToMany(User::class, 'followers', 'follower_id', 'following_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Users that are following this user
+     */
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'followers', 'following_id', 'follower_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if the authenticated user is following this user
+     */
+    public function getIsFollowingAttribute()
+    {
+        if (!auth()->guard('api')->check()) {
+            return false;
+        }
+        return $this->followers()->where('follower_id', auth()->guard('api')->id())->exists();
+    }
+
+    /**
+     * Get followers count
+     */
+    public function getFollowersCountAttribute()
+    {
+        return $this->followers()->count();
+    }
+
+    /**
+     * Get following count
+     */
+    public function getFollowingCountAttribute()
+    {
+        return $this->following()->count();
     }
 }

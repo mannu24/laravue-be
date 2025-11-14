@@ -9,6 +9,7 @@ trait HttpResponse
         return response()->json([
             'message' => $message,
             'data' => $data,
+            'status' => 'error',
         ], $code);
     }
 
@@ -17,6 +18,7 @@ trait HttpResponse
         return response()->json([
             'message' => $message,
             'data' => $data,
+            'status' => 'not_found',
         ], $code);
     }
 
@@ -25,6 +27,7 @@ trait HttpResponse
         return response()->json([
             'message' => $message,
             'data' => $data,
+            'status' => 'success',
         ], $code);
     }
 
@@ -32,6 +35,7 @@ trait HttpResponse
     {
         return response()->json([
             'message' => $message,
+            'status' => 'internal_error',
         ], 500);
     }
 }

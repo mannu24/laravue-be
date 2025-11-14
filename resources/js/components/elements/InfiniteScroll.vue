@@ -4,14 +4,18 @@ import PostCard from '../feed/PostCard.vue'
 import QuestionCard from '../qna/QuestionCard.vue'
 import { Skeleton } from '../ui/skeleton'
 import { useAuthStore } from '../../stores/auth.js';
+import { useThemeStore } from '../../stores/theme.js';
+import { FileText } from 'lucide-vue-next';
 
 const authStore = useAuthStore();
+const themeStore = useThemeStore();
 const pagination = ref(null)
 const l_count = ref(null)
 const pageNo = ref(1)
 const records = ref([])
 const loading = ref(false);
 const last_item = ref(1)
+const hasLoaded = ref(false)
 const { fetchKey, username, scrolling } = defineProps(['fetchKey', 'username', 'scrolling'])
 const emit = defineEmits(['share_url'])
 
@@ -23,6 +27,7 @@ const url = computed(() => {
 const fetch = () => {
     pageNo.value = 1
     records.value = []
+    hasLoaded.value = false
 }
 
 const index = async () => {
@@ -34,12 +39,16 @@ const index = async () => {
         records.value.push(...res.data.records.data);
         l_count.value = res.data.records.data.length
         loading.value = false;
+        hasLoaded.value = true;
         pagination.value = {
             "page": res.data.records.current_page,
             "pageSize": res.data.records.per_page,
             "pageCount": res.data.records.last_page,
             "total": res.data.records.total
         }
+    }).catch(() => {
+        loading.value = false;
+        hasLoaded.value = true;
     })
 }
 
@@ -96,10 +105,34 @@ watch(() => fetchKey, async (value) => { fetch() })
                 v-bind="{ [scrolling === 'post' ? 'post' : 'question']: item }"
             />
         </TransitionGroup>
-        <Transition class="mx-auto" name="fade">
-            <div v-if="loading" class="gap-4 grid max-w-2xl mx-auto w-full">
-                <Skeleton v-for="i in 5" :key="i" class="w-full" :class="scrolling == 'post' ? 'h-[300px]' : 'h-[200px]'" />
+        <Transition class="w-full" name="fade">
+            <div v-if="loading" class="gap-6 grid w-full">
+                <Skeleton v-for="i in 5" :key="i" class="w-full rounded-2xl" :class="scrolling == 'post' ? 'h-[400px]' : 'h-[250px]'" />
             </div>
         </Transition>
+        <!-- Empty State for Posts -->
+        <div v-if="!loading && hasLoaded && records.length === 0 && scrolling === 'post'" class="text-center py-12">
+            <FileText class="h-16 w-16 mx-auto mb-4 opacity-50" :class="[
+                themeStore.isDark ? 'text-gray-600' : 'text-gray-400'
+            ]" />
+            <p class="text-lg font-medium mb-2" :class="[
+                themeStore.isDark ? 'text-white' : 'text-gray-900'
+            ]">No Posts Yet</p>
+            <p class="text-sm" :class="[
+                themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
+            ]">This user hasn't posted anything yet.</p>
+        </div>
+        <!-- Empty State for Questions -->
+        <div v-if="!loading && hasLoaded && records.length === 0 && scrolling === 'qna'" class="text-center py-12">
+            <FileText class="h-16 w-16 mx-auto mb-4 opacity-50" :class="[
+                themeStore.isDark ? 'text-gray-600' : 'text-gray-400'
+            ]" />
+            <p class="text-lg font-medium mb-2" :class="[
+                themeStore.isDark ? 'text-white' : 'text-gray-900'
+            ]">No Questions Yet</p>
+            <p class="text-sm" :class="[
+                themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
+            ]">This user hasn't asked any questions yet.</p>
+        </div>
     </div>
 </template>

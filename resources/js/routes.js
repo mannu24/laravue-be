@@ -105,6 +105,24 @@ const router = createRouter({
             meta: { auth: false, both: true },
         },
         {
+            path: '/search',
+            name: 'search-results',
+            component: () => import('./views/SearchResults.vue'),
+            meta: { auth: false, both: true },
+        },
+        {
+            path: '/notifications',
+            name: 'notifications',
+            component: () => import('./views/Notifications.vue'),
+            meta: { auth: true },
+        },
+        {
+            path: '/settings',
+            name: 'settings',
+            component: () => import('./views/Settings.vue'),
+            meta: { auth: true },
+        },
+        {
             path: '/:pathMatch(.*)*',
             name: 'not-found',
             component: () => import('./views/ErrorPage.vue'),

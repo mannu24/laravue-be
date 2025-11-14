@@ -4,8 +4,10 @@ namespace App\Http\Controllers\v1\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
+use App\Models\Notification;
 use App\Models\Post;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -73,7 +75,26 @@ class PostController extends Controller
                     $post->addMedia($file)->toMediaCollection('images');
                 }
             }
-            // $this->handleMentionNotifications($post, $data['mentions']);
+            
+            // Send notifications to mentioned users
+            if (!empty($mentions)) {
+                $postUrl = url("/posts/{$post->post_code}");
+                foreach ($mentions as $mention) {
+                    NotificationService::create(
+                        userId: $mention['id'],
+                        type: Notification::TYPE_MENTIONED,
+                        title: 'You were mentioned in a post',
+                        message: auth()->user()->name . ' mentioned you in a post',
+                        subject: $post,
+                        notifiableId: auth()->id(),
+                        data: ['url' => $postUrl, 'post_title' => $post->title],
+                        sendEmail: true,
+                        emailBlade: 'emails.notification',
+                        emailSubject: 'Someone mentioned you in a post'
+                    );
+                }
+            }
+            
             DB::commit();
             return response()->json(['status' => 'success', 'message' => 'Post created successfully']);
         } catch (\Exception $e) {
@@ -171,7 +192,32 @@ class PostController extends Controller
                     $post->addMedia($file)->toMediaCollection('images');
                 }
             }
-            // $this->handleMentionNotifications($post, $data['mentions']);
+            
+            // Send notifications to newly mentioned users
+            if (!empty($data['mentions'])) {
+                $existingMentions = json_decode($post->meta_content, true) ?? [];
+                $existingUserIds = collect($existingMentions)->pluck('id')->toArray();
+                $newMentions = collect($data['mentions'])->filter(function ($mention) use ($existingUserIds) {
+                    return !in_array($mention['id'], $existingUserIds);
+                });
+                
+                $postUrl = url("/posts/{$post->post_code}");
+                foreach ($newMentions as $mention) {
+                    NotificationService::create(
+                        userId: $mention['id'],
+                        type: Notification::TYPE_MENTIONED,
+                        title: 'You were mentioned in a post',
+                        message: auth()->user()->name . ' mentioned you in a post',
+                        subject: $post,
+                        notifiableId: auth()->id(),
+                        data: ['url' => $postUrl, 'post_title' => $post->title],
+                        sendEmail: true,
+                        emailBlade: 'emails.notification',
+                        emailSubject: 'Someone mentioned you in a post'
+                    );
+                }
+            }
+            
             DB::commit();
             return response()->json(['status' => 'success', 'message' => 'Post updated successfully']);
         } catch (\Exception $e) {
@@ -226,6 +272,23 @@ class PostController extends Controller
 
         $comment->load('user:id,name,username');
 
+        // Notify post owner (if not commenting on own post)
+        if ($post->user_id !== auth()->id()) {
+            $postUrl = url("/posts/{$post->post_code}");
+            NotificationService::create(
+                userId: $post->user_id,
+                type: Notification::TYPE_POST_COMMENTED,
+                title: 'New comment on your post',
+                message: auth()->user()->name . ' commented on your post',
+                subject: $comment,
+                notifiableId: auth()->id(),
+                data: ['url' => $postUrl, 'post_title' => $post->title],
+                sendEmail: true,
+                emailBlade: 'emails.notification',
+                emailSubject: 'You have a new comment on your post'
+            );
+        }
+
         return response()->json(['status' => 'success', 'message' => 'Comment added successfully', 'comment' => $comment]);
     }
 
@@ -240,7 +303,27 @@ class PostController extends Controller
     public function like_unlike($postCode)
     {
         $post = Post::where('post_code', $postCode)->firstOrFail();
-        $post->toggleLike();
+        $wasLiked = $post->liked;
+        $isLiked = $post->toggleLike();
+        $post->refresh();
+        $post->liked = $isLiked;
+
+        // Notify post owner when liked (if not liking own post)
+        if ($isLiked && !$wasLiked && $post->user_id !== auth()->id()) {
+            $postUrl = url("/posts/{$post->post_code}");
+            NotificationService::create(
+                userId: $post->user_id,
+                type: Notification::TYPE_POST_LIKED,
+                title: 'Your post was liked',
+                message: auth()->user()->name . ' liked your post',
+                subject: $post,
+                notifiableId: auth()->id(),
+                data: ['url' => $postUrl, 'post_title' => $post->title],
+                sendEmail: true,
+                emailBlade: 'emails.notification',
+                emailSubject: 'Someone liked your post'
+            );
+        }
 
         return response()->json(['status' => 'success', 'liked' => $post->liked]);
     }
@@ -248,7 +331,28 @@ class PostController extends Controller
     public function like_unlike_comment($comment_id)
     {
         $comment = Comment::where('id', $comment_id)->firstOrFail();
-        $comment->toggleLike();
+        $wasLiked = $comment->liked;
+        $isLiked = $comment->toggleLike();
+        $comment->refresh();
+        $comment->liked = $isLiked;
+
+        // Notify comment owner when liked (if not liking own comment)
+        if ($isLiked && !$wasLiked && $comment->user_id !== auth()->id()) {
+            $post = Post::find($comment->record_id);
+            $postUrl = $post ? url("/posts/{$post->post_code}") : '#';
+            NotificationService::create(
+                userId: $comment->user_id,
+                type: Notification::TYPE_COMMENT_LIKED,
+                title: 'Your comment was liked',
+                message: auth()->user()->name . ' liked your comment',
+                subject: $comment,
+                notifiableId: auth()->id(),
+                data: ['url' => $postUrl],
+                sendEmail: true,
+                emailBlade: 'emails.notification',
+                emailSubject: 'Someone liked your comment'
+            );
+        }
 
         return response()->json(['status' => 'success', 'liked' => $comment->liked]);
     }

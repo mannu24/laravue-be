@@ -20,12 +20,20 @@ const fetch = () => {
 
 </script>
 <template>
-    <div :class="['min-h-screen transition-colors duration-300 space-y-12 py-5',
-        themeStore.isDark ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-900'
+    <div :class="[
+        'min-h-screen transition-colors duration-300',
+        themeStore.isDark ? 'bg-gray-950' : 'bg-gray-50'
     ]">
-            <div class="w-full mx-auto sm:px-6 lg:px-0 pb-8">
-            <PostForm @fetch="fetch"></PostForm>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Post Form Section -->
+            <div class="mb-8">
+                <PostForm @fetch="fetch"></PostForm>
+            </div>
+            
+            <!-- Feed Section -->
+            <div class="space-y-6">
+                <InfiniteScroll scrolling="post" :fetchKey="key" @share_url="share_url" :username="null"></InfiniteScroll>
+            </div>
         </div>
-        <InfiniteScroll scrolling="post" :fetchKey="key" @share_url="share_url" :username="null"></InfiniteScroll>
     </div>
 </template>

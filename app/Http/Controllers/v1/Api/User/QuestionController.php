@@ -8,7 +8,9 @@ use App\Http\Requests\v1\User\Questions\UpdateQuestionRequest;
 use App\Http\Resources\v1\AnswerResource;
 use App\Http\Resources\v1\QuestionResource;
 use App\Http\Traits\HttpResponse;
+use App\Models\Notification;
 use App\Services\AnswerService;
+use App\Services\NotificationService;
 use App\Services\QuestionService;
 use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -114,7 +116,26 @@ class QuestionController extends Controller
     public function upvote($id)
     {
         try {
+            $question = $this->service->getQuestionById($id);
             $this->service->upvoteQuestion($id);
+            
+            // Notify question owner (if not upvoting own question)
+            if ($question->user_id !== auth()->guard('api')->id()) {
+                $questionUrl = "/qna/{$question->slug}";
+                NotificationService::create(
+                    userId: $question->user_id,
+                    type: Notification::TYPE_QUESTION_UPVOTED,
+                    title: 'Your question was upvoted',
+                    message: auth()->user()->name . ' upvoted your question',
+                    subject: $question,
+                    notifiableId: auth()->guard('api')->id(),
+                    data: ['url' => $questionUrl, 'question_title' => $question->title],
+                    sendEmail: true,
+                    emailBlade: 'emails.notification',
+                    emailSubject: 'Someone upvoted your question'
+                );
+            }
+            
             return $this->success(
                 message: 'Question upvoted successfully'
             );
@@ -128,7 +149,27 @@ class QuestionController extends Controller
     public function like_unlike($slug)
     {
         try {
+            $question = $this->service->getQuestionBySlug($slug);
+            $wasLiked = $question->liked;
             $liked = $this->service->like_unlike($slug);
+            
+            // Notify question owner when liked (if not liking own question)
+            if ($liked && !$wasLiked && $question->user_id !== auth()->guard('api')->id()) {
+                $questionUrl = "/qna/{$question->slug}";
+                NotificationService::create(
+                    userId: $question->user_id,
+                    type: Notification::TYPE_QUESTION_LIKED,
+                    title: 'Your question was liked',
+                    message: auth()->user()->name . ' liked your question',
+                    subject: $question,
+                    notifiableId: auth()->guard('api')->id(),
+                    data: ['url' => $questionUrl, 'question_title' => $question->title],
+                    sendEmail: true,
+                    emailBlade: 'emails.notification',
+                    emailSubject: 'Someone liked your question'
+                );
+            }
+            
             return response()->json(['status' => 'success', 'liked' => $liked]);
         } catch (Exception $e) {
             return $this->internalError(

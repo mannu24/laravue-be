@@ -8,6 +8,13 @@ use App\Http\Controllers\v1\Api\User\AnswerController;
 use App\Http\Controllers\v1\Api\User\QuestionController;
 use App\Http\Controllers\v1\Api\User\SocialLinkController;
 use App\Http\Controllers\v1\Api\UserController;
+use App\Http\Controllers\v1\Api\SearchController;
+use App\Http\Controllers\v1\Api\FollowController;
+use App\Http\Controllers\v1\Api\ActivityController;
+use App\Http\Controllers\v1\Api\NotificationController;
+use App\Http\Controllers\v1\Api\SettingsController;
+use App\Http\Controllers\v1\Api\PushSubscriptionController;
+use App\Http\Controllers\v1\Api\BookmarkController;
 
 Route::prefix('v1')->group(function () {
     // Authentication Routes
@@ -17,6 +24,46 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/otp', 'handleOtp');
     });
 
+    // Search Routes
+    Route::get('/search', [SearchController::class, 'search']);
+    Route::get('/search/tag-suggestions', [SearchController::class, 'tagSuggestions']);
+    Route::get('/search/user-suggestions', [SearchController::class, 'userSuggestions']);
+
+    // Activity Routes
+    Route::get('/activities', [ActivityController::class, 'index']);
+
+    // Public User Profile Route
+    Route::get('/users/{username}', [UserController::class, 'show'])->name('users.show');
+
+    // Notification Routes (Authenticated)
+    Route::middleware(['auth:api'])->group(function () {
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+        Route::post('/notifications/bulk-delete', [NotificationController::class, 'bulkDelete']);
+    });
+
+    // Settings Routes (Authenticated)
+    Route::middleware(['auth:api'])->group(function () {
+        // Notification Settings
+        Route::get('/settings/notifications', [SettingsController::class, 'getNotifications']);
+        Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications']);
+        
+        // Push Subscription Routes
+        Route::get('/push-subscriptions', [PushSubscriptionController::class, 'index']);
+        Route::post('/push-subscriptions', [PushSubscriptionController::class, 'subscribe']);
+        Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'unsubscribe']);
+        
+        // Add more settings endpoints here as needed
+        // Route::get('/settings/privacy', [SettingsController::class, 'getPrivacy']);
+        // Route::put('/settings/privacy', [SettingsController::class, 'updatePrivacy']);
+    });
+    
+    // Public VAPID key route (needed for subscription)
+    Route::get('/push-subscriptions/vapid-key', [PushSubscriptionController::class, 'getVapidKey']);
+
     // Authenticated Routes
     Route::middleware(['auth:api'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -25,6 +72,24 @@ Route::prefix('v1')->group(function () {
         Route::controller(UserController::class)->group(function () {
             Route::get('/user', 'user');
             Route::post('/user', 'update');
+        });
+
+        // Follow/Unfollow Routes
+        Route::prefix('users/{username}')->group(function () {
+            Route::post('/follow', [FollowController::class, 'toggle'])->name('users.follow');
+            Route::get('/follow/check', [FollowController::class, 'check'])->name('users.follow.check');
+            Route::get('/followers', [FollowController::class, 'followers'])->name('users.followers');
+            Route::get('/following', [FollowController::class, 'following'])->name('users.following');
+        });
+
+        // Bookmark Routes
+        Route::prefix('bookmarks')->group(function () {
+            Route::post('/toggle', [BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
+            Route::get('/check', [BookmarkController::class, 'check'])->name('bookmarks.check');
+            Route::get('/count', [BookmarkController::class, 'count'])->name('bookmarks.count');
+            Route::post('/batch-check', [BookmarkController::class, 'batchCheck'])->name('bookmarks.batch-check');
+            Route::get('/', [BookmarkController::class, 'index'])->name('bookmarks.index');
+            Route::delete('/{id}', [BookmarkController::class, 'destroy'])->name('bookmarks.destroy');
         });
 
         Route::get('/social-links/types', [SocialLinkController::class, 'types']);
