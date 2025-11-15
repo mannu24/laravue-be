@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import SocialLinks from './SocialLinks.vue'
 import InfiniteScroll from '../elements/InfiniteScroll.vue'
 import ActivityScroll from './ActivityScroll.vue'
+import ProjectsInfiniteList from '../projects/ProjectsInfiniteList.vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
     Code2, 
@@ -22,7 +23,7 @@ const props = defineProps({
         default: () => [
             { value: 'feed', label: 'Feed', icon: FileText },
             { value: 'projects', label: 'Projects', icon: Building2 },
-            { value: 'blogs', label: 'Blogs', icon: FileText }
+            // { value: 'blogs', label: 'Blogs', icon: FileText }
         ]
     },
     defaultTab: {
@@ -95,39 +96,25 @@ const gridColsClass = computed(() => {
                     :fetchKey="null"
                     :username="username"
                 />
-                <div v-else class="text-center py-12">
-                    <FileText class="h-16 w-16 mx-auto mb-4 opacity-50" :class="[
-                        themeStore.isDark ? 'text-gray-600' : 'text-gray-400'
-                    ]" />
-                    <p class="text-lg font-medium mb-2" :class="[
-                        themeStore.isDark ? 'text-white' : 'text-gray-900'
-                    ]">Feed Coming Soon</p>
-                    <p class="text-sm" :class="[
-                        themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
-                    ]">This feature will be available in a future update.</p>
-                </div>
+                <EmptyState
+                    v-else
+                    icon="FileText"
+                    title="Feed Coming Soon"
+                    subtitle="This feature will be available in a future update."
+                    size="small"
+                />
             </TabsContent>
 
             <!-- Projects Tab Content -->
-            <TabsContent v-if="tabs.find(t => t.value === 'projects')" value="projects" class="space-y-6 mt-0">
-                <div v-if="projects.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Project cards will be rendered here when projects API is implemented -->
-                </div>
-                <div v-else class="text-center py-12">
-                    <Building2 class="h-16 w-16 mx-auto mb-4 opacity-50" :class="[
-                        themeStore.isDark ? 'text-gray-600' : 'text-gray-400'
-                    ]" />
-                    <p class="text-lg font-medium mb-2" :class="[
-                        themeStore.isDark ? 'text-white' : 'text-gray-900'
-                    ]">Projects Coming Soon</p>
-                    <p class="text-sm" :class="[
-                        themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
-                    ]">This feature will be available in a future update.</p>
-                </div>
+            <TabsContent v-if="tabs.find(t => t.value === 'projects')" value="projects" class="mt-0">
+                <ProjectsInfiniteList
+                    :user-id="userId"
+                    :per-page="12"
+                />
             </TabsContent>
 
             <!-- Blogs Tab Content -->
-            <TabsContent v-if="tabs.find(t => t.value === 'blogs')" value="blogs" class="mt-0">
+            <!-- <TabsContent v-if="tabs.find(t => t.value === 'blogs')" value="blogs" class="mt-0">
                 <div class="text-center py-12">
                     <FileText class="h-16 w-16 mx-auto mb-4 opacity-50" :class="[
                         themeStore.isDark ? 'text-gray-600' : 'text-gray-400'
@@ -139,7 +126,7 @@ const gridColsClass = computed(() => {
                         themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
                     ]">This feature will be available in a future update.</p>
                 </div>
-            </TabsContent>
+            </TabsContent> -->
 
             <!-- Social Tab Content -->
             <TabsContent v-if="tabs.find(t => t.value === 'social')" value="social" class="mt-0">
@@ -154,17 +141,13 @@ const gridColsClass = computed(() => {
             <!-- Saved/Bookmarks Tab Content -->
             <TabsContent v-if="tabs.find(t => t.value === 'saved')" value="saved" class="mt-0">
                 <BookmarksScroll v-if="isOwnProfile" />
-                <div v-else class="text-center py-12">
-                    <Bookmark class="h-16 w-16 mx-auto mb-4 opacity-50" :class="[
-                        themeStore.isDark ? 'text-gray-600' : 'text-gray-400'
-                    ]" />
-                    <p class="text-lg font-medium mb-2" :class="[
-                        themeStore.isDark ? 'text-white' : 'text-gray-900'
-                    ]">Saved Items</p>
-                    <p class="text-sm" :class="[
-                        themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
-                    ]">Only you can see your saved items.</p>
-                </div>
+                <EmptyState
+                    v-else
+                    icon="Bookmark"
+                    title="Saved Items"
+                    subtitle="Only you can see your saved items."
+                    size="small"
+                />
             </TabsContent>
         </Tabs>
     </div>

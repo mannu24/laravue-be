@@ -3,6 +3,7 @@ import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import ActivityCard from './ActivityCard.vue'
 import { Skeleton } from '../ui/skeleton'
+import EmptyState from '../ui/EmptyState.vue'
 import { useAuthStore } from '../../stores/auth'
 import { useThemeStore } from '../../stores/theme'
 import axios from 'axios'
@@ -119,14 +120,13 @@ onUnmounted(() => {
             </p>
         </div>
 
-        <div v-if="!loading && activities.length === 0" class="text-center py-12">
-            <p class="text-lg font-medium mb-2" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
-                No activities yet
-            </p>
-            <p class="text-sm" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-600'">
-                Activities will appear here as you interact with the platform
-            </p>
-        </div>
+        <EmptyState
+            v-if="!loading && activities.length === 0"
+            icon="Activity"
+            title="No activities yet"
+            subtitle="Activities will appear here as you interact with the platform"
+            size="small"
+        />
     </div>
 </template>
 

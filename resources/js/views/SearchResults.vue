@@ -24,6 +24,7 @@ import {
     ChevronUp
 } from 'lucide-vue-next'
 import { useDebounceFn } from '@vueuse/core'
+import EmptyState from '../components/ui/EmptyState.vue'
 import axios from 'axios'
 
 const route = useRoute()
@@ -918,38 +919,22 @@ onUnmounted(() => {
             </div>
 
             <!-- No Results -->
-            <div v-else-if="searchQuery.length >= 3" class="text-center py-20">
-                <Search class="h-16 w-16 mx-auto mb-4" :class="[
-                    themeStore.isDark ? 'text-gray-600' : 'text-gray-400'
-                ]" />
-                <h3 class="text-xl font-semibold mb-2" :class="[
-                    themeStore.isDark ? 'text-white' : 'text-gray-900'
-                ]">
-                    No results found
-                </h3>
-                <p class="text-sm" :class="[
-                    themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
-                ]">
-                    Try different keywords or filters
-                </p>
-            </div>
+            <EmptyState
+                v-else-if="searchQuery.length >= 3"
+                icon="Search"
+                title="No results found"
+                subtitle="Try different keywords or filters"
+                size="default"
+            />
 
             <!-- Empty State -->
-            <div v-else class="text-center py-20">
-                <Search class="h-16 w-16 mx-auto mb-4" :class="[
-                    themeStore.isDark ? 'text-gray-600' : 'text-gray-400'
-                ]" />
-                <h3 class="text-xl font-semibold mb-2" :class="[
-                    themeStore.isDark ? 'text-white' : 'text-gray-900'
-                ]">
-                    Start searching
-                </h3>
-                <p class="text-sm" :class="[
-                    themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
-                ]">
-                    Enter at least 3 characters to search
-                </p>
-            </div>
+            <EmptyState
+                v-else
+                icon="Search"
+                title="Start searching"
+                subtitle="Enter at least 3 characters to search"
+                size="default"
+            />
         </div>
     </div>
 </template>

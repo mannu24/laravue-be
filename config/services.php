@@ -41,4 +41,10 @@ return [
         'vapid_subject' => env('VAPID_SUBJECT', env('APP_URL')),
     ],
 
+    'github' => [
+        'client_id' => env('GITHUB_CLIENT_ID'),
+        'client_secret' => env('GITHUB_CLIENT_SECRET'),
+        'redirect' => env('GITHUB_REDIRECT_URI', env('APP_URL') . '/api/v1/github/callback'),
+    ],
+
 ];

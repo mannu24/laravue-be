@@ -274,10 +274,11 @@ onMounted(() => {
 
             <!-- Tabs Section -->
             <ProfileTabs
+                :user-id="user?.id"
                 :tabs="[
                     { value: 'feed', label: 'Feed', icon: FileText },
                     { value: 'projects', label: 'Projects', icon: Building2 },
-                    { value: 'blogs', label: 'Blogs', icon: FileText }
+                    // { value: 'blogs', label: 'Blogs', icon: FileText }
                 ]"
                 default-tab="feed"
                 :username="username"

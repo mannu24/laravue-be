@@ -130,7 +130,7 @@
                                 </svg>
                             </button>
 
-                            <button @click="deleteSocialLink(element)"
+                            <button @click="showDeleteConfirmation(element)"
                                 class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-destructive hover:text-destructive-foreground h-8 w-8"
                                 title="Delete link">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
@@ -175,16 +175,31 @@
             </button>
         </div>
     </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <ConfirmDialog
+      v-model:open="showDeleteDialog"
+      title="Delete Social Link"
+      description="Are you sure you want to delete this social link? This action cannot be undone."
+      confirm-text="Delete"
+      cancel-text="Cancel"
+      variant="destructive"
+      @confirm="deleteSocialLink"
+    />
 </template>
 
 <script>
 import axios from 'axios';
 import { useAuthStore } from '../../stores/auth';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
 const authStore = useAuthStore()
 
 export default {
     name: 'SocialLinks',
+    components: {
+        ConfirmDialog
+    },
     data() {
         return {
             socialLinks: [],
@@ -195,6 +210,8 @@ export default {
             },
             isEditing: false,
             showAddForm: false,
+            showDeleteDialog: false,
+            linkToDelete: null,
         };
     },
     mounted() {
@@ -258,18 +275,23 @@ export default {
                 console.error('Error toggling visibility:', error);
             }
         },
-        async deleteSocialLink(link) {
-            if (confirm('Are you sure you want to delete this social link?')) {
+        showDeleteConfirmation(link) {
+            this.linkToDelete = link;
+            this.showDeleteDialog = true;
+        },
+        async deleteSocialLink() {
+            if (!this.linkToDelete) return;
+            
                 try {
-                    await axios.delete(`/api/v1/social-links/${link.id}`, {
+                await axios.delete(`/api/v1/social-links/${this.linkToDelete.id}`, {
                         headers: {
                             Authorization: `Bearer ${authStore.token}`
                         }
                     });
-                    this.socialLinks = this.socialLinks.filter(l => l.id !== link.id);
+                this.socialLinks = this.socialLinks.filter(l => l.id !== this.linkToDelete.id);
+                this.linkToDelete = null;
                 } catch (error) {
                     console.error('Error deleting social link:', error);
-                }
             }
         },
         async moveItem(element, direction) {

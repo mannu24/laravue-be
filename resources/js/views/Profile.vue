@@ -364,6 +364,7 @@ onMounted(() => {
     <!-- Main Content -->
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 pb-24 -mt-8">
       <ProfileTabs
+        :user-id="user?.id"
         :tabs="[
           { value: 'projects', label: 'Projects', icon: Code2 },
           { value: 'social', label: 'Social', icon: Users },

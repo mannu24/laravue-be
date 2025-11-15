@@ -3,6 +3,7 @@ import { watch, ref, defineEmits, computed } from 'vue';
 import PostCard from '../feed/PostCard.vue'
 import QuestionCard from '../qna/QuestionCard.vue'
 import { Skeleton } from '../ui/skeleton'
+import EmptyState from '../ui/EmptyState.vue'
 import { useAuthStore } from '../../stores/auth.js';
 import { useThemeStore } from '../../stores/theme.js';
 import { FileText } from 'lucide-vue-next';
@@ -111,28 +112,20 @@ watch(() => fetchKey, async (value) => { fetch() })
             </div>
         </Transition>
         <!-- Empty State for Posts -->
-        <div v-if="!loading && hasLoaded && records.length === 0 && scrolling === 'post'" class="text-center py-12">
-            <FileText class="h-16 w-16 mx-auto mb-4 opacity-50" :class="[
-                themeStore.isDark ? 'text-gray-600' : 'text-gray-400'
-            ]" />
-            <p class="text-lg font-medium mb-2" :class="[
-                themeStore.isDark ? 'text-white' : 'text-gray-900'
-            ]">No Posts Yet</p>
-            <p class="text-sm" :class="[
-                themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
-            ]">This user hasn't posted anything yet.</p>
-        </div>
+        <EmptyState
+            v-if="!loading && hasLoaded && records.length === 0 && scrolling === 'post'"
+            icon="FileText"
+            title="No Posts Yet"
+            subtitle="This user hasn't posted anything yet."
+            size="small"
+        />
         <!-- Empty State for Questions -->
-        <div v-if="!loading && hasLoaded && records.length === 0 && scrolling === 'qna'" class="text-center py-12">
-            <FileText class="h-16 w-16 mx-auto mb-4 opacity-50" :class="[
-                themeStore.isDark ? 'text-gray-600' : 'text-gray-400'
-            ]" />
-            <p class="text-lg font-medium mb-2" :class="[
-                themeStore.isDark ? 'text-white' : 'text-gray-900'
-            ]">No Questions Yet</p>
-            <p class="text-sm" :class="[
-                themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
-            ]">This user hasn't asked any questions yet.</p>
-        </div>
+        <EmptyState
+            v-if="!loading && hasLoaded && records.length === 0 && scrolling === 'qna'"
+            icon="FileText"
+            title="No Questions Yet"
+            subtitle="This user hasn't asked any questions yet."
+            size="small"
+        />
     </div>
 </template>

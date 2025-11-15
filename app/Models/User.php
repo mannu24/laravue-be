@@ -133,4 +133,14 @@ class User extends Authenticatable implements HasMedia
     {
         return $this->hasMany(ProjectFund::class);
     }
+
+    public function githubToken()
+    {
+        return $this->hasOne(UserGitHubToken::class);
+    }
+
+    public function githubImports()
+    {
+        return $this->hasMany(GitHubImport::class);
+    }
 }

@@ -28,14 +28,19 @@ import {
   Folder,
   ArrowRight,
   Plus,
-  Loader2
+  Loader2,
+  Github
 } from 'lucide-vue-next'
 import axios from 'axios'
 import { toast } from '@/components/ui/toast'
+import GitHubImportModal from '@/components/github/GitHubImportModal.vue'
+import { useNavbarSearch } from '@/composables/useNavbarSearch'
+import ProjectsInfiniteList from '@/components/projects/ProjectsInfiniteList.vue'
 
 const router = useRouter()
 const themeStore = useThemeStore()
 const authStore = useAuthStore()
+const { openSearch } = useNavbarSearch()
 
 // Reactive data
 const projects = ref([])
@@ -47,6 +52,12 @@ const currentPage = ref(1)
 const hasMore = ref(true)
 const technologies = ref([])
 const selectedTechnology = ref('')
+const showGitHubModal = ref(false)
+
+const handleProjectImported = () => {
+  // Refresh projects list
+  fetchProjects()
+}
 
 // Computed
 const filteredProjects = computed(() => {
@@ -61,45 +72,6 @@ const stats = ref([
 ])
 
 // Methods
-const fetchProjects = async (reset = false) => {
-  if (loading.value) return
-
-  loading.value = true
-
-  try {
-    const params = {
-      page: reset ? 1 : currentPage.value,
-      search: searchQuery.value,
-      type: selectedFilter.value,
-      sort: selectedSort.value,
-      technology: selectedTechnology.value,
-      per_page: 12
-    }
-
-    const response = await axios.get('/api/v1/projects', { params })
-
-    if (reset) {
-      projects.value = response.data.data
-      currentPage.value = 1
-    } else {
-      projects.value = [...projects.value, ...response.data.data]
-    }
-
-    hasMore.value = response.data.current_page < response.data.last_page
-    currentPage.value++
-
-  } catch (error) {
-    console.error('Error fetching projects:', error)
-    toast({
-      title: "Error",
-      description: "Failed to load projects",
-      variant: "destructive"
-    })
-  } finally {
-    loading.value = false
-  }
-}
-
 const fetchTechnologies = async () => {
   try {
     const response = await axios.get('/api/v1/projects/technologies')
@@ -109,100 +81,7 @@ const fetchTechnologies = async () => {
   }
 }
 
-const upvoteProject = async (project) => {
-  if (!authStore.isAuthenticated) {
-    toast({
-      title: "Authentication Required",
-      description: "Please login to upvote projects",
-      variant: "destructive"
-    })
-    return
-  }
-
-  try {
-    const response = await axios.post(`/api/v1/projects/${project.id}/upvote`, {}, authStore.config)
-    project.is_upvoted_by_user = response.data.data.is_upvoted
-    project.upvotes_count = response.data.data.upvotes_count
-
-    toast({
-      title: "Success",
-      description: response.data.message,
-    })
-  } catch (error) {
-    console.error('Error upvoting project:', error)
-    toast({
-      title: "Error",
-      description: "Failed to upvote project",
-      variant: "destructive"
-    })
-  }
-}
-
-const fundProject = async (project, amount) => {
-  if (!authStore.isAuthenticated) {
-    toast({
-      title: "Authentication Required",
-      description: "Please login to fund projects",
-      variant: "destructive"
-    })
-    return
-  }
-
-  try {
-    const response = await axios.post(`/api/v1/projects/${project.id}/fund`, { amount }, authStore.config)
-    toast({
-      title: "Success",
-      description: response.data.message,
-    })
-  } catch (error) {
-    console.error('Error funding project:', error)
-    toast({
-      title: "Error",
-      description: "Failed to fund project",
-      variant: "destructive"
-    })
-  }
-}
-
-const handleSearch = () => {
-  fetchProjects(true)
-}
-
-const handleFilterChange = () => {
-  fetchProjects(true)
-}
-
-const handleSortChange = () => {
-  fetchProjects(true)
-}
-
-const loadMore = () => {
-  if (hasMore.value && !loading.value) {
-    fetchProjects()
-  }
-}
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffTime = Math.abs(now - date)
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 1) return '1 day ago'
-  if (diffDays < 7) return `${diffDays} days ago`
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
-  return `${Math.floor(diffDays / 365)} years ago`
-}
-
-// Watchers
-watch([searchQuery, selectedFilter, selectedSort, selectedTechnology], () => {
-  fetchProjects(true)
-}, { deep: true })
-
-// Lifecycle
 onMounted(() => {
-  fetchProjects(true)
   fetchTechnologies()
 })
 </script>
@@ -238,31 +117,32 @@ onMounted(() => {
             </div>
           </div>
 
-          <h1 class="text-6xl font-extrabold tracking-tight mb-8">
-            <span :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">Discover </span>
-            <span class="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
+          <h1 class="text-5xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
+            <span class="font-semibold" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">Discover </span>
+            <span class="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent font-bold">
               Amazing Projects
             </span>
           </h1>
 
-          <p class="text-xl mb-12 leading-relaxed max-w-3xl mx-auto"
-            :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
+          <p class="text-lg md:text-xl mb-12 leading-relaxed max-w-3xl mx-auto font-normal"
+            :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-600'">
             Explore thousands of high-quality projects from talented developers. Find the perfect solution
             for your next project or get inspired by innovative ideas from our community.
           </p>
 
           <!-- Search Bar -->
           <div class="relative max-w-2xl mx-auto mb-8">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <div class="absolute inset-y-0 z-10 left-0 pl-4 flex items-center pointer-events-none">
               <Search class="h-5 w-5 text-gray-400" />
             </div>
             <Input
               v-model="searchQuery"
               type="text"
               placeholder="Search projects, technologies, or authors..."
-              class="pl-12 pr-4 py-4 text-lg rounded-xl border-0 shadow-xl backdrop-blur-sm transition-all duration-300 focus:ring-2 focus:ring-blue-500"
+              class="pl-12 pr-4 py-5 h-12 text-lg rounded-xl border-0 shadow-xl backdrop-blur-sm transition-all duration-300 focus:ring-2 focus:ring-blue-500 cursor-pointer"
               :class="themeStore.isDark ? 'bg-gray-800/90 text-white' : 'bg-white/90'"
-              @keyup.enter="handleSearch"
+              @click="openSearch(searchQuery)"
+              readonly
             />
           </div>
         </div>
@@ -283,10 +163,10 @@ onMounted(() => {
               </div>
             </div>
             <div
-              class="text-2xl font-bold mb-1 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+              class="text-3xl font-semibold mb-2 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
               {{ stat.value }}
             </div>
-            <div class="text-xs font-medium" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-600'">
+            <div class="text-sm font-normal tracking-wide" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
               {{ stat.label }}
             </div>
           </CardContent>
@@ -300,27 +180,27 @@ onMounted(() => {
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12">
         <div class="flex flex-wrap gap-3">
           <Button variant="ghost" :class="[
-            'transition-all duration-300',
+            'transition-all duration-200 text-sm font-medium',
             selectedFilter === 'all'
-              ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 dark:text-blue-400'
-              : 'hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10'
+              ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 dark:bg-blue-500/20'
+              : 'hover:bg-gray-100 dark:hover:bg-gray-800'
           ]" @click="selectedFilter = 'all'">
             All Projects
           </Button>
           <Button variant="ghost" :class="[
-            'transition-all duration-300',
+            'transition-all duration-200 text-sm font-medium',
             selectedFilter === 'sellable'
-              ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 dark:text-blue-400'
-              : 'hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10'
+              ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 dark:bg-blue-500/20'
+              : 'hover:bg-gray-100 dark:hover:bg-gray-800'
           ]" @click="selectedFilter = 'sellable'">
             <Zap class="h-4 w-4 mr-2" />
             Premium
           </Button>
           <Button variant="ghost" :class="[
-            'transition-all duration-300',
+            'transition-all duration-200 text-sm font-medium',
             selectedFilter === 'open'
-              ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 dark:text-blue-400'
-              : 'hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10'
+              ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 dark:bg-blue-500/20'
+              : 'hover:bg-gray-100 dark:hover:bg-gray-800'
           ]" @click="selectedFilter = 'open'">
             <Heart class="h-4 w-4 mr-2" />
             Open Source
@@ -332,7 +212,8 @@ onMounted(() => {
           <DropdownMenu>
             <DropdownMenuTrigger as="div">
               <Button variant="outline"
-                class="hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10 transition-all duration-300">
+                class="text-sm font-medium transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-300'">
                 <Code2 class="h-4 w-4 mr-2" />
                 {{ selectedTechnology || 'Technology' }}
                 <ChevronDown class="h-4 w-4 ml-2" />
@@ -354,7 +235,8 @@ onMounted(() => {
           <DropdownMenu>
             <DropdownMenuTrigger as="div">
               <Button variant="outline"
-                class="hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10 transition-all duration-300">
+                class="text-sm font-medium transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-300'">
                 <Filter class="h-4 w-4 mr-2" />
                 Sort by
                 <ChevronDown class="h-4 w-4 ml-2" />
@@ -370,7 +252,7 @@ onMounted(() => {
           <!-- Add Project Button -->
           <Button
             v-if="authStore.isAuthenticated"
-            class="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+            class="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200"
             @click="router.push('/add-project')"
           >
             <Plus class="h-4 w-4 mr-2" />
@@ -379,165 +261,85 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div v-if="loading && projects?.length === 0" class="text-center py-20">
-        <Loader2 class="h-12 w-12 animate-spin mx-auto mb-4 text-blue-500" />
-        <p class="text-lg" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
-          Loading projects...
-        </p>
-      </div>
-
-      <!-- Projects Grid -->
-      <div v-else-if="projects?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <Card v-for="project in filteredProjects" :key="project.id" :class="['group transition-all duration-300 hover:-translate-y-2 border-0 shadow-xl cursor-pointer overflow-hidden',
-          themeStore.isDark ? 'bg-gray-800/90 hover:bg-gray-800' : 'bg-white/90 hover:bg-white'
-        ]" @click="router.push(`/projects/${project.id}`)">
-          <!-- Project Image -->
-          <div class="relative overflow-hidden">
-            <img
-              :src="project.featured_image || 'https://picsum.photos/400/250?random=' + project.id"
-              :alt="project.title"
-              class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-            <div class="absolute top-4 right-4">
-              <Badge :class="[
-                'text-white font-medium shadow-lg',
-                project.is_sellable
-                  ? 'bg-gradient-to-r from-yellow-500 to-orange-500'
-                  : 'bg-gradient-to-r from-green-500 to-emerald-500'
-              ]">
-                {{ project.is_sellable ? 'Premium' : 'Open Source' }}
-              </Badge>
-            </div>
-          </div>
-
-          <!-- Project Content -->
-          <CardContent class="p-6">
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex-1">
-                <h3 class="text-xl font-bold mb-2 group-hover:text-blue-500 transition-colors duration-300"
-                  :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
-                  {{ project.title }}
-                </h3>
-                <div class="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
-                  <User class="h-4 w-4" />
-                  <span>{{ project.user?.name }}</span>
-                  <span>•</span>
-                  <Calendar class="h-4 w-4" />
-                  <span>{{ formatDate(project.created_at) }}</span>
-                </div>
-              </div>
-              <div v-if="project.selling_price" class="text-lg font-bold text-yellow-500">
-                ${{ project.selling_price }}
-              </div>
-            </div>
-
-            <p class="text-sm mb-4 line-clamp-3 leading-relaxed"
-              :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
-              {{ project.description }}
-            </p>
-
-            <!-- Tags -->
-            <div class="flex flex-wrap gap-2 mb-4">
-              <Badge v-for="tech in project.technologies?.slice(0, 3)" :key="tech.id" variant="secondary" class="text-xs">
-                {{ tech.name }}
-              </Badge>
-              <Badge v-if="project.technologies?.length > 3" variant="secondary" class="text-xs">
-                +{{ project.technologies.length - 3 }}
-              </Badge>
-            </div>
-
-            <!-- Stats -->
-            <div class="flex items-center justify-between pt-4 border-t"
-              :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'">
-              <div class="flex items-center space-x-4 text-sm text-muted-foreground">
-                <button
-                  @click.stop="upvoteProject(project)"
-                  class="flex items-center hover:text-blue-500 transition-colors"
-                  :class="project.is_upvoted_by_user ? 'text-blue-500' : ''"
-                >
-                  <Star class="h-4 w-4 mr-1" :class="project.is_upvoted_by_user ? 'fill-current' : ''" />
-                  <span>{{ project.upvotes_count || 0 }}</span>
-                </button>
-                <div class="flex items-center">
-                  <Eye class="h-4 w-4 mr-1" />
-                  <span>{{ project.views?.toLocaleString() || 0 }}</span>
-                </div>
-              </div>
-
-              <ArrowRight
-                class="h-4 w-4 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <!-- Empty State -->
-      <div v-else-if="!loading" class="text-center py-20">
-        <div
-          class="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mx-auto mb-6 opacity-50">
-          <Search class="h-12 w-12 text-white" />
-        </div>
-        <h3 class="text-2xl font-bold mb-4" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
-          No Projects Found
-        </h3>
-        <p class="text-lg mb-6" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
-          Try adjusting your search criteria or filters to find more projects.
-        </p>
-        <Button @click="searchQuery = ''; selectedFilter = 'all'; selectedTechnology = ''"
-          class="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white">
-          Clear Filters
-        </Button>
-      </div>
-
-      <!-- Load More Button -->
-      <div v-if="hasMore && projects?.length > 0" class="text-center mt-16">
-        <Button
-          variant="outline"
-          :disabled="loading"
-          class="px-8 py-3 text-lg font-medium border-2 hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10 transition-all duration-300"
-          @click="loadMore"
-        >
-          <Loader2 v-if="loading" class="h-5 w-5 mr-2 animate-spin" />
-          <ArrowRight v-else class="h-5 w-5 mr-2" />
-          {{ loading ? 'Loading...' : 'Load More Projects' }}
-        </Button>
-      </div>
+      <!-- Projects Infinite List -->
+      <ProjectsInfiniteList
+        :filters="{
+          search: searchQuery,
+          type: selectedFilter,
+          sort: selectedSort,
+          technology: selectedTechnology
+        }"
+        :per-page="12"
+      />
     </div>
 
     <!-- CTA Section -->
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-24">
-      <Card :class="['relative overflow-hidden border-0 shadow-2xl',
-        themeStore.isDark ? 'bg-gray-800' : 'bg-white'
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <Card :class="['relative overflow-hidden border shadow-lg transition-all duration-300',
+        themeStore.isDark 
+          ? 'bg-gray-900/50 border-gray-800/50 backdrop-blur-sm' 
+          : 'bg-white border-gray-200/50 backdrop-blur-sm'
       ]">
-        <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500">
+        <!-- Subtle gradient accent -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-indigo-500/50">
         </div>
 
-        <CardContent class="p-12 text-center">
-          <h2 class="text-4xl font-bold mb-6" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+        <CardContent class="p-8 md:p-12 text-center">
+          <!-- Icon -->
+          <div class="flex justify-center mb-6">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 flex items-center justify-center border"
+              :class="themeStore.isDark ? 'border-gray-800' : 'border-gray-200'">
+              <Code2 class="h-8 w-8 text-vue" />
+            </div>
+          </div>
+
+          <!-- Title -->
+          <h2 class="text-3xl md:text-4xl font-semibold mb-4 leading-tight tracking-tight"
+            :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
             Ready to Share Your Project?
           </h2>
-          <p class="text-xl mb-8 max-w-2xl mx-auto" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
+          
+          <!-- Description -->
+          <p class="text-base md:text-lg mb-8 max-w-2xl mx-auto leading-relaxed font-normal"
+            :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-600'">
             Join thousands of developers who showcase their work on LaraVue.
             Upload your project today and reach a global audience of fellow developers.
           </p>
 
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Button
-              class="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-8 py-3 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300"
+              class="bg-vue hover:bg-vue/90 text-white px-6 py-2.5 text-base font-medium shadow-sm hover:shadow-md transition-all duration-200"
+              @click="showGitHubModal = true">
+              <Github class="h-4 w-4 mr-2" />
+              Import from GitHub
+            </Button>
+            <Button
+              variant="outline"
+              class="px-6 py-2.5 text-base font-medium border transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+              :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-300'"
               @click="router.push('/add-project')">
-              <Code2 class="h-5 w-5 mr-2" />
+              <Code2 class="h-4 w-4 mr-2" />
               Upload Project
             </Button>
-            <Button variant="outline" class="px-8 py-3 text-lg font-medium border-2" @click="router.push('/about')">
+            <Button 
+              variant="ghost" 
+              class="px-6 py-2.5 text-base font-medium transition-all duration-200"
+              :class="themeStore.isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'"
+              @click="router.push('/about')">
               Learn More
-              <ArrowRight class="h-5 w-5 ml-2" />
+              <ArrowRight class="h-4 w-4 ml-2" />
             </Button>
           </div>
         </CardContent>
       </Card>
     </div>
+
+    <!-- GitHub Import Modal -->
+    <GitHubImportModal
+      v-model:open="showGitHubModal"
+      @imported="handleProjectImported"
+    />
   </div>
 </template>
 
@@ -554,6 +356,7 @@ onMounted(() => {
 /* Line clamp utility */
 .line-clamp-3 {
   display: -webkit-box;
+  line-clamp: 3;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;

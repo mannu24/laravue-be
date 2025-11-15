@@ -75,10 +75,16 @@ const router = createRouter({
             meta: { auth: false, both: true },
         },
         {
-            path: '/projects/:id',
+            path: '/projects/:slug',
             name: 'project-detail',
             component: () => import('./views/ProjectDetail.vue'),
             meta: { auth: false, both: true },
+        },
+        {
+            path: '/projects/:slug/edit',
+            name: 'edit-project',
+            component: () => import('./views/EditProject.vue'),
+            meta: { auth: true },
         },
         {
             path: '/add-project',

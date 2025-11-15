@@ -106,6 +106,14 @@ class Post extends Model implements HasMedia
     }
 
     /**
+     * Increment views count
+     */
+    public function incrementViews()
+    {
+        $this->increment('views');
+    }
+
+    /**
      * Boot method to track activities
      */
     protected static function boot()

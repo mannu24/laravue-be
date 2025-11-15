@@ -16,11 +16,11 @@ import { useThemeStore } from '../stores/theme.js'
 import { useDebounceFn } from '@vueuse/core'
 import axios from 'axios'
 import { useRecentSearches } from '../composables/useRecentSearches'
+import { useNavbarSearch } from '../composables/useNavbarSearch'
 
 const router = useRouter()
 const route = useRoute()
-const showSearch = ref(false)
-const searchQuery = ref('')
+const { showSearch, searchQuery, openSearch, closeSearch: closeNavbarSearch } = useNavbarSearch()
 const searchResults = ref([])
 const totalSearchResults = ref(0)
 const hasMoreResults = ref(false)
@@ -311,7 +311,7 @@ defineOptions({
                                     class="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary/80 flex items-center justify-center text-primary-foreground text-sm font-bold">
                                     {{ authStore?.user?.username?.charAt(0).toUpperCase() }}
                                 </div>
-                                <span class="hidden sm:block font-medium">{{ authStore?.user?.username }}</span>
+                                <!-- <span class="hidden sm:block font-medium">{{ authStore?.user?.username }}</span> -->
                             </Button>
                         </template>
                         <template v-else>

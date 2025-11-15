@@ -8,6 +8,7 @@ use App\Models\Notification;
 use App\Models\Post;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Traits\TracksViewsWithRateLimit;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ use Str;
 
 class PostController extends Controller
 {
+    use TracksViewsWithRateLimit;
     public function index(Request $request)
     {
         $query = Post::query()->with(['user:id,name,username'])->withCount('likes', 'comments');
@@ -138,14 +140,19 @@ class PostController extends Controller
             });
     }
 
-    public function show($post_code)
+    public function show($post_code, Request $request)
     {
         $post = Post::where('post_code', $post_code)->firstOrFail();
         if ($post) {
+            // Increment views with rate limiting (2 minutes for posts)
+            if ($this->trackViewWithRateLimit('post', $post->id, $request, 2)) {
+                $post->incrementViews();
+            }
+            
             $post->load(['user:id,name,username', 'comments' => function ($q) {
                 $q->withCount('likes');
             }, 'comments.user:id,name,username'])->loadCount('likes', 'comments');
-            $post->views_count = 10;
+            $post->views_count = $post->views; // Use actual views count
             $post->makeHidden('media', 'id', 'user_id', 'meta_content');
             $post->user->makeHidden('id', 'media');
 

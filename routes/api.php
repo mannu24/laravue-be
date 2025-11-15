@@ -128,15 +128,48 @@ Route::prefix('v1')->group(function () {
 
     // Project Routes
     Route::get('projects', [ProjectController::class, 'index']);
+    Route::get('projects/featured', [ProjectController::class, 'featured']);
+    Route::get('projects/trending', [ProjectController::class, 'trending']);
     Route::get('projects/technologies', [ProjectController::class, 'getTechnologies']);
+    Route::get('projects/categories', [ProjectController::class, 'getCategories']);
+    Route::get('projects/categories/{id}', [ProjectController::class, 'getCategory']);
+    Route::get('projects/categories/{categoryId}/projects', [ProjectController::class, 'getProjectsByCategory']);
     Route::get('projects/{project}', [ProjectController::class, 'show']);
+    Route::get('projects/{project}/reviews', [ProjectController::class, 'getReviews']);
+    Route::get('projects/{project}/versions', [ProjectController::class, 'getVersions']);
+    Route::post('projects/{project}/download', [ProjectController::class, 'download']);
 
     Route::middleware(['auth:api'])->group(function () {
         Route::apiResource('projects', ProjectController::class)->except(['index', 'show']);
+        Route::post('projects/{project}/publish', [ProjectController::class, 'publish']);
+        Route::post('projects/{project}/submit-review', [ProjectController::class, 'submitForReview']);
         Route::post('projects/{project}/upvote', [ProjectController::class, 'upvote']);
         Route::post('projects/{project}/fund', [ProjectController::class, 'fund']);
+        Route::get('projects/drafts', [ProjectController::class, 'drafts']);
+        
+        // Reviews
+        Route::post('projects/{project}/reviews', [ProjectController::class, 'createReview']);
+        Route::put('reviews/{reviewId}', [ProjectController::class, 'updateReview']);
+        Route::delete('reviews/{reviewId}', [ProjectController::class, 'deleteReview']);
+        
+        // Versions
+        Route::post('projects/{project}/versions', [ProjectController::class, 'createVersion']);
+        
         Route::post('technologies', [ProjectController::class, 'createTechnology']);
+        
+        // GitHub Integration Routes
+        Route::prefix('github')->group(function () {
+            Route::get('authorize', [\App\Http\Controllers\v1\Api\GitHub\GitHubController::class, 'authorize']);
+            Route::get('status', [\App\Http\Controllers\v1\Api\GitHub\GitHubController::class, 'status']);
+            Route::get('repositories', [\App\Http\Controllers\v1\Api\GitHub\GitHubController::class, 'getRepositories']);
+            Route::get('repositories/{owner}/{repo}', [\App\Http\Controllers\v1\Api\GitHub\GitHubController::class, 'getRepository']);
+            Route::post('import', [\App\Http\Controllers\v1\Api\GitHub\GitHubController::class, 'importRepository']);
+            Route::delete('disconnect', [\App\Http\Controllers\v1\Api\GitHub\GitHubController::class, 'disconnect']);
+        });
     });
+    
+    // GitHub OAuth Callback (public route)
+    Route::get('github/callback', [\App\Http\Controllers\v1\Api\GitHub\GitHubController::class, 'callback']);
 
     // Question Public Routes
     Route::controller(QuestionController::class)->group(function () {

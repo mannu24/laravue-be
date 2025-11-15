@@ -7,6 +7,8 @@ import { Bell, Check, CheckCheck, Trash2, Square, CheckSquare2 } from 'lucide-vu
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
 import { Skeleton } from '../components/ui/skeleton'
+import EmptyState from '@/components/ui/EmptyState.vue'
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import axios from 'axios'
 
 const authStore = useAuthStore()
@@ -24,6 +26,7 @@ const observer = ref(null)
 const selectedNotifications = ref(new Set())
 const isSelectionMode = ref(false)
 const isDeleting = ref(false)
+const showDeleteDialog = ref(false)
 
 // Fetch notifications
 const fetchNotifications = async () => {
@@ -137,13 +140,12 @@ const allSelected = computed(() => {
 })
 
 // Bulk delete selected notifications
-const bulkDelete = async () => {
+const showBulkDeleteConfirmation = () => {
     if (selectedNotifications.value.size === 0) return
+    showDeleteDialog.value = true
+}
 
-    if (!confirm(`Are you sure you want to delete ${selectedNotifications.value.size} notification(s)?`)) {
-        return
-    }
-
+const bulkDelete = async () => {
     isDeleting.value = true
     try {
         const ids = Array.from(selectedNotifications.value)
@@ -332,7 +334,7 @@ watch(pageNo, async () => {
                     <Button
                         v-if="isSelectionMode"
                         variant="destructive"
-                        @click="bulkDelete"
+                        @click="showBulkDeleteConfirmation"
                         :disabled="selectedCount === 0 || isDeleting"
                         class="gap-2"
                     >
@@ -504,17 +506,13 @@ watch(pageNo, async () => {
                 </Transition>
 
                 <!-- Empty State -->
-                <div v-if="!isLoading && notifications.length === 0" class="text-center py-16">
-                    <Bell class="h-16 w-16 mx-auto mb-4 opacity-50" :class="[
-                        themeStore.isDark ? 'text-gray-600' : 'text-gray-400'
-                    ]" />
-                    <h2 class="text-xl font-semibold mb-2" :class="[
-                        themeStore.isDark ? 'text-white' : 'text-gray-900'
-                    ]">No notifications yet</h2>
-                    <p class="text-sm" :class="[
-                        themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
-                    ]">You'll see notifications here when someone interacts with your content</p>
-                </div>
+                <EmptyState
+                    v-if="!isLoading && notifications.length === 0"
+                    icon="Bell"
+                    title="No notifications yet"
+                    subtitle="You'll see notifications here when someone interacts with your content"
+                    size="default"
+                />
 
                 <!-- End of List -->
                 <div v-if="!hasMore && notifications.length > 0" class="text-center py-8">
@@ -525,6 +523,17 @@ watch(pageNo, async () => {
             </div>
         </div>
     </div>
+
+    <!-- Bulk Delete Confirmation Dialog -->
+    <ConfirmDialog
+      v-model:open="showDeleteDialog"
+      :title="`Delete ${selectedNotifications.size} Notification(s)`"
+      :description="`Are you sure you want to delete ${selectedNotifications.size} notification(s)? This action cannot be undone.`"
+      confirm-text="Delete"
+      cancel-text="Cancel"
+      variant="destructive"
+      @confirm="bulkDelete"
+    />
 </template>
 
 <style scoped>
