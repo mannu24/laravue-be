@@ -25,6 +25,10 @@ class User extends Authenticatable implements HasMedia
         'email',
         'username',
         'password',
+        'xp_total',
+        'level_id',
+        'streak_days',
+        'last_active_at',
     ];
 
     /**
@@ -47,6 +51,10 @@ class User extends Authenticatable implements HasMedia
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'xp_total' => 'integer',
+            'level_id' => 'integer',
+            'streak_days' => 'integer',
+            'last_active_at' => 'datetime',
         ];
     }
 
@@ -142,5 +150,57 @@ class User extends Authenticatable implements HasMedia
     public function githubImports()
     {
         return $this->hasMany(GitHubImport::class);
+    }
+
+    /**
+     * Get the user's current level.
+     */
+    public function level()
+    {
+        return $this->belongsTo(Level::class);
+    }
+
+    /**
+     * Get the user's XP logs.
+     */
+    public function xpLogs()
+    {
+        return $this->hasMany(XpLog::class);
+    }
+
+    /**
+     * Get the user's badges.
+     */
+    public function badges()
+    {
+        return $this->belongsToMany(Badge::class, 'user_badges')
+            ->withPivot('awarded_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the user's tasks.
+     */
+    public function tasks()
+    {
+        return $this->belongsToMany(Task::class, 'user_tasks')
+            ->withPivot('status', 'completed_at', 'assigned_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the user's questions.
+     */
+    public function questions()
+    {
+        return $this->hasMany(Question::class);
+    }
+
+    /**
+     * Get the user's answers.
+     */
+    public function answers()
+    {
+        return $this->hasMany(Answer::class);
     }
 }

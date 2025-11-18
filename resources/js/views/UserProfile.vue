@@ -40,13 +40,13 @@ const fetchUserProfile = async () => {
         const response = await axios.get(`/api/v1/users/${username}`, config)
         
         if (response.data.status === 'success') {
-            user.value = response.data.data.user
-            followersCount.value = user.value.followers_count || 0
-            followingCount.value = user.value.following_count || 0
+            user.value = response.data.data
+            followersCount.value = user.value?.followers_count || 0
+            followingCount.value = user.value?.following_count || 0
             
             // Set follow status from API response
             if (authStore.isAuthenticated && !isOwnProfile.value) {
-                isFollowing.value = user.value.is_following || false
+                isFollowing.value = user.value?.is_following || false
             }
         }
     } catch (error) {

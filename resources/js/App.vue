@@ -6,6 +6,7 @@ import "../css/index.css"
 import "../css/custom.css"
 import { useThemeStore } from './stores/theme'
 import { toast, Toaster } from './components/ui/toast'
+import ToastContainer from './components/ui/ToastContainer.vue'
 
 const themeStore = useThemeStore()
 
@@ -63,6 +64,7 @@ const shareUrl = (data: string) => {
             </button>
         </Transition>
         <Toaster />
+        <ToastContainer />
     </div>
 </template>
 

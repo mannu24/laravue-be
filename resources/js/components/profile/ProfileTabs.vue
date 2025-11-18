@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useThemeStore } from '../../stores/theme'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import EmptyState from '../ui/EmptyState.vue'
 import SocialLinks from './SocialLinks.vue'
 import InfiniteScroll from '../elements/InfiniteScroll.vue'
 import ActivityScroll from './ActivityScroll.vue'
@@ -29,6 +30,11 @@ const props = defineProps({
     defaultTab: {
         type: String,
         default: 'feed'
+    },
+    // User ID for projects
+    userId: {
+        type: [Number, String],
+        default: null
     },
     // For user profile feed
     username: {
@@ -108,8 +114,16 @@ const gridColsClass = computed(() => {
             <!-- Projects Tab Content -->
             <TabsContent v-if="tabs.find(t => t.value === 'projects')" value="projects" class="mt-0">
                 <ProjectsInfiniteList
+                    v-if="userId"
                     :user-id="userId"
                     :per-page="12"
+                />
+                <EmptyState
+                    v-else
+                    icon="FolderOpen"
+                    title="Projects Coming Soon"
+                    subtitle="User projects will be displayed here."
+                    size="small"
                 />
             </TabsContent>
 

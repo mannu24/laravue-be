@@ -1,15 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 class Question extends Model
 {
-    use HasSlug;
+    use HasFactory, HasSlug;
 
     protected $hidden = ['created_at', 'updated_at'];
     protected $appends = ['posted_at', 'owner', 'liked', 'bookmarked', 'bookmark_count'];
@@ -17,11 +20,14 @@ class Question extends Model
         'user_id',
         'title',
         'slug',
+        'body',
         'content',
         'content_html',
+        'ai_generated_summary',
+        'views',
+        'view_count',
         'is_solved',
         'score',
-        'view_count',
         'last_activity_date',
         'source',
         'source_url',
@@ -29,6 +35,25 @@ class Question extends Model
         'is_closed',
         'closed_reason'
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'views' => 'integer',
+            'view_count' => 'integer',
+            'is_solved' => 'boolean',
+            'score' => 'integer',
+            'is_closed' => 'boolean',
+            'last_activity_date' => 'datetime',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
 
     // generating slug
     public function getSlugOptions(): SlugOptions

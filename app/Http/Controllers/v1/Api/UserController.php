@@ -1,106 +1,79 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\v1\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Requests\User\UpdateProfileRequest;
+use App\Http\Resources\v1\BadgeResource;
+use App\Http\Resources\v1\LevelResource;
+use App\Http\Resources\v1\TaskResource;
+use App\Http\Resources\v1\UserResource;
+use App\Http\Resources\v1\XpResource;
 use App\Http\Traits\HttpResponse;
+use App\Models\User;
+use App\Services\User\UserService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
     use HttpResponse;
 
-    public function user(): JsonResponse
-    {
-        $data = [
-            'user' => auth()->guard('api')->user()
-        ];
+    public function __construct(
+        protected UserService $userService
+    ) {
+    }
 
+    /**
+     * Show user profile.
+     */
+    public function show(string $username): JsonResponse
+    {
+        // Route model binding ensures user exists
+        $userProfile = $this->userService->getUserProfile($username);
+        
+        if (!$userProfile) {
+            abort(404, 'User not found');
+        }
+        
         return $this->success(
-            data: $data
+            data: new UserResource($userProfile->load(['level', 'badges', 'tasks'])),
+            message: 'User profile retrieved successfully'
         );
     }
 
     /**
-     * Get user profile by username
+     * Update user profile.
      */
-    public function show(string $username): JsonResponse
+    public function update(UpdateProfileRequest $request, User $user): JsonResponse
     {
-        try {
-            $user = \App\Models\User::where('username', $username)
-                ->with(['socialLinks'])
-                ->firstOrFail();
-
-            // Check if authenticated user is following this user
-            $isFollowing = false;
-            if (auth()->guard('api')->check()) {
-                $isFollowing = $user->followers()
-                    ->where('follower_id', auth()->guard('api')->id())
-                    ->exists();
-            }
-
-            $data = [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'username' => $user->username,
-                    'email' => $user->email,
-                    'profile_photo' => $user->profile_photo,
-                    'completed' => $user->completed,
-                    'followers_count' => $user->followers_count,
-                    'following_count' => $user->following_count,
-                    'is_following' => $isFollowing,
-                    'created_at' => $user->created_at,
-                    'social_links' => $user->socialLinks,
-                ]
-            ];
-
-            return $this->success(
-                data: $data,
-                message: 'User profile retrieved successfully'
-            );
-        } catch (\Exception $e) {
-            return $this->error(
-                message: 'User not found',
-                statusCode: 404
-            );
-        }
+        $updatedUser = $this->userService->updateProfile($user, $request->validated());
+        
+        return $this->success(
+            data: new UserResource($updatedUser),
+            message: 'Profile updated successfully'
+        );
     }
 
-    public function update(UpdateUserRequest $request): JsonResponse
+    /**
+     * Get user gamification data.
+     */
+    public function gamification(User $user): JsonResponse
     {
-        DB::beginTransaction();
-        try {
-            $user = request()->user();
-            $user->update([
-                'name' => $request->name,
-                'username' => $request->username,
-            ]);
-            if ($request->hasFile('profile_photo')) {
-                $user->clearMediaCollection('profile_photo');
-                $user->addMedia($request->file('profile_photo'))
-                    ->usingFileName(Str::random(15) . '.' . $request->file('profile_photo')->getClientOriginalExtension())
-                    ->toMediaCollection('profile_photo');
-            }
-
-            DB::commit();
-
-            $data = [
-                'user' => $user
-            ];
-
-            return $this->success(
-                data: $data
-            );
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return $this->internalError(
-                message: "An error occurred: " . $e->getMessage()
-            );
-        }
+        $data = $this->userService->getUserWithGamification($user->id);
+        
+        return $this->success(
+            data: [
+                'user' => new UserResource($data['user']),
+                'xp_total' => $data['xp_total'],
+                'level' => $data['level'] ? new LevelResource($data['level']) : null,
+                'badges' => BadgeResource::collection($data['badges']),
+                'tasks' => TaskResource::collection($data['tasks']),
+                'recent_xp_logs' => XpResource::collection($data['recent_xp_logs']),
+            ],
+            message: 'Gamification data retrieved successfully'
+        );
     }
 }
+

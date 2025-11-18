@@ -19,9 +19,20 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         Artisan::call('passport:client --personal --name="API Token"');
+        
+        // Seed gamification data first
+        $this->call([
+            LevelSeeder::class,
+            BadgeSeeder::class,
+            TaskSeeder::class,
+        ]);
+        
         // User::factory(10)->create();
         // Create sample users first
         $users = User::factory(10)->create();
+        
+        // Seed test users with gamification data (optional)
+        $this->call(UserSeeder::class);
 
         // Create sample technologies
         $technologies = [

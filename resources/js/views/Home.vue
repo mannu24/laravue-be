@@ -192,22 +192,17 @@ const categories = [
 
     <!-- Hero Section with Animated Background -->
     <section class="relative overflow-hidden">
-      <!-- Animated Background -->
       <div class="absolute inset-0 -z-10">
                 <div :class="['absolute inset-0 transition-all duration-500',
           themeStore.isDark 
             ? 'bg-gradient-to-br from-gray-900 via-primary/10 to-gray-900' 
             : 'bg-gradient-to-br from-primary/5 via-secondary/5 to-primary/5'
         ]"></div>
-
-        <!-- Floating Elements -->
         <div class="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full animate-pulse"></div>
         <div class="absolute top-40 right-20 w-32 h-32 bg-secondary/10 rounded-full animate-bounce"
           style="animation-delay: 1s;"></div>
         <div class="absolute bottom-20 left-1/4 w-16 h-16 bg-primary/5 rounded-full animate-pulse"
           style="animation-delay: 2s;"></div>
-
-        <!-- Grid Pattern -->
         <div :class="['absolute inset-0 opacity-20',
           themeStore.isDark ? 'bg-grid-white/[0.05]' : 'bg-grid-black/[0.05]'
         ]"
@@ -215,7 +210,7 @@ const categories = [
         </div>
       </div>
 
-      <div class="container mx-auto px-4 py-20 sm:py-32 lg:py-40">
+      <div class="container mx-auto px-4 py-20 sm:py-32 lg:py-30">
         <div class="text-center max-w-5xl mx-auto">
           <!-- Badge -->
           <div class="mb-8 inline-flex items-center">

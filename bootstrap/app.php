@@ -14,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands([
         ScrapeStackOverflow::class,
+        \App\Console\Commands\ResetDailyTasks::class,
+        \App\Console\Commands\ResetWeeklyTasks::class,
+        \App\Console\Commands\CheckUserStreaks::class,
+        \App\Console\Commands\TestGamificationCron::class,
     ])
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->validateCsrfTokens(except: [

@@ -14,6 +14,11 @@ const router = createRouter({
             component: () => import('./views/Home.vue'),
             meta: { auth: false, both: true },
         },
+        // Redirect root to dashboard (can be changed later)
+        // {
+        //     path: '/',
+        //     redirect: '/dashboard',
+        // },
         {
             path: '/about',
             name: 'about',
@@ -127,6 +132,57 @@ const router = createRouter({
             name: 'settings',
             component: () => import('./views/Settings.vue'),
             meta: { auth: true },
+        },
+        // Gamification & Q&A Routes
+        {
+            path: '/dashboard',
+            name: 'dashboard',
+            component: () => import('./views/DashboardView.vue'),
+            meta: { auth: true, both: false },
+        },
+        {
+            path: '/profile/:id?',
+            name: 'profile-view',
+            component: () => import('./views/ProfileView.vue'),
+            props: true,
+            meta: { auth: true, both: false },
+        },
+        {
+            path: '/questions',
+            name: 'questions.index',
+            component: () => import('./views/QuestionsView.vue'),
+            meta: { auth: false, both: true },
+        },
+        {
+            path: '/ask-question',
+            name: 'questions.ask',
+            component: () => import('./views/AskQuestionView.vue'),
+            meta: { auth: true, both: false },
+        },
+        {
+            path: '/questions/:id',
+            name: 'questions.show',
+            component: () => import('./views/SingleQuestionView.vue'),
+            props: true,
+            meta: { auth: false, both: true },
+        },
+        {
+            path: '/badges',
+            name: 'badges.index',
+            component: () => import('./views/BadgesView.vue'),
+            meta: { auth: false, both: true },
+        },
+        {
+            path: '/tasks',
+            name: 'tasks.index',
+            component: () => import('./views/TasksView.vue'),
+            meta: { auth: true, both: false },
+        },
+        {
+            path: '/levels',
+            name: 'levels.index',
+            component: () => import('./views/LevelsView.vue'),
+            meta: { auth: false, both: true },
         },
         {
             path: '/:pathMatch(.*)*',

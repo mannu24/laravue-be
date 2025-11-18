@@ -1,18 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Answer extends Model
 {
-
+    use HasFactory;
     protected $fillable = [
         'question_id',
         'parent_id',
         'user_id',
+        'body',
         'content',
         'content_html',
+        'is_ai_generated',
+        'is_verified',
         'is_accepted',
         'score',
         'comment_count',
@@ -22,9 +28,28 @@ class Answer extends Model
         'source_answer_id'
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_ai_generated' => 'boolean',
+            'is_verified' => 'boolean',
+            'is_accepted' => 'boolean',
+            'score' => 'integer',
+            'comment_count' => 'integer',
+            'last_activity_date' => 'datetime',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
+
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->nullable();
     }
 
     public function question()
