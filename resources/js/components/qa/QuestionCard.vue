@@ -23,9 +23,7 @@
       </div>
     </div>
 
-    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-      {{ question.body || question.content || question.ai_generated_summary || 'No description' }}
-    </p>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2" v-html="question.body || question.content || question.ai_generated_summary || 'No description'" />
 
     <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
       <div class="flex items-center gap-4">

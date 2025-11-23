@@ -48,12 +48,24 @@ class XpService
             throw new \InvalidArgumentException("Invalid event type: {$eventTypeValue}");
         }
 
+        return $this->awardCustomXp($user, $eventTypeValue, $xpAmount);
+    }
+
+    /**
+     * Award custom XP amount for an event.
+     */
+    public function awardCustomXp(User $user, string $eventType, int $xpAmount, array $metadata = []): XpLog
+    {
+        if ($xpAmount <= 0) {
+            throw new \InvalidArgumentException("XP amount must be greater than 0");
+        }
+
         // Log XP
         $xpLog = $this->xpRepository->logXp(
             userId: $user->id,
-            eventType: $eventTypeValue,
+            eventType: $eventType,
             amount: $xpAmount,
-            metadata: ['event_type' => $eventTypeValue]
+            metadata: array_merge(['event_type' => $eventType], $metadata)
         );
 
         // Update user's total XP

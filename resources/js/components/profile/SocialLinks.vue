@@ -8,8 +8,8 @@
                 <p class="text-muted-foreground">Connect with me across platforms</p>
             </div>
 
-            <!-- Only show Add button for profile owner -->
-            <button @click="showAddForm = !showAddForm"
+            <!-- Only show Add button if not read-only -->
+            <button v-if="!readOnly" @click="showAddForm = !showAddForm"
                 class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
@@ -21,7 +21,7 @@
         </div>
 
         <!-- Add New Social Link Form (Collapsible) -->
-        <div v-if="showAddForm"
+        <div v-if="showAddForm && !readOnly"
             class="p-6 border rounded-lg shadow-sm bg-card text-card-foreground dark:border-border mb-6 transition-all">
             <h3 class="text-lg font-medium mb-4">Add New Social Profile</h3>
             <form @submit.prevent="addSocialLink">
@@ -96,8 +96,8 @@
                             </div>
                         </div>
 
-                        <!-- Action Buttons (Only in Edit Mode) -->
-                        <div v-if="isEditing" class="flex items-center gap-2">
+                        <!-- Action Buttons (Only in Edit Mode and not read-only) -->
+                        <div v-if="isEditing && !readOnly" class="flex items-center gap-2">
                             <button @click="moveItem(element, -1)"
                                 class="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 w-8 border"
                                 :disabled="socialLinks.indexOf(element) === 0">
@@ -163,8 +163,8 @@
             </div>
         </div>
 
-        <!-- Edit Mode Toggle (For Profile Owner) -->
-        <div class="mt-6 flex justify-end" v-if="socialLinks.length">
+        <!-- Edit Mode Toggle (For Profile Owner, not read-only) -->
+        <div class="mt-6 flex justify-end" v-if="socialLinks.length && !readOnly">
             <button @click="isEditing = !isEditing"
                 class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -199,6 +199,12 @@ export default {
     name: 'SocialLinks',
     components: {
         ConfirmDialog
+    },
+    props: {
+        readOnly: {
+            type: Boolean,
+            default: false
+        }
     },
     data() {
         return {

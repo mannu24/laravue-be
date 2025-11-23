@@ -1,7 +1,3 @@
-<!--
-  ProfileView
-  Purpose: Enhanced user profile page with gamification progress, badges, achievements timeline, and stats
--->
 <template>
   <div class="container mx-auto px-4 py-8">
     <div v-if="loading" class="text-center py-12">
@@ -9,11 +5,12 @@
     </div>
 
     <div v-else-if="user">
-      <!-- Profile Header -->
+      <!-- Profile Card -->
       <Transition name="fade-in">
-        <ProfileHeader
+        <ProfileCard
           :user="user"
-          class="mb-8"
+          :social-links="user.social_links || []"
+          :gamification-summary="gamificationSummary"
         />
       </Transition>
 
@@ -78,39 +75,53 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { useUserStore } from '@/stores/userStore'
 import { useBadgeStore } from '@/stores/badgeStore'
 import { useXpStore } from '@/stores/xpStore'
 import { useLevelStore } from '@/stores/levelStore'
 import { useQuestionStore } from '@/stores/questionStore'
 import { useAnswerStore } from '@/stores/answerStore'
-import ProfileHeader from '@/components/profile/ProfileHeader.vue'
+import ProfileCard from '@/components/profile/ProfileCard.vue'
 import ProfileStats from '@/components/profile/ProfileStats.vue'
 import ProfileBadgeGallery from '@/components/profile/ProfileBadgeGallery.vue'
 import AchievementsTimeline from '@/components/profile/AchievementsTimeline.vue'
 import XpHistoryChart from '@/components/profile/XpHistoryChart.vue'
 import LevelJourney from '@/components/profile/LevelJourney.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
+import { useGlobalDataStore } from '@/stores/globalData'
+
+// Declare emits to avoid Vue warnings
+defineEmits(['share_url'])
 
 const route = useRoute()
 const router = useRouter()
 
+const authStore = useAuthStore()
 const userStore = useUserStore()
 const badgeStore = useBadgeStore()
 const xpStore = useXpStore()
 const levelStore = useLevelStore()
 const questionStore = useQuestionStore()
 const answerStore = useAnswerStore()
+const globalDataStore = useGlobalDataStore()
 
 const loading = ref(true)
 const allLevels = ref([])
 
 // Use store computed values
 const user = computed(() => userStore.userProfile)
-const userBadges = computed(() => badgeStore.earnedBadges)
-const xpLogs = computed(() => xpStore.logs)
-const xpSummary = computed(() => xpStore.summary)
-const levelProgress = computed(() => levelStore.levelProgress)
+const userBadges = computed(() => badgeStore.earnedBadges?.value || [])
+const xpLogs = computed(() => xpStore.logs?.value || [])
+const xpSummary = computed(() => xpStore.summary?.value)
+const levelProgress = computed(() => levelStore.levelProgress?.value)
+const gamificationSummary = computed(() => {
+  // Get from API response if available, otherwise from globalDataStore
+  if (user.value?.gamification?.summary) {
+    return user.value.gamification.summary
+  }
+  return globalDataStore.gamificationSummary
+})
 
 // Computed properties
 const nextLevel = computed(() => {
@@ -123,17 +134,17 @@ const nextLevel = computed(() => {
 const profileStats = computed(() => ({
   xp_total: user.value?.xp_total || 0,
   level: user.value?.level?.name || 'Level 1',
-  badges_count: userBadges.value.length,
+  badges_count: (userBadges.value || []).length,
   tasks_completed: 0, // TODO: Get from task store when available
-  answers_count: answerStore.allAnswers.length,
-  questions_count: questionStore.allQuestions.length
+  answers_count: (answerStore.allAnswers?.value || []).length,
+  questions_count: (questionStore.allQuestions?.value || []).length
 }))
 
 const timelineEvents = computed(() => {
   const events = []
 
   // XP log events
-  xpLogs.value.forEach(log => {
+  (xpLogs.value || []).forEach(log => {
     if (log.event_type === 'answer_verified') {
       events.push({
         id: `xp-${log.id}`,
@@ -182,7 +193,7 @@ const timelineEvents = computed(() => {
   }
 
   // Badge unlock events
-  userBadges.value.forEach(badge => {
+  (userBadges.value || []).forEach(badge => {
     if (badge.awarded_at || badge.pivot?.awarded_at) {
       events.push({
         id: `badge-${badge.id}`,
@@ -200,20 +211,23 @@ const timelineEvents = computed(() => {
 })
 
 onMounted(async () => {
-  const userId = route.params.id || route.params.userId
+  const username = route.params.username || route.params.id
   
   try {
-    await Promise.all([
-      userStore.fetchUserProfile(userId),
-      badgeStore.fetchUserBadges(userId),
-      xpStore.fetchXpLogs(userId),
-      xpStore.fetchXpSummary(userId),
-      levelStore.fetchLevelProgress(userId),
-      levelStore.fetchLevels()
-    ])
+    await userStore.fetchUserProfile(username)
+    // Fetch global data for gamification if not in response
+    if (!user.value?.gamification) {
+      await globalDataStore.fetchGlobalData()
+    }
+    // await Promise.all([
+    //   badgeStore.fetchUserBadges(userId),
+    //   xpStore.fetchXpLogs(userId),
+    //   xpStore.fetchXpSummary(userId),
+    //   levelStore.fetchLevelProgress(userId),
+    //   levelStore.fetchLevels()
+    // ])
     
-    allLevels.value = levelStore.allLevels
-    
+    // allLevels.value = levelStore.allLevels
     loading.value = false
   } catch (error) {
     console.error('Error loading profile:', error)

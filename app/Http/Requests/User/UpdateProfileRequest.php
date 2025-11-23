@@ -27,7 +27,7 @@ class UpdateProfileRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'bio' => 'sometimes|string|max:1000',
-            'avatar' => 'sometimes|url|max:500',
+            'avatar' => 'sometimes|file|image|mimes:jpeg,jpg,png,gif,webp|max:5120', // 5MB max
         ];
     }
 }

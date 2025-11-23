@@ -73,11 +73,4 @@ class NotificationCreated implements ShouldBroadcast
         ];
     }
 
-    /**
-     * Determine if this event should be queued.
-     */
-    public function shouldQueue(): bool
-    {
-        return false; // Broadcast immediately for real-time notifications
-    }
 }

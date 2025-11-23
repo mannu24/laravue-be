@@ -950,6 +950,7 @@ const removeFeature = (index) => {
         Cancel
       </Button>
       <Button
+        class="bg-[#a855f7cc] hover:bg-[#a855f7]"
         type="submit"
         :disabled="loading"
       >

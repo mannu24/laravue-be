@@ -22,7 +22,7 @@ const props = defineProps({
 })
 
 const spinnerClasses = computed(() => {
-  const base = 'inline-block animate-spin rounded-full border-b-2 border-current'
+  const base = 'inline-block animate-spin rounded-full border-b-2'
   
   const sizes = {
     sm: 'h-4 w-4',

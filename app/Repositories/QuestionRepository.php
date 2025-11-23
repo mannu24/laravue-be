@@ -17,7 +17,7 @@ class QuestionRepository
 
     public function getAll()
     {
-        return $this->model->with('user', 'upvotes')
+        return $this->model->with(['user', 'upvotes', 'likes'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
     }
@@ -29,7 +29,7 @@ class QuestionRepository
 
     public function getLatest()
     {
-        return $this->model->with('user', 'upvotes')->latest()->take(10)->get();
+        return $this->model->with(['user', 'upvotes', 'likes'])->latest()->take(10)->get();
     }
 
     public function findById($id)

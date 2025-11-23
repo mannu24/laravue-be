@@ -53,8 +53,8 @@ class TaskSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'title' => 'Visit Profile',
-                'description' => 'Visit your profile page today.',
+                'title' => 'Visit Someone\'s Profile',
+                'description' => 'Visit someone else\'s profile page today.',
                 'frequency' => TaskFrequency::DAILY,
                 'xp_reward' => 3,
                 'is_active' => true,
@@ -101,6 +101,13 @@ class TaskSeeder extends Seeder
                 'description' => 'Maintain your login streak for the entire week.',
                 'frequency' => TaskFrequency::WEEKLY,
                 'xp_reward' => 80,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Visit 10 Profiles',
+                'description' => 'Visit at least 10 different user profiles this week.',
+                'frequency' => TaskFrequency::WEEKLY,
+                'xp_reward' => 50,
                 'is_active' => true,
             ],
         ];

@@ -8,6 +8,7 @@ use App\Http\Controllers\v1\Api\ProjectController;
 use App\Http\Controllers\v1\Api\User\AnswerController;
 use App\Http\Controllers\v1\Api\User\QuestionController;
 use App\Http\Controllers\v1\Api\User\SocialLinkController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\v1\Api\UserController;
 use App\Http\Controllers\v1\Api\SearchController;
 use App\Http\Controllers\v1\Api\FollowController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\v1\Api\NotificationController;
 use App\Http\Controllers\v1\Api\SettingsController;
 use App\Http\Controllers\v1\Api\PushSubscriptionController;
 use App\Http\Controllers\v1\Api\BookmarkController;
+use App\Http\Controllers\v1\Api\TaskController;
 
 Route::prefix('v1')->group(function () {
     // Authentication Routes
@@ -68,6 +70,7 @@ Route::prefix('v1')->group(function () {
     // Authenticated Routes
     Route::middleware(['auth:api'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/global-data', [HomeController::class, 'globalData']);
 
         // User Routes
         Route::controller(UserController::class)->group(function () {
@@ -95,6 +98,15 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/social-links/types', [SocialLinkController::class, 'types']);
         Route::apiResource('/social-links', SocialLinkController::class);
+
+        // Task Routes
+        Route::controller(TaskController::class)->prefix('tasks')->group(function () {
+            Route::get('/daily/{user}', 'daily');
+            Route::get('/weekly/{user}', 'weekly');
+            Route::post('/complete', 'complete');
+            Route::post('/assign', 'assign');
+            Route::post('/auto-complete', 'autoComplete');
+        });
 
         // Question Routes
         Route::post('questions/{question}/upvote', [QuestionController::class, 'upvote'])->name('questions.upvote');

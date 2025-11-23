@@ -80,7 +80,7 @@ class PostController extends Controller
             
             // Send notifications to mentioned users
             if (!empty($mentions)) {
-                $postUrl = url("/posts/{$post->post_code}");
+                $postUrl = "/@{$post->user->username}/{$post->post_code}" ;
                 foreach ($mentions as $mention) {
                     NotificationService::create(
                         userId: $mention['id'],
@@ -122,7 +122,9 @@ class PostController extends Controller
     {
         $query = $request->input('q', '');
 
-        return User::where('username', 'like', $query . '%')
+        return User::where(function ($q) use ($query) {
+                $q->where('username', 'like', $query . '%')->orWhere('name', 'like', $query . '%');
+            })
             // ->whereDoesntHave('blockers', function ($q) use ($request) {
             //     $q->where('blocked_user_id', $request->user()->id);
             // })
@@ -208,7 +210,7 @@ class PostController extends Controller
                     return !in_array($mention['id'], $existingUserIds);
                 });
                 
-                $postUrl = url("/posts/{$post->post_code}");
+                $postUrl = "/@{$post->user->username}/{$post->post_code}" ;
                 foreach ($newMentions as $mention) {
                     NotificationService::create(
                         userId: $mention['id'],
@@ -281,7 +283,7 @@ class PostController extends Controller
 
         // Notify post owner (if not commenting on own post)
         if ($post->user_id !== auth()->id()) {
-            $postUrl = url("/posts/{$post->post_code}");
+            $postUrl = "/@{$post->user->username}/{$post->post_code}" ;
             NotificationService::create(
                 userId: $post->user_id,
                 type: Notification::TYPE_POST_COMMENTED,
@@ -317,7 +319,7 @@ class PostController extends Controller
 
         // Notify post owner when liked (if not liking own post)
         if ($isLiked && !$wasLiked && $post->user_id !== auth()->id()) {
-            $postUrl = url("/posts/{$post->post_code}");
+            $postUrl = "/@{$post->user->username}/{$post->post_code}" ;
             NotificationService::create(
                 userId: $post->user_id,
                 type: Notification::TYPE_POST_LIKED,
@@ -346,7 +348,7 @@ class PostController extends Controller
         // Notify comment owner when liked (if not liking own comment)
         if ($isLiked && !$wasLiked && $comment->user_id !== auth()->id()) {
             $post = Post::find($comment->record_id);
-            $postUrl = $post ? url("/posts/{$post->post_code}") : '#';
+            $postUrl = $post ? "/@{$post->user->username}/{$post->post_code}" : '#';
             NotificationService::create(
                 userId: $comment->user_id,
                 type: Notification::TYPE_COMMENT_LIKED,

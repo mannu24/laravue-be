@@ -41,7 +41,7 @@ class BookmarkService
                 $record = Post::where('post_code', $recordId)->first();
                 break;
             case 'question':
-                $record = Question::where('question_code', $recordId)->first();
+                $record = Question::where('slug', $recordId)->first();
                 break;
             case 'project':
                 $record = Project::where('project_code', $recordId)->first();
@@ -106,7 +106,7 @@ class BookmarkService
      * 
      * @param int $userId The user ID
      * @param string $type The record type
-     * @param string $recordId The record ID
+     * @param string $recordId The record ID (slug/code)
      * @return bool
      */
     public static function isBookmarked(int $userId, string $type, string $recordId): bool
@@ -117,9 +117,28 @@ class BookmarkService
 
         $modelClass = self::ALLOWED_TYPES[$type];
 
+        // Find the record first to get its actual ID
+        switch ($type) {
+            case 'post':
+                $record = Post::where('post_code', $recordId)->first();
+                break;
+            case 'question':
+                $record = Question::where('slug', $recordId)->first();
+                break;
+            case 'project':
+                $record = Project::where('project_code', $recordId)->first();
+                break;
+            default:
+                return false;
+        }
+
+        if (!$record) {
+            return false;
+        }
+
         return Bookmark::where('user_id', $userId)
             ->where('record_type', $modelClass)
-            ->where('record_id', $recordId)
+            ->where('record_id', $record->id)
             ->exists();
     }
 
@@ -127,7 +146,7 @@ class BookmarkService
      * Get bookmark count for a record
      * 
      * @param string $type The record type
-     * @param string $recordId The record ID
+     * @param string $recordId The record ID (slug/code)
      * @return int
      */
     public static function getBookmarkCount(string $type, string $recordId): int
@@ -138,8 +157,27 @@ class BookmarkService
 
         $modelClass = self::ALLOWED_TYPES[$type];
 
+        // Find the record first to get its actual ID
+        switch ($type) {
+            case 'post':
+                $record = Post::where('post_code', $recordId)->first();
+                break;
+            case 'question':
+                $record = Question::where('slug', $recordId)->first();
+                break;
+            case 'project':
+                $record = Project::where('project_code', $recordId)->first();
+                break;
+            default:
+                return 0;
+        }
+
+        if (!$record) {
+            return 0;
+        }
+
         return Bookmark::where('record_type', $modelClass)
-            ->where('record_id', $recordId)
+            ->where('record_id', $record->id)
             ->count();
     }
 

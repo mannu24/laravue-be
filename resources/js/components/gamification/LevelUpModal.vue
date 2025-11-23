@@ -11,8 +11,8 @@
         v-if="visible"
         ref="modalRef"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-        @click.self="handleClose"
-        @keydown.esc="handleClose"
+        @click.self="handleCloseWithClear"
+        @keydown.esc="handleCloseWithClear"
         role="dialog"
         aria-modal="true"
         aria-labelledby="level-up-title"
@@ -25,6 +25,16 @@
         />
         
         <div class="level-up-content">
+          <!-- Close Button -->
+          <button
+            type="button"
+            @click="handleCloseWithClear"
+            class="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/10 dark:bg-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300 transition-colors"
+            aria-label="Close modal"
+          >
+            <X class="w-5 h-5" />
+          </button>
+          
           <div class="text-center relative z-10">
             <!-- Celebration Emoji -->
             <div class="mb-6">
@@ -55,21 +65,22 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="space-y-3 animate-fade-in-delay">
+            <div class="flex gap-3 animate-fade-in-delay">
               <button
                 type="button"
-                @click="handleClose"
-                class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
-                data-test="continue-button"
+                @click="handleGoToProfile"
+                class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
               >
-                Continue
+                Go to Profile
               </button>
               <button
                 type="button"
-                @click="handleViewProfile"
-                class="w-full px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
+                @click="handleShare"
+                class="flex-1 flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+                data-test="share-button"
               >
-                View Profile
+                <Share2 class="w-5 h-5" />
+                Share
               </button>
             </div>
           </div>
@@ -80,10 +91,13 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, nextTick } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { toast } from '@/components/ui/toast'
 import GamificationEffects from './GamificationEffects.vue'
 import { useAnimation } from '@/composables/useAnimation'
+import { useAchievementPopups } from '@/composables/useAchievementPopups'
+import { Share2, X } from 'lucide-vue-next'
 
 const props = defineProps({
   visible: {
@@ -107,14 +121,59 @@ const router = useRouter()
 const modalRef = ref(null)
 const levelBadgeRef = ref(null)
 const { playGlowEffect, playLevelUpSequence } = useAnimation()
+const { clearQueue } = useAchievementPopups()
 
 const handleClose = () => {
   emit('close')
 }
 
-const handleViewProfile = () => {
+const handleCloseWithClear = () => {
+  // Clear the queue when closing to prevent popup from showing again
+  clearQueue()
   handleClose()
-  router.push('/profile')
+}
+
+const handleGoToProfile = () => {
+  // Clear the queue when navigating away to prevent popup from showing again
+  clearQueue()
+  handleClose()
+  router.push('/dashboard')
+}
+
+const handleShare = () => {
+  const shareText = `I just leveled up to ${props.level?.name || 'a new level'}! 🎉`
+  const shareUrl = window.location.origin + '/dashboard'
+  
+  if (navigator.share) {
+    navigator.share({
+      title: 'Level Up Achievement!',
+      text: shareText,
+      url: shareUrl
+    }).then(() => {
+      toast({
+        title: 'Shared successfully!',
+        description: 'Your achievement has been shared.',
+      })
+    }).catch((error) => {
+      if (error.name !== 'AbortError') {
+        // Fallback: Copy to clipboard
+        navigator.clipboard.writeText(`${shareText} ${shareUrl}`).then(() => {
+          toast({
+            title: 'Link Copied!',
+            description: 'Achievement link copied to clipboard',
+          })
+        })
+      }
+    })
+  } else {
+    // Fallback: Copy to clipboard
+    navigator.clipboard.writeText(`${shareText} ${shareUrl}`).then(() => {
+      toast({
+        title: 'Link Copied!',
+        description: 'Achievement link copied to clipboard',
+      })
+    })
+  }
 }
 
 watch(() => props.visible, async (newVal) => {
@@ -133,7 +192,6 @@ watch(() => props.visible, async (newVal) => {
 <style scoped>
 .level-up-content {
   background: white;
-  dark:bg-gray-800;
   border-radius: 1.5rem;
   padding: 2rem;
   max-width: 28rem;
@@ -142,6 +200,10 @@ watch(() => props.visible, async (newVal) => {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   position: relative;
   z-index: 10;
+}
+
+.dark .level-up-content {
+  background: #1f2937;
 }
 
 .level-badge-container {

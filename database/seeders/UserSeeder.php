@@ -126,12 +126,13 @@ class UserSeeder extends Seeder
         foreach ($createdUsers as $user) {
             // Create 2-4 questions per user
             for ($i = 0; $i < rand(2, 4); $i++) {
+                $questionBody = 'This is a sample question created for testing purposes. ' . 'It demonstrates how questions appear in the system.';
                 Question::create([
                     'user_id' => $user->id,
                     'title' => "Sample Question " . ($i + 1) . " by {$user->name}",
                     'slug' => 'sample-question-' . $user->id . '-' . ($i + 1),
-                    'body' => 'This is a sample question created for testing purposes. ' . 
-                              'It demonstrates how questions appear in the system.',
+                    'content' => $questionBody,
+                    'body' => $questionBody,
                     'views' => rand(10, 100),
                     'is_solved' => rand(0, 1),
                     'score' => rand(0, 10),
@@ -144,11 +145,12 @@ class UserSeeder extends Seeder
             for ($i = 0; $i < rand(1, 3); $i++) {
                 if ($allQuestions->isNotEmpty()) {
                     $randomQuestion = $allQuestions->random();
+                    $answerBody = 'This is a sample answer created for testing purposes. ' . 'It demonstrates how answers appear in the system.';
                     Answer::create([
                         'question_id' => $randomQuestion->id,
                         'user_id' => $user->id,
-                        'body' => "This is a sample answer by {$user->name}. " .
-                                  "It provides helpful information to the question.",
+                        'content' => $answerBody,
+                        'body' => $answerBody,
                         'is_verified' => rand(0, 1),
                         'is_accepted' => rand(0, 1),
                         'score' => rand(0, 15),

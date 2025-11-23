@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useThemeStore } from '../../stores/theme'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import EmptyState from '../ui/EmptyState.vue'
@@ -13,9 +13,11 @@ import {
     Users, 
     Building2,
     FileText,
-    Bookmark
+    Bookmark,
+    LayoutDashboard
 } from 'lucide-vue-next'
 import BookmarksScroll from './BookmarksScroll.vue'
+import DashboardTab from './DashboardTab.vue'
 
 const props = defineProps({
     // Tab configuration
@@ -55,6 +57,36 @@ const props = defineProps({
 
 const themeStore = useThemeStore()
 const activeTab = ref(props.defaultTab)
+const slideDirection = ref('right') // 'left' or 'right'
+const previousTabIndex = ref(0)
+
+// Get tab index by value
+const getTabIndex = (tabValue) => {
+  return props.tabs.findIndex(tab => tab.value === tabValue)
+}
+
+// Handle tab change with direction detection
+const handleTabChange = (newTab) => {
+  const currentIndex = getTabIndex(activeTab.value)
+  const newIndex = getTabIndex(newTab)
+  
+  // Determine slide direction
+  if (newIndex > currentIndex) {
+    slideDirection.value = 'left' // Moving forward (slide left)
+  } else if (newIndex < currentIndex) {
+    slideDirection.value = 'right' // Moving backward (slide right)
+  }
+  
+  previousTabIndex.value = currentIndex
+  activeTab.value = newTab
+}
+
+// Watch for changes in defaultTab prop (e.g., from route query)
+watch(() => props.defaultTab, (newTab) => {
+  if (newTab && newTab !== activeTab.value) {
+    handleTabChange(newTab)
+  }
+}, { immediate: true })
 
 // Computed class for grid columns
 const gridColsClass = computed(() => {
@@ -67,23 +99,31 @@ const gridColsClass = computed(() => {
     }
     return classes[count] || 'grid-cols-3'
 })
+
+// Computed class for slide direction
+const slideClass = computed(() => {
+  return `slide-${slideDirection.value}`
+})
 </script>
 
 <template>
     <div class="w-full">
-        <Tabs :model-value="activeTab" @update:model-value="activeTab = $event" class="space-y-8">
+        <Tabs :model-value="activeTab" @update:model-value="handleTabChange" class="bg-transparent border-0 space-y-8">
             <!-- Tabs List - Consistent Design -->
-            <TabsList :class="['grid w-full max-w-2xl mx-auto border-0 shadow-lg rounded-xl overflow-hidden',
+            <TabsList :class="['grid w-full max-w-2xl !p-0 !h-[unset] mx-auto border-0 shadow-lg overflow-hidden',
                 gridColsClass,
                 themeStore.isDark 
                     ? 'bg-gray-800/50 border border-gray-700 backdrop-blur-sm' 
                     : 'bg-white/80 border border-gray-200 backdrop-blur-sm'
             ]">
                 <TabsTrigger 
-                    v-for="tab in tabs" 
+                    v-for="(tab, index) in tabs" 
                     :key="tab.value"
                     :value="tab.value"
-                    class="data-[state=active]:bg-gray-900 data-[state=active]:text-white dark:data-[state=active]:bg-gray-700 transition-all duration-200"
+                    :class="[
+                        'data-[state=active]:bg-gray-900 data-[state=active]:text-white dark:data-[state=active]:bg-gray-700 transition-all duration-200 py-3',
+                        ((index != 0) || index != (tabs.length - 1)) ? '!rounded-none' : ''
+                    ]"
                 >
                     <component 
                         v-if="tab.icon" 
@@ -95,36 +135,44 @@ const gridColsClass = computed(() => {
             </TabsList>
 
             <!-- Feed Tab Content -->
-            <TabsContent v-if="tabs.find(t => t.value === 'feed')" value="feed" class="mt-0">
-                <InfiniteScroll 
-                    v-if="username"
-                    scrolling="post"
-                    :fetchKey="null"
-                    :username="username"
-                />
-                <EmptyState
-                    v-else
-                    icon="FileText"
-                    title="Feed Coming Soon"
-                    subtitle="This feature will be available in a future update."
-                    size="small"
-                />
+            <TabsContent v-if="tabs.find(t => t.value === 'feed')" value="feed" class="mt-0 tab-content-wrapper">
+                <Transition :name="`slide-${slideDirection}`" mode="out-in">
+                    <div v-if="activeTab === 'feed'" :key="activeTab" class="tab-content-inner">
+                        <InfiniteScroll 
+                            v-if="username"
+                            scrolling="post"
+                            :fetchKey="null"
+                            :username="username"
+                        />
+                        <EmptyState
+                            v-else
+                            icon="FileText"
+                            title="Feed Coming Soon"
+                            subtitle="This feature will be available in a future update."
+                            size="small"
+                        />
+                    </div>
+                </Transition>
             </TabsContent>
 
             <!-- Projects Tab Content -->
-            <TabsContent v-if="tabs.find(t => t.value === 'projects')" value="projects" class="mt-0">
-                <ProjectsInfiniteList
-                    v-if="userId"
-                    :user-id="userId"
-                    :per-page="12"
-                />
-                <EmptyState
-                    v-else
-                    icon="FolderOpen"
-                    title="Projects Coming Soon"
-                    subtitle="User projects will be displayed here."
-                    size="small"
-                />
+            <TabsContent v-if="tabs.find(t => t.value === 'projects')" value="projects" class="mt-0 tab-content-wrapper">
+                <Transition :name="`slide-${slideDirection}`" mode="out-in">
+                    <div v-if="activeTab === 'projects'" :key="activeTab" class="tab-content-inner">
+                        <ProjectsInfiniteList
+                            v-if="userId"
+                            :user-id="userId"
+                            :per-page="12"
+                        />
+                        <EmptyState
+                            v-else
+                            icon="FolderOpen"
+                            title="Projects Coming Soon"
+                            subtitle="User projects will be displayed here."
+                            size="small"
+                        />
+                    </div>
+                </Transition>
             </TabsContent>
 
             <!-- Blogs Tab Content -->
@@ -143,34 +191,137 @@ const gridColsClass = computed(() => {
             </TabsContent> -->
 
             <!-- Social Tab Content -->
-            <TabsContent v-if="tabs.find(t => t.value === 'social')" value="social" class="mt-0">
-                <SocialLinks />
+            <TabsContent v-if="tabs.find(t => t.value === 'social')" value="social" class="mt-0 tab-content-wrapper">
+                <Transition :name="`slide-${slideDirection}`" mode="out-in">
+                    <div v-if="activeTab === 'social'" :key="activeTab" class="tab-content-inner">
+                        <SocialLinks :read-only="true" />
+                    </div>
+                </Transition>
             </TabsContent>
 
             <!-- Activity Tab Content -->
-            <TabsContent v-if="tabs.find(t => t.value === 'activity')" value="activity" class="mt-0">
-                <ActivityScroll :username="isOwnProfile ? null : username" />
+            <TabsContent v-if="tabs.find(t => t.value === 'activity')" value="activity" class="mt-0 tab-content-wrapper">
+                <Transition :name="`slide-${slideDirection}`" mode="out-in">
+                    <div v-if="activeTab === 'activity'" :key="activeTab" class="tab-content-inner">
+                        <ActivityScroll :username="isOwnProfile ? null : username" />
+                    </div>
+                </Transition>
             </TabsContent>
 
             <!-- Saved/Bookmarks Tab Content -->
-            <TabsContent v-if="tabs.find(t => t.value === 'saved')" value="saved" class="mt-0">
-                <BookmarksScroll v-if="isOwnProfile" />
-                <EmptyState
-                    v-else
-                    icon="Bookmark"
-                    title="Saved Items"
-                    subtitle="Only you can see your saved items."
-                    size="small"
-                />
+            <TabsContent v-if="tabs.find(t => t.value === 'saved')" value="saved" class="mt-0 tab-content-wrapper">
+                <Transition :name="`slide-${slideDirection}`" mode="out-in">
+                    <div v-if="activeTab === 'saved'" :key="activeTab" class="tab-content-inner">
+                        <BookmarksScroll v-if="isOwnProfile" />
+                        <EmptyState
+                            v-else
+                            icon="Bookmark"
+                            title="Saved Items"
+                            subtitle="Only you can see your saved items."
+                            size="small"
+                        />
+                    </div>
+                </Transition>
+            </TabsContent>
+
+            <!-- Dashboard Tab Content -->
+            <TabsContent v-if="tabs.find(t => t.value === 'dashboard')" value="dashboard" class="mt-0 tab-content-wrapper">
+                <Transition :name="`slide-${slideDirection}`" mode="out-in">
+                    <div v-if="activeTab === 'dashboard'" :key="activeTab" class="tab-content-inner">
+                        <DashboardTab v-if="isOwnProfile" />
+                        <EmptyState
+                            v-else
+                            icon="LayoutDashboard"
+                            title="Dashboard"
+                            subtitle="Only you can see your dashboard."
+                            size="small"
+                        />
+                    </div>
+                </Transition>
             </TabsContent>
         </Tabs>
     </div>
 </template>
 
 <style scoped>
-/* Ensure smooth transitions */
-:deep(.tabs-content) {
-    transition: opacity 0.3s ease;
+/* Tab content wrapper */
+.tab-content-wrapper {
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+}
+
+.tab-content-inner {
+    width: 100%;
+}
+
+/* Slide Left Animation (moving forward: tab 1 -> tab 3) */
+.slide-left-enter-active,
+.slide-left-leave-active {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.slide-left-enter-from {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.slide-left-enter-to {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.slide-left-leave-from {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.slide-left-leave-to {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+/* Slide Right Animation (moving backward: tab 3 -> tab 1) */
+.slide-right-enter-active,
+.slide-right-leave-active {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.slide-right-enter-from {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+.slide-right-enter-to {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.slide-right-leave-from {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.slide-right-leave-to {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .slide-left-enter-active,
+    .slide-left-leave-active,
+    .slide-right-enter-active,
+    .slide-right-leave-active {
+        transition: opacity 0.2s ease !important;
+    }
+    
+    .slide-left-enter-from,
+    .slide-left-leave-to,
+    .slide-right-enter-from,
+    .slide-right-leave-to {
+        transform: none !important;
+    }
 }
 </style>
 

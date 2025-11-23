@@ -161,11 +161,11 @@ onMounted(() => {
 <template>
     <div ref="element">
         <article @click="$router.push(post_url)" 
-            class="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-gray-900/50 hover:shadow-xl dark:hover:shadow-gray-900 rounded-2xl overflow-hidden mb-6 hover:cursor-pointer transition-all duration-300 ease-out hover:border-gray-300 dark:hover:border-gray-600">
+            class="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-gray-900/50 hover:shadow-xl dark:hover:shadow-gray-900 rounded-2xl overflow-hidden hover:cursor-pointer transition-all duration-300 ease-out hover:border-gray-300 dark:hover:border-gray-600">
             <!-- Header Section -->
             <div class="flex items-start justify-between p-5 pb-4">
                 <div class="flex items-center gap-3 flex-1 min-w-0">
-                    <router-link :to="'/@' + post.user.username" @click.stop class="flex-shrink-0">
+                    <router-link :to="post.user.username != authStore.user?.username ? '/@' + post.user.username : '/dashboard'" @click.stop class="flex-shrink-0">
                         <div class="relative">
                             <img v-if="post.user?.profile_photo" :src="post.user?.profile_photo" alt="User Avatar"
                                 class="w-14 h-14 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700 transition-all duration-300 group-hover:ring-green-500/50" 
@@ -175,7 +175,7 @@ onMounted(() => {
                                 @error="errorFallbackUserImage" />
                         </div>
                     </router-link>
-                    <router-link @click.stop :to="'/@' + post.user.username" class="flex-1 min-w-0">
+                    <router-link @click.stop :to="post.user.username != authStore.user?.username ? '/@' + post.user.username : '/dashboard'" class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <h4 class="font-semibold text-gray-900 dark:text-white text-base truncate group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
                                 {{ post.user.name }}

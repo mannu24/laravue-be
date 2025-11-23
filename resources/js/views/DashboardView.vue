@@ -1,7 +1,3 @@
-<!--
-  DashboardView
-  Purpose: Main dashboard showing gamification summary, XP progress, badges, and tasks
--->
 <template>
   <div class="container mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 animate-fade-in">Dashboard</h1>
@@ -132,11 +128,7 @@ onMounted(async () => {
 })
 
 const handleOpenProfile = () => {
-  if (authStore.user?.id) {
-    router.push(`/profile/${authStore.user.id}`)
-  } else {
-    router.push('/profile')
-  }
+  router.push(`/dashboard`)
 }
 
 const handleLevelUp = () => {
@@ -213,6 +205,16 @@ const handleAssignTask = async (taskId) => {
 
 .badge-carousel::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+@media (prefers-color-scheme: light) {
+  .badge-carousel::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+  }
+
+  .badge-carousel::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
 }
 
 .level-glow-overlay {

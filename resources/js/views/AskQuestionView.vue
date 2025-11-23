@@ -22,29 +22,22 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
 import { useQuestionStore } from '@/stores/questionStore'
-import { useXpStore } from '@/stores/xpStore'
 import { useToast } from '@/composables/useToast'
 import Card from '@/components/ui/Card.vue'
 import QuestionForm from '@/components/qa/QuestionForm.vue'
 
 const router = useRouter()
-const authStore = useAuthStore()
 const questionStore = useQuestionStore()
-const xpStore = useXpStore()
-const { toastSuccess, toastError, toastXp } = useToast()
+const { toastSuccess, toastError } = useToast()
 
 const handleSubmit = async (payload) => {
   try {
     const question = await questionStore.askQuestion(payload)
     toastSuccess('Question created successfully!')
     
-    // Refresh XP data (XP is awarded on backend)
-    if (authStore.isAuthenticated && authStore.user?.id) {
-      await xpStore.fetchXpSummary(authStore.user.id)
-      toastXp(10) // Question created = 10 XP
-    }
+    // XP reward will be shown via realtime notification from backend
+    // when task is completed (if applicable)
     
     router.push(`/questions/${question.id}`)
   } catch (error) {

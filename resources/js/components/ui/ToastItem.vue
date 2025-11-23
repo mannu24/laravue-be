@@ -10,9 +10,9 @@
     role="alert"
     :aria-live="type === 'error' ? 'assertive' : 'polite'"
   >
-    <!-- Progress bar -->
+    <!-- Progress bar - hidden for XP toasts -->
     <div
-      v-if="toast.duration > 0"
+      v-if="toast.duration > 0 && toast.type !== 'xp'"
       class="absolute top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700"
     >
       <div
@@ -77,8 +77,9 @@
         </p>
       </div>
 
-      <!-- Close Button -->
+      <!-- Close Button - hidden for XP toasts -->
       <button
+        v-if="toast.type !== 'xp'"
         type="button"
         @click="handleClose"
         class="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1"
@@ -265,33 +266,33 @@ onUnmounted(() => {
 
 .toast-enter-from {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateX(30px) translateY(10px);
 }
 
 .toast-leave-to {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateX(30px) translateY(10px);
 }
 
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateX(30px) translateY(10px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) translateY(0);
   }
 }
 
 @keyframes toast-out {
   from {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) translateY(0);
   }
   to {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateX(30px) translateY(10px);
   }
 }
 

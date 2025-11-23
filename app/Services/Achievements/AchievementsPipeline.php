@@ -114,14 +114,20 @@ class AchievementsPipeline
     /**
      * Trigger task completed event.
      */
-    public function triggerTaskCompleted(User $user, Task $task): array
+    public function triggerTaskCompleted(User $user, Task $task, array $extraPayload = []): array
     {
         $payload = [
             'task_id' => $task->id,
             'task_title' => $task->title,
             'frequency' => $task->frequency->value ?? $task->frequency,
-            'xp_reward' => $task->xp_reward,
+            'xp_reward' => $task->xp_reward ?? 0,
         ];
+        $payload = array_merge($payload, $extraPayload);
+
+        // Ensure xp_reward is in payload (use task's xp_reward if not provided)
+        if (!isset($payload['xp_reward']) || $payload['xp_reward'] === 0) {
+            $payload['xp_reward'] = $task->xp_reward ?? 0;
+        }
 
         Event::dispatch(new UserCompletedTask($user, $task, $payload));
 

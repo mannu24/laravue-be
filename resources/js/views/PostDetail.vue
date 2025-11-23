@@ -1,6 +1,6 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
-import { ref, onMounted, defineEmits } from 'vue';
+import { ref, onMounted, defineEmits, watch, computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import axios from 'axios';
 import PostCard from '../components/feed/PostCard.vue'
@@ -9,13 +9,13 @@ import CommentSection from '../components/CommentSection.vue'
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
-const postcode = route.params.post_code;
+const postCode = computed(() => route.params.post_code);
 const post = ref(null);
 const emit = defineEmits(['share_url'])
 
 const fetchPost = async () => {
     try {
-        const response = await axios.get(`/api/v1/posts/post_${postcode}`, authStore.config);
+        const response = await axios.get(`/api/v1/posts/post_${postCode.value}`, authStore.config);
         post.value = response.data;
     } catch (error) {
         console.error('Error fetching post:', error);
@@ -56,11 +56,15 @@ const commentAdded = (comment) => {
     post.value.comments.push(comment)
     post.value.comments_count++
 }
+
+watch(postCode, () => {
+    fetchPost()
+})
 onMounted(fetchPost);
 </script>
 
 <template>
-    <div class="max-w-2xl mx-auto mt-[40px] sm:px-6 pb-5">
+    <div class="max-w-2xl mx-auto mt-[40px] sm:px-6 pb-5 space-y-5">
         <h4 class="text-vue hover:text-laravel transition-all duration-300 ease-in mb-5 cursor-pointer"
             @click="router.push('/feed')">
             <i class="fas fa-chevron-left fa-sm"></i><span class="text-lg"> Back</span>

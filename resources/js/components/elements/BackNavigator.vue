@@ -1,5 +1,7 @@
 <script setup>
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useThemeStore } from '@/stores/theme'
 import { ChevronLeft } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -23,6 +25,32 @@ const props = defineProps({
         type: Boolean,
         default: true
     }
+})
+
+const route = useRoute()
+const themeStore = useThemeStore()
+
+// Computed property to determine text color class based on route (same logic as App.vue)
+const routeColorClass = computed(() => {
+    const path = route.path
+    
+    if (path.startsWith('/feed')) {
+        return 'text-green-500' // Vue green
+    } else if (path.startsWith('/qna')) {
+        return 'text-red-600' // Laravel red
+    } else if (path.startsWith('/dashboard')) {
+        return 'text-blue-500' // Blue
+    } else if (path.startsWith('/projects')) {
+        return 'text-purple-500' // Purple
+    } else if (path.startsWith('/about')) {
+        return 'text-red-500' // Danger red
+    } else if (path.startsWith('/home') || path === '/') {
+        // For white, use a subtle gray that works on both light/dark backgrounds
+        return themeStore.isDark ? 'text-white' : 'text-gray-900' // White for dark mode, dark gray for light mode
+    }
+    
+    // Default color
+    return 'text-blue-600'
 })
 
 const segments = computed(() => {
@@ -74,7 +102,7 @@ const hasValidSegments = computed(() =>
                             focus:outline-none focus:ring-2 focus:ring-emerald-500/40">
                         {{ segment.label }}
                     </router-link>
-                    <span v-else class="px-2 py-1 text-emerald-400 font-medium">
+                    <span v-else :class="['px-2 py-1 font-medium', routeColorClass]">
                         {{ segment.label }}
                     </span>
                 </template>

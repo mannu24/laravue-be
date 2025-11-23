@@ -25,6 +25,7 @@ class User extends Authenticatable implements HasMedia
         'email',
         'username',
         'password',
+        'bio',
         'xp_total',
         'level_id',
         'streak_days',

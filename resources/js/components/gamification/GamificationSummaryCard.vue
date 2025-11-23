@@ -28,13 +28,13 @@
         <div class="text-2xl font-bold text-gray-900 dark:text-white">
           {{ summary.xp_total || 0 }}
         </div>
-        <div class="text-xs text-gray-500 dark:text-gray-400">Total XP</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400">Total XP</div>
       </div>
       <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
         <div class="text-2xl font-bold text-gray-900 dark:text-white">
           {{ summary.level?.name || 'Level 1' }}
         </div>
-        <div class="text-xs text-gray-500 dark:text-gray-400">Current Level</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400">Current Level</div>
       </div>
     </div>
 
@@ -43,14 +43,14 @@
         <div class="text-xl font-bold text-gray-900 dark:text-white">
           {{ summary.badges_count || 0 }}
         </div>
-        <div class="text-xs text-gray-500 dark:text-gray-400">Badges</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400">Badges</div>
       </div>
-      <div class="w-px h-8 bg-gray-200 dark:bg-gray-700"></div>
+      <div class="w-px h-8 bg-gray-300 dark:bg-gray-700"></div>
       <div class="text-center flex-1">
         <div class="text-xl font-bold text-gray-900 dark:text-white">
           {{ summary.tasks_completed || 0 }}
         </div>
-        <div class="text-xs text-gray-500 dark:text-gray-400">Tasks Done</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400">Tasks Done</div>
       </div>
     </div>
   </div>

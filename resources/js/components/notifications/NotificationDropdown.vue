@@ -26,6 +26,7 @@ const {
     connectionError: realtimeError,
     markAsRead: markRealtimeAsRead,
     updateUnreadCount: updateRealtimeUnreadCount,
+    resetRealtimeTracking,
 } = useRealtimeNotifications(
     // onNotificationReceived callback
     (notification) => {
@@ -37,11 +38,22 @@ const {
             if (notifications.value.length > 6) {
                 notifications.value = notifications.value.slice(0, 6)
             }
+            
+            // If notification is unread, increment count
+            // But we'll sync with API on next fetch to ensure accuracy
+            if (!notification.read) {
+                // Don't increment here - let the realtime composable handle it
+                // The count will be synced with API when fetchNotifications is called
+            }
         }
     },
     // onUnreadCountUpdate callback
     (count) => {
-        unreadCount.value = count
+        // Only update if count is different to prevent unnecessary updates
+        // The watcher will also handle this, but this ensures consistency
+        if (unreadCount.value !== count) {
+            unreadCount.value = count
+        }
     }
 )
 
@@ -60,10 +72,19 @@ const fetchNotifications = async () => {
             const newNotifications = apiNotifications.filter(n => !existingIds.has(n.id))
             
             notifications.value = [...newNotifications, ...notifications.value].slice(0, 6)
-            unreadCount.value = response.data.data.pagination?.unread_count || 0
             
-            // Sync with real-time unread count
-            updateRealtimeUnreadCount(unreadCount.value)
+            // Use API unread count as source of truth (it's always accurate)
+            // This ensures we don't double-count notifications that were already in the API response
+            const apiUnreadCount = response.data.data.pagination?.unread_count || 0
+            unreadCount.value = apiUnreadCount
+            
+            // Sync with real-time unread count to reset it to API value
+            // This prevents double-counting when realtime notifications arrive after API fetch
+            updateRealtimeUnreadCount(apiUnreadCount)
+            
+            // Reset realtime tracking to prevent double-counting
+            // When API fetch happens, all notifications in API are considered "already counted"
+            resetRealtimeTracking()
         }
     } catch (error) {
         console.error('Error fetching notifications:', error)
@@ -89,8 +110,9 @@ const fetchUnreadCount = async () => {
 }
 
 // Watch for real-time unread count changes
+// Only update if the count actually changed to prevent unnecessary updates
 watch(realtimeUnreadCount, (newCount) => {
-    if (newCount !== null && newCount !== undefined) {
+    if (newCount !== null && newCount !== undefined && newCount !== unreadCount.value) {
         unreadCount.value = newCount
     }
 }, { immediate: true })
@@ -212,21 +234,48 @@ const formatTime = (dateString) => {
     return 'Just now'
 }
 
+// Polling control (fallback when realtime unavailable)
+let pollingIntervalId = null
+const POLLING_INTERVAL = 10000
+
+const startPolling = () => {
+    if (pollingIntervalId || !authStore.isAuthenticated) {
+        return
+    }
+    // Initial fetch when polling starts
+    fetchNotifications()
+    pollingIntervalId = setInterval(() => {
+        fetchNotifications()
+    }, POLLING_INTERVAL)
+}
+
+const stopPolling = () => {
+    if (pollingIntervalId) {
+        clearInterval(pollingIntervalId)
+        pollingIntervalId = null
+    }
+}
+
+watch(isRealtimeConnected, (connected) => {
+    if (connected) {
+        stopPolling()
+    } else {
+        startPolling()
+    }
+}, { immediate: true })
+
 onMounted(() => {
     if (authStore.isAuthenticated) {
-        fetchUnreadCount()
-        // Fallback polling only if real-time is not connected (every 30 seconds)
-        const interval = setInterval(() => {
-            if (!isRealtimeConnected.value) {
-                fetchUnreadCount()
-            }
-        }, 30000)
-        onBeforeUnmount(() => clearInterval(interval))
+        // fetchNotifications already returns unread_count, so no need for separate fetchUnreadCount call
+        if (!isRealtimeConnected.value) {
+            startPolling()
+        }
     }
     document.addEventListener('click', handleClickOutside)
 })
 
 onBeforeUnmount(() => {
+    stopPolling()
     document.removeEventListener('click', handleClickOutside)
 })
 </script>
@@ -238,7 +287,7 @@ onBeforeUnmount(() => {
             variant="ghost"
             size="icon"
             @click="toggleDropdown"
-            class="relative hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300"
+            class="relative hover:bg-transparent hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 text-gray-700 dark:text-gray-300 dark:hover:text-white"
         >
             <Bell class="h-5 w-5" />
             <span

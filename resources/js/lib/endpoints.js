@@ -3,6 +3,9 @@
  * Centralized endpoint definitions for all API routes
  */
 export default {
+  global: {
+    data: () => `/global-data`,
+  },
   users: {
     show: (id) => `/users/${id}`,
     update: (id) => `/users/${id}`,
@@ -27,6 +30,7 @@ export default {
     weekly: (userId) => `/tasks/weekly/${userId}`,
     complete: () => `/tasks/complete`,
     assign: () => `/tasks/assign`,
+    autoComplete: () => `/tasks/auto-complete`,
   },
   questions: {
     list: () => `/questions`,

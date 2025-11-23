@@ -107,7 +107,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'verified-answer-1',
                 'description' => 'You got your first answer verified. Quality content!',
                 'type' => BadgeType::QUALITY,
-                'icon_path' => '/images/badges/verified-1.svg',
+                'icon_path' => '/assets/front/images/1.png',
                 'xp_reward' => 25,
             ],
             [
@@ -115,7 +115,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'verified-answer-5',
                 'description' => 'You got 5 answers verified. You\'re a trusted expert!',
                 'type' => BadgeType::QUALITY,
-                'icon_path' => '/images/badges/verified-5.svg',
+                'icon_path' => '/assets/front/images/1.png',
                 'xp_reward' => 100,
             ],
             [
@@ -123,7 +123,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'verified-answer-10',
                 'description' => 'You got 10 answers verified. Master of quality!',
                 'type' => BadgeType::QUALITY,
-                'icon_path' => '/images/badges/verified-10.svg',
+                'icon_path' => '/assets/front/images/1.png',
                 'xp_reward' => 250,
             ],
             [
@@ -131,7 +131,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'verified-answer-20',
                 'description' => 'You got 20 answers verified. Exceptional quality!',
                 'type' => BadgeType::QUALITY,
-                'icon_path' => '/images/badges/verified-20.svg',
+                'icon_path' => '/assets/front/images/1.png',
                 'xp_reward' => 500,
             ],
             [
@@ -139,7 +139,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'upvoted-20',
                 'description' => 'Your answers received 20 upvotes. Community favorite!',
                 'type' => BadgeType::QUALITY,
-                'icon_path' => '/images/badges/upvoted-20.svg',
+                'icon_path' => '/assets/front/images/1.png',
                 'xp_reward' => 150,
             ],
             [
@@ -147,7 +147,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'upvoted-50',
                 'description' => 'Your answers received 50 upvotes. Highly appreciated!',
                 'type' => BadgeType::QUALITY,
-                'icon_path' => '/images/badges/upvoted-50.svg',
+                'icon_path' => '/assets/front/images/1.png',
                 'xp_reward' => 400,
             ],
 
@@ -157,7 +157,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'questions-10',
                 'description' => 'You asked 10 questions. Curious mind!',
                 'type' => BadgeType::CONTRIBUTION,
-                'icon_path' => '/images/badges/questions-10.svg',
+                'icon_path' => '/assets/front/images/3.png',
                 'xp_reward' => 50,
             ],
             [
@@ -165,7 +165,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'questions-25',
                 'description' => 'You asked 25 questions. Always learning!',
                 'type' => BadgeType::CONTRIBUTION,
-                'icon_path' => '/images/badges/questions-25.svg',
+                'icon_path' => '/assets/front/images/3.png',
                 'xp_reward' => 150,
             ],
             [
@@ -173,7 +173,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'questions-50',
                 'description' => 'You asked 50 questions. Knowledge seeker!',
                 'type' => BadgeType::CONTRIBUTION,
-                'icon_path' => '/images/badges/questions-50.svg',
+                'icon_path' => '/assets/front/images/3.png',
                 'xp_reward' => 350,
             ],
             [
@@ -181,7 +181,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'answers-10',
                 'description' => 'You provided 10 answers. Helpful contributor!',
                 'type' => BadgeType::CONTRIBUTION,
-                'icon_path' => '/images/badges/answers-10.svg',
+                'icon_path' => '/assets/front/images/3.png',
                 'xp_reward' => 75,
             ],
             [
@@ -189,7 +189,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'answers-25',
                 'description' => 'You provided 25 answers. Community helper!',
                 'type' => BadgeType::CONTRIBUTION,
-                'icon_path' => '/images/badges/answers-25.svg',
+                'icon_path' => '/assets/front/images/3.png',
                 'xp_reward' => 200,
             ],
             [
@@ -197,7 +197,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'answers-50',
                 'description' => 'You provided 50 answers. Generous contributor!',
                 'type' => BadgeType::CONTRIBUTION,
-                'icon_path' => '/images/badges/answers-50.svg',
+                'icon_path' => '/assets/front/images/3.png',
                 'xp_reward' => 450,
             ],
             [
@@ -205,7 +205,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'community-helper',
                 'description' => 'You\'ve helped the community significantly. Thank you!',
                 'type' => BadgeType::CONTRIBUTION,
-                'icon_path' => '/images/badges/community-helper.svg',
+                'icon_path' => '/assets/front/images/3.png',
                 'xp_reward' => 300,
             ],
 
@@ -215,7 +215,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'level-10',
                 'description' => 'You reached Level 10. Intermediate achiever!',
                 'type' => BadgeType::RARE,
-                'icon_path' => '/images/badges/level-10.svg',
+                'icon_path' => '/assets/front/images/2.png',
                 'xp_reward' => 500,
             ],
             [
@@ -223,7 +223,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'level-15',
                 'description' => 'You reached Level 15. Advanced player!',
                 'type' => BadgeType::RARE,
-                'icon_path' => '/images/badges/level-15.svg',
+                'icon_path' => '/assets/front/images/2.png',
                 'xp_reward' => 1000,
             ],
             [
@@ -231,7 +231,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'level-20',
                 'description' => 'You reached Level 20. Legendary status achieved!',
                 'type' => BadgeType::RARE,
-                'icon_path' => '/images/badges/level-20.svg',
+                'icon_path' => '/assets/front/images/2.png',
                 'xp_reward' => 2000,
             ],
             [
@@ -239,7 +239,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'perfect-week',
                 'description' => 'Completed all weekly tasks. Perfect execution!',
                 'type' => BadgeType::RARE,
-                'icon_path' => '/images/badges/perfect-week.svg',
+                'icon_path' => '/assets/front/images/2.png',
                 'xp_reward' => 300,
             ],
             [
@@ -247,7 +247,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'perfect-month',
                 'description' => 'Completed all tasks for a month. Unstoppable!',
                 'type' => BadgeType::RARE,
-                'icon_path' => '/images/badges/perfect-month.svg',
+                'icon_path' => '/assets/front/images/2.png',
                 'xp_reward' => 750,
             ],
 
@@ -257,7 +257,7 @@ class BadgeSeeder extends Seeder
                 'slug' => 'early-adopter',
                 'description' => 'Joined during the early days. Pioneer!',
                 'type' => BadgeType::EVENT,
-                'icon_path' => '/images/badges/early-adopter.svg',
+                'icon_path' => '/assets/front/images/4.png',
                 'xp_reward' => 100,
             ],
         ];

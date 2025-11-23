@@ -6,6 +6,7 @@ namespace App\Http\Controllers\v1\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Gamification\AssignTaskRequest;
+use App\Http\Requests\Gamification\AutoCompleteTaskRequest;
 use App\Http\Requests\Gamification\CompleteTaskRequest;
 use App\Http\Resources\v1\TaskResource;
 use App\Http\Traits\HttpResponse;
@@ -29,6 +30,9 @@ class TaskController extends Controller
     {
         $tasks = $this->taskService->generateDailyTasksForUser($user);
         
+        // Pass user to resource collection via static context
+        TaskResource::setContextUser($user);
+        
         return $this->success(
             data: TaskResource::collection($tasks),
             message: 'Daily tasks retrieved successfully'
@@ -41,6 +45,9 @@ class TaskController extends Controller
     public function weekly(User $user): JsonResponse
     {
         $tasks = $this->taskService->generateWeeklyTasksForUser($user);
+        
+        // Pass user to resource collection via static context
+        TaskResource::setContextUser($user);
         
         return $this->success(
             data: TaskResource::collection($tasks),
@@ -73,6 +80,29 @@ class TaskController extends Controller
         return $this->success(
             data: new TaskResource($userTask->task),
             message: 'Task assigned successfully'
+        );
+    }
+
+    /**
+     * Auto-complete task by title (for automatic detection).
+     */
+    public function autoComplete(AutoCompleteTaskRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        if (!$user) {
+            return $this->error('User not authenticated', 401);
+        }
+
+        $userTask = $this->taskService->completeByTitle($request->task_title, $user);
+        
+        if (!$userTask) {
+            return $this->error('Task not found or already completed', 404);
+        }
+        
+        return $this->success(
+            data: new TaskResource($userTask->task),
+            message: 'Task completed automatically'
         );
     }
 }

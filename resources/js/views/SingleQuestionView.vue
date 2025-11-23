@@ -61,7 +61,6 @@ import { useRoute } from 'vue-router'
 import { useQuestionStore } from '@/stores/questionStore'
 import { useAnswerStore } from '@/stores/answerStore'
 import { useAuthStore } from '@/stores/auth'
-import { useXpStore } from '@/stores/xpStore'
 import { useToast } from '@/composables/useToast'
 import QuestionCard from '@/components/qa/QuestionCard.vue'
 import AiAnswerBlock from '@/components/qa/AiAnswerBlock.vue'
@@ -74,8 +73,7 @@ const route = useRoute()
 const questionStore = useQuestionStore()
 const answerStore = useAnswerStore()
 const authStore = useAuthStore()
-const xpStore = useXpStore()
-const { toastSuccess, toastError, toastXp, toastInfo } = useToast()
+const { toastSuccess, toastError, toastInfo } = useToast()
 
 const loading = computed(() => questionStore.loading || answerStore.loading)
 const question = computed(() => questionStore.currentQuestion)
@@ -106,11 +104,7 @@ const handleVerifyAnswer = async (answerId) => {
     await answerStore.verifyAnswer(answerId)
     toastSuccess('Answer verified successfully!')
     
-    // Refresh XP data (XP is awarded on backend for verified answers)
-    if (authStore.isAuthenticated && authStore.user?.id) {
-      await xpStore.fetchXpSummary(authStore.user.id)
-      toastXp(25) // Answer verified = 25 XP
-    }
+    // XP reward will be shown via realtime notification from backend
     
     // Refresh question to get updated answers
     await questionStore.loadSingleQuestion(route.params.id)
@@ -134,11 +128,8 @@ const handleSubmitAnswer = async (payload) => {
     await answerStore.submitAnswer(answerPayload)
     toastSuccess('Answer submitted successfully!')
     
-    // Refresh XP data (XP is awarded on backend for answers)
-    if (authStore.isAuthenticated && authStore.user?.id) {
-      await xpStore.fetchXpSummary(authStore.user.id)
-      toastXp(15) // Answer created = 15 XP
-    }
+    // XP reward and task completion will be handled by backend
+    // Toast will appear via realtime notification when task is completed
     
     // Refresh question to get updated answers
     await questionStore.loadSingleQuestion(route.params.id)

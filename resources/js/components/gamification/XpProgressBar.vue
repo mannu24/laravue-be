@@ -8,14 +8,14 @@
   <div class="w-full">
     <div class="flex items-center justify-between mb-2">
       <div class="flex items-center gap-2">
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <span class="text-sm font-medium text-gray-900 dark:text-gray-300">
           {{ levelName || 'Level 1' }}
         </span>
-        <span class="text-xs text-gray-500 dark:text-gray-400">
+        <span class="text-xs text-gray-600 dark:text-gray-400">
           {{ currentXp }} / {{ xpForNext }} XP
         </span>
       </div>
-      <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">
+      <span class="text-xs font-semibold text-gray-700 dark:text-gray-400">
         {{ progressPercent }}%
       </span>
     </div>

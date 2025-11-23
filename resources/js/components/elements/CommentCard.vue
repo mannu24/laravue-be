@@ -40,7 +40,7 @@ const renderContent = (content) => {
         <div class="flex items-center p-4">
             <router-link :to="'/' + comment.user.username" @click.stop>
                 <img v-if="comment.user?.profile_photo" :src="comment.user?.profile_photo" alt="User Avatar"
-                    class="w-8 h-8 rounded-full" />
+                    class="w-8 h-8 rounded-full object-cover" />
                 <img v-else src="/assets/front/images/user.png" alt="User Avatar" class="w-8 h-8 rounded-full" />
             </router-link>
             <router-link @click.stop :to="'/' + comment.user.username" class="ml-3">

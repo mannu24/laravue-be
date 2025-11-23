@@ -106,7 +106,7 @@ const handleAction = () => {
           :is="displayIcon"
           :class="[
             sizeClasses.icon,
-            'text-blue-500'
+            themeStore.isDark ? 'text-blue-500' : 'text-blue-600'
           ]"
         />
       </div>

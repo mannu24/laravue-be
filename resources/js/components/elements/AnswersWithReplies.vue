@@ -2,41 +2,32 @@
     <div class="space-y-4">
         <div v-for="item in items" :key="item.id" class="relative" :class="{ 'pl-[20px]': depth > 0 }">
             <!-- Answer Container -->
-            <div class="flex gap-4 p-4 dark:bg-gray-950 border-[1px] rounded-lg shadow">
-                <!-- Upvote Section -->
-                <div v-if="item.user?.id !== authUserId" class="flex flex-col items-center">
-                    <button @click="() => $emit('upvote', item.id)"
-                        class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                        :class="{ 'text-primary': item.hasUpvoted }">
-                        <ChevronUp class="h-5 w-5" />
-                    </button>
-                    <span class="text-sm font-medium">{{ item.upvotes || 0 }}</span>
-                </div>
-
-                <!-- Content Section -->
-                <div class="flex-1">
-                    <div v-html="item.content" class="prose dark:prose-invert max-w-none text-sm"></div>
-                    <div class="flex items-center justify-between mt-4">
-                        <div class="flex items-center gap-4 text-sm text-gray-500">
-                            <div class="flex items-center gap-2">
-                                <Avatar class="h-6 w-6">
-                                    <AvatarImage :src="item.user?.avatar_url" />
-                                    <AvatarFallback class="text-white">{{ getInitials(item.user?.name) }}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <span>{{ item.user?.name || 'Anonymous' }}</span>
-                            </div>
-                            <span>{{ formatDate(item.created_at) }}</span>
-                        </div>
+            <div class="flex items-center justify-between gap-4 px-5 py-4 bg-card border border-gray-200 dark:border-gray-800 rounded-lg shadow">
+                <div>
+                    <div v-html="item.body" class="prose dark:prose-invert max-w-none text-sm mb-4"></div>
+                    <div class="flex items-center gap-4 text-sm text-gray-500">
                         <div class="flex items-center gap-2">
+                            <Avatar class="h-6 w-6 bg-red-700">
+                                <AvatarImage :src="item.user?.avatar_url" />
+                                <AvatarFallback class="text-white">{{ getInitials(item.user?.name) }}</AvatarFallback>
+                            </Avatar>
+                            <div>{{ item.user?.name || 'Anonymous' }} &bull; {{ formatDate(item.created_at) }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mt-4">
+                        <div class="flex flex-col items-end gap-2">
+                            <Button @click="() => item.user?.id !== authUserId ? $emit('upvote', item.id) : null" variant="red" size="sm" :class="{ 'text-primary': item.hasUpvoted }">
+                                <ChevronUp class="h-4 w-4" />
+                                {{ item.upvotes_count || item.upvotes || 0 }}
+                            </Button>
                             <Button variant="ghost" size="sm" @click="toggleReply(item.id)">
                                 <MessageSquare class="h-4 w-4 mr-1" />
                                 Reply
                             </Button>
                         </div>
                     </div>
-
-                    <!-- Reply Form -->
                     <div v-if="showReplyForm[item.id]" class="mt-4 border-l-2 border-primary pl-4">
                         <MarkDownEditor v-model="replyContent[item.id]" placeholder="Write your reply..."
                             :min-height="100" />
@@ -51,16 +42,7 @@
             <!-- Replies -->
             <div v-if="item.replies && item.replies.length > 0" class="mt-2">
                 <div v-for="reply in visibleReplies(item.id)" :key="reply.id" class="ml-6 border-l-2 border-gray-200 pl-4 py-2">
-                    <div class="flex gap-4 p-4 dark:bg-gray-950 border-[1px] rounded-lg shadow">
-                        <!-- Upvote Section -->
-                        <div v-if="reply.user?.id !== authUserId" class="flex flex-col items-center">
-                            <button @click="$emit('upvote', { id: reply.id, type: 'answer' })"
-                                class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <ChevronUp class="h-5 w-5" />
-                            </button>
-                            <span class="text-sm font-medium">{{ reply.upvotes_count || 0 }}</span>
-                        </div>
-
+                    <div class="flex gap-4 p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg shadow">
                         <!-- Content Section -->
                         <div class="flex-1">
                             <div v-html="reply.content" class="prose dark:prose-invert max-w-none text-sm"></div>
@@ -75,6 +57,16 @@
                                         <span>{{ reply.user?.name || 'Anonymous' }}</span>
                                     </div>
                                     <span>{{ formatDate(reply.created_at) }}</span>
+                                </div>
+                                <!-- Upvote Section - Above Reply button, horizontal layout -->
+                                <div class="flex flex-col items-end gap-2">
+                                    <div v-if="reply.user?.id !== authUserId" class="flex items-center gap-1">
+                                        <button @click="$emit('upvote', { id: reply.id, type: 'answer' })"
+                                            class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <ChevronUp class="h-4 w-4" />
+                                        </button>
+                                        <span class="text-sm font-medium">{{ reply.upvotes_count || 0 }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

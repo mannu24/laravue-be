@@ -53,6 +53,7 @@ class AuthController extends Controller
         }
 
         if (Auth::attempt($request->only('email', 'password'))) {
+            $user->update(['last_active_at' => now()]);
             $token = $user->createToken('Personal Access Token')->accessToken;
 
             $data = [
@@ -104,6 +105,7 @@ class AuthController extends Controller
                         ]);
                     }
 
+                    $user->update(['last_active_at' => now()]);
                     $token = $user->createToken('API Token')->accessToken;
                     $isNew = true;
                     $data = [

@@ -70,7 +70,7 @@ class ProjectService
     {
         // Set default status to draft if not provided
         if (!isset($data['status'])) {
-            $data['status'] = 'draft';
+            $data['status'] = 'published';
         }
 
         $project = $this->projectRepository->create($data);

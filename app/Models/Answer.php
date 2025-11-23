@@ -49,7 +49,7 @@ class Answer extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class)->nullable();
+        return $this->belongsTo(User::class);
     }
 
     public function question()
@@ -82,17 +82,20 @@ class Answer extends Model
         parent::boot();
 
         static::created(function ($answer) {
+            // Only create activity if user_id exists
+            if ($answer->user_id) {
             $answer->load(['user', 'question']);
             \App\Models\Activity::createActivity(
                 $answer->user_id,
                 \App\Models\Activity::TYPE_ANSWER_CREATED,
                 $answer,
-                ($answer->user->name ?? 'User') . ' answered a question',
+                    ($answer->user?->name ?? 'User') . ' answered a question',
                 [
                     'question_id' => $answer->question_id,
-                    'question_title' => $answer->question->title ?? null,
+                        'question_title' => $answer->question?->title ?? null,
                 ]
             );
+            }
         });
     }
 }

@@ -14,6 +14,7 @@ class BadgeService
 {
     public function __construct(
         protected BadgeRepository $badgeRepository,
+        protected XpService $xpService,
         protected ?AchievementsPipeline $achievements = null
     ) {
     }
@@ -36,6 +37,20 @@ class BadgeService
 
         // Award badge
         $this->badgeRepository->awardBadge($user->id, $badge->id);
+
+        // Award XP for badge if it has xp_reward
+        if ($badge->xp_reward > 0) {
+            $this->xpService->awardCustomXp(
+                $user,
+                'badge_unlocked',
+                $badge->xp_reward,
+                [
+                    'badge_id' => $badge->id,
+                    'badge_slug' => $badge->slug,
+                    'badge_name' => $badge->name,
+                ]
+            );
+        }
 
         // Trigger achievement event
         if ($this->achievements) {
@@ -66,7 +81,26 @@ class BadgeService
      */
     public function awardBadge(User $user, Badge $badge): void
     {
+        // Check if user already has this badge
+        if ($user->badges()->where('badge_id', $badge->id)->exists()) {
+            return;
+        }
+
         $this->badgeRepository->awardBadge($user->id, $badge->id);
+
+        // Award XP for badge if it has xp_reward
+        if ($badge->xp_reward > 0) {
+            $this->xpService->awardCustomXp(
+                $user,
+                'badge_unlocked',
+                $badge->xp_reward,
+                [
+                    'badge_id' => $badge->id,
+                    'badge_slug' => $badge->slug,
+                    'badge_name' => $badge->name,
+                ]
+            );
+        }
 
         // Trigger achievement event
         if ($this->achievements) {

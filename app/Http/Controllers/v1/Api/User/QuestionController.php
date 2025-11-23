@@ -31,10 +31,23 @@ class QuestionController extends Controller
     public function index()
     {
         $questions = $this->service->getAllQuestions();
-        // $questions = QuestionResource::collection($questions) ;
-        $page = $_GET['page'];
-        $perPage = 2;
-        $paginatedData = new LengthAwarePaginator($questions->forPage($page, $perPage)->values(), $questions->count(), $perPage);
+        
+        // Transform paginated questions using QuestionResource
+        $transformedQuestions = $questions->getCollection()->map(function ($question) {
+            return new QuestionResource($question);
+        });
+        
+        // Create new paginator with transformed data
+        $paginatedData = new LengthAwarePaginator(
+            $transformedQuestions,
+            $questions->total(),
+            $questions->perPage(),
+            $questions->currentPage(),
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
 
         return response()->json(['status' => 'success', 'records' => $paginatedData]);
     }
@@ -153,6 +166,10 @@ class QuestionController extends Controller
             $wasLiked = $question->liked;
             $liked = $this->service->like_unlike($slug);
             
+            // Refresh question to get updated likes count
+            $question->refresh();
+            $likesCount = $question->likes()->count();
+            
             // Notify question owner when liked (if not liking own question)
             if ($liked && !$wasLiked && $question->user_id !== auth()->guard('api')->id()) {
                 $questionUrl = "/qna/{$question->slug}";
@@ -170,7 +187,11 @@ class QuestionController extends Controller
                 );
             }
             
-            return response()->json(['status' => 'success', 'liked' => $liked]);
+            return response()->json([
+                'status' => 'success', 
+                'liked' => $liked,
+                'likes_count' => $likesCount
+            ]);
         } catch (Exception $e) {
             return $this->internalError(
                 message: $e->getMessage()

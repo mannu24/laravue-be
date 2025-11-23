@@ -1,18 +1,69 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, defineAsyncComponent } from 'vue'
+import { onBeforeUnmount, onMounted, ref, computed, defineAsyncComponent, watch } from 'vue'
+import { useRoute } from 'vue-router'
 const Navbar = defineAsyncComponent(() => import('./components/Navbar.vue'))
-import { ArrowUp } from 'lucide-vue-next'
 import "../css/index.css"
 import "../css/custom.css"
 import { useThemeStore } from './stores/theme'
 import { toast, Toaster } from './components/ui/toast'
 import ToastContainer from './components/ui/ToastContainer.vue'
+import { useGamificationRealtime } from './composables/useGamificationRealtime'
+import NotificationConsent from './components/NotificationConsent.vue'
+import AchievementPopups from './components/gamification/AchievementPopups.vue'
+import { useGlobalDataStore } from './stores/globalData'
 
 const themeStore = useThemeStore()
+const route = useRoute()
+const globalDataStore = useGlobalDataStore()
+useGamificationRealtime()
+
+// Computed property to determine dot color based on route
+const dotColor = computed(() => {
+    const path = route.path
+    
+    if (path.startsWith('/feed')) {
+        return '#41B883' // Vue green
+    } else if (path.startsWith('/qna')) {
+        return '#ff756f' // Laravel red
+    } else if (path.startsWith('/dashboard')) {
+        return '#3b82f6' // Blue
+    } else if (path.startsWith('/projects')) {
+        return '#a855f7' // Purple
+    } else if (path.startsWith('/about')) {
+        return '#ef4444' // Danger red
+    } else if (path.startsWith('/home') || path === '/') {
+        // For white, use a subtle gray that works on both light/dark backgrounds
+        return themeStore.isDark ? '#ffffff' : '#222222' // White for dark mode, light gray for light mode
+    }
+    
+    // Default color
+    return '#444cf7'
+})
+
+const updateDotColor = () => {
+    const color = dotColor.value
+    
+    // For white/home route, adjust opacity based on theme
+    if (route.path.startsWith('/home') || route.path === '/') {
+        const opacity = themeStore.isDark ? '40' : '30'
+        document.documentElement.style.setProperty('--polka-dot-color', color + opacity)
+    } else {
+        document.documentElement.style.setProperty('--polka-dot-color', color + '60') // Add 60 for opacity
+    }
+}
 
 const isScrollTopVisible = ref(false)
 
+// Watch route changes and update CSS variable
+watch([() => route.path, () => themeStore.isDark], () => {
+    updateDotColor()
+}, { immediate: true })
+
 onMounted(() => {
+    // Initialize theme on app mount
+    themeStore.initTheme()
+    // Initialize dot color
+    updateDotColor()
     window.addEventListener('scroll', handleScrollTop)
 })
 
@@ -49,9 +100,11 @@ const shareUrl = (data: string) => {
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     </head>
     <div :class="[
-        'min-h-screen transition-colors duration-300',
+        'min-h-screen polka-dots',
         themeStore.isDark ? 'bg-gray-950' : 'bg-gray-50'
     ]">
+        <!-- 1px Progress bar for global-data API loading -->
+        <div v-if="globalDataStore.loading" class="fixed top-0 left-0 right-0 h-[1px] z-50 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 progress-bar-animate"></div>
         <Navbar />
         <main class="container px-4 sm:px-0">
             <router-view @share_url="shareUrl" />
@@ -65,6 +118,8 @@ const shareUrl = (data: string) => {
         </Transition>
         <Toaster />
         <ToastContainer />
+        <NotificationConsent />
+        <AchievementPopups />
     </div>
 </template>
 
@@ -79,6 +134,19 @@ const shareUrl = (data: string) => {
     opacity: 0;
     transform: scale(0.9);
 }
+
+.polka-dots {
+    background-color: transparent;
+    opacity: 1;
+    background-image:  radial-gradient(var(--polka-dot-color, #444cf760) 0.65px, transparent 0.65px), radial-gradient(var(--polka-dot-color, #444cf760) 0.65px, transparent 0.65px);
+    background-size: 26px 26px;
+    background-position: 0 0,13px 13px;
+    transition: background-image 0.3s ease;
+}
+
+/* background-size: 54px 54px;
+background-position: 0 0,27px 27px;
+*/
 
 .bounce-enter-active {
     animation: bounce-in 0.3s;
@@ -100,6 +168,21 @@ const shareUrl = (data: string) => {
 
     100% {
         transform: scale(1);
+    }
+}
+
+.progress-bar-animate {
+    animation: progress-bar 1.5s ease-in-out infinite;
+    background-size: 200% 100%;
+    background-position: -200% 0;
+}
+
+@keyframes progress-bar {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
     }
 }
 </style>

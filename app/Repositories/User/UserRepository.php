@@ -23,11 +23,11 @@ class UserRepository
     }
 
     /**
-     * Find user by username.
+     * Find user by username (case-insensitive).
      */
     public function findByUsername(string $username): ?User
     {
-        return $this->model->where('username', $username)->first();
+        return $this->model->whereRaw('LOWER(username) = ?', [strtolower($username)])->first();
     }
 
     /**
@@ -72,6 +72,9 @@ class UserRepository
             },
             'tasks' => function ($query) {
                 $query->where('status', 'pending');
+            },
+            'socialLinks' => function ($query) {
+                $query->with('socialLinkType')->orderBy('position');
             },
         ])->find($id);
     }

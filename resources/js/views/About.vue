@@ -62,27 +62,9 @@ const values = [
 </script>
 
 <template>
-  <div :class="['min-h-screen transition-colors duration-300 space-y-12',
-    themeStore.isDark ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-900'
-  ]">
+  <div class="min-h-screen space-y-12">
     <!-- Hero Section -->
     <div class="relative overflow-hidden">
-      <!-- Background Pattern -->
-      <div class="absolute inset-0 -z-10">
-        <div :class="['absolute inset-0 transition-all duration-500',
-          themeStore.isDark
-            ? 'bg-gradient-to-br from-gray-900 via-primary/10 to-gray-900'
-            : 'bg-gradient-to-br from-primary/5 via-secondary/5 to-primary/5'
-        ]"></div>
-
-        <!-- Grid Pattern -->
-        <div :class="['absolute inset-0 opacity-20',
-          themeStore.isDark ? 'bg-grid-white/[0.05]' : 'bg-grid-black/[0.05]'
-        ]"
-          style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 30px 30px;">
-        </div>
-      </div>
-
       <div class="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div class="text-center max-w-4xl mx-auto">
           <div class="flex items-center justify-center mb-6">
@@ -92,14 +74,14 @@ const values = [
             </div>
           </div>
 
-          <h1 class="text-6xl font-extrabold tracking-tight mb-8">
+          <h1 class="text-5xl font-extrabold tracking-tight mb-8">
             <span :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">About </span>
-            <span class="bg-gradient-to-r from-primary via-primary/80 to-secondary bg-clip-text text-transparent">
-              LaraVue
+            <span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              LaraVue 
             </span>
           </h1>
 
-          <p class="text-xl mb-8 leading-relaxed" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
+          <p class="text-lg mb-8 leading-relaxed" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
             LaraVue is more than just a platform—it's a thriving ecosystem where developers come together
             to share, discover, and collaborate on amazing projects. Whether you're looking to showcase your work,
             find quality open-source projects, or sell your premium solutions, LaraVue provides the perfect
@@ -107,15 +89,11 @@ const values = [
           </p>
 
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              class="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground px-8 py-3 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300"
-              @click="$router.push('/signup')">
+            <Button variant="default" @click="$router.push('/signup')">
               <Users class="h-5 w-5 mr-2" />
               Join Our Community
             </Button>
-            <Button variant="outline"
-              class="px-8 py-3 text-lg font-medium border-2 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300"
-              @click="$router.push('/projects')">
+            <Button variant="outline" @click="$router.push('/projects')">
               Explore Projects
               <ArrowRight class="h-5 w-5 ml-2" />
             </Button>

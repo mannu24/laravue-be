@@ -92,15 +92,21 @@ const router = createRouter({
             meta: { auth: true },
         },
         {
-            path: '/add-project',
+            path: '/projects/create',
             name: 'add-project',
             component: () => import('./views/AddProject.vue'),
             meta: { auth: false, both: true },
         },
         {
-            path: '/profile/@:username',
+            path: '/dashboard',
             name: 'profile',
             component: () => import('./views/Profile.vue'),
+            meta: { auth: true, both: false },
+        },
+        {
+            path: '/profile/update',
+            name: 'profile-update',
+            component: () => import('./views/UpdateProfile.vue'),
             meta: { auth: true, both: false },
         },
         {
@@ -132,13 +138,6 @@ const router = createRouter({
             name: 'settings',
             component: () => import('./views/Settings.vue'),
             meta: { auth: true },
-        },
-        // Gamification & Q&A Routes
-        {
-            path: '/dashboard',
-            name: 'dashboard',
-            component: () => import('./views/DashboardView.vue'),
-            meta: { auth: true, both: false },
         },
         {
             path: '/profile/:id?',
@@ -193,14 +192,22 @@ const router = createRouter({
     ],
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
 
     const isLogged = () => authStore?.isAuthenticated;
 
     if (to.matched.some(record => record.meta.auth)) {
-        if (isLogged()) next();
-        else {
+        if (isLogged()) {
+            // Auto-complete tasks based on route (non-blocking)
+            if (to.name) {
+                import('./composables/useAutoTaskCompletion.js').then(({ useAutoTaskCompletion }) => {
+                    const { completeTaskByRoute } = useAutoTaskCompletion();
+                    completeTaskByRoute(to.name).catch(() => {});
+                }).catch(() => {});
+            }
+            next();
+        } else {
             if (to.name !== 'login') next({ name: 'login' });
             else next();
         }

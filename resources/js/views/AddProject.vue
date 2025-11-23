@@ -102,9 +102,7 @@ const handleCancel = () => {
 </script>
 
 <template>
-  <div :class="['min-h-screen transition-colors duration-300',
-    themeStore.isDark ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-900'
-  ]">
+  <div class="min-h-screen">
     <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <!-- Header -->
       <div class="mb-8">

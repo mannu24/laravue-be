@@ -10,6 +10,7 @@ use App\Models\Answer;
 use App\Repositories\QA\AnswerRepository;
 use App\Services\Achievements\AchievementsPipeline;
 use App\Services\Gamification\XpService;
+use App\Services\Gamification\TaskService;
 use Illuminate\Support\Collection;
 
 class AnswerService
@@ -17,7 +18,8 @@ class AnswerService
     public function __construct(
         protected AnswerRepository $answerRepository,
         protected ?XpService $xpService = null,
-        protected ?AchievementsPipeline $achievements = null
+        protected ?AchievementsPipeline $achievements = null,
+        protected ?TaskService $taskService = null
     ) {
     }
 
@@ -43,8 +45,34 @@ class AnswerService
         $answer = $this->answerRepository->create($data);
 
         // Award XP for providing an answer
-        if ($this->xpService && $answer->user) {
-            $this->xpService->awardXpForEvent($answer->user, XpEventType::ANSWER_CREATED);
+        // BUT: If there's a pending "Answer 1 Question" task, don't award XP here
+        // The task completion will award XP instead to avoid double rewards
+        if ($answer->user) {
+            // Check if user has a pending "Answer 1 Question" task for today
+            $hasPendingTask = \App\Models\UserTask::where('user_id', $answer->user->id)
+                ->whereHas('task', function ($query) {
+                    $query->where('title', 'Answer 1 Question')
+                          ->where('is_active', true);
+                })
+                ->where('status', 'pending')
+                ->whereDate('assigned_at', today())
+                ->exists();
+            
+            if ($hasPendingTask && $this->taskService) {
+                // Auto-complete the task - this will award XP and broadcast the event
+                try {
+                    $this->taskService->completeByTitle('Answer 1 Question', $answer->user);
+                } catch (\Exception $e) {
+                    // Task might not exist or already completed, silently continue
+                    logger()->debug('[AnswerService] Task auto-completion failed', [
+                        'user_id' => $answer->user->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            } elseif ($this->xpService && !$hasPendingTask) {
+                // Only award XP for ANSWER_CREATED if there's no pending task
+                $this->xpService->awardXpForEvent($answer->user, XpEventType::ANSWER_CREATED);
+            }
         }
 
         return $answer;

@@ -44,9 +44,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
 import { useQuestionStore } from '@/stores/questionStore'
-import { useXpStore } from '@/stores/xpStore'
 import { useToast } from '@/composables/useToast'
 import Card from '@/components/ui/Card.vue'
 import QuestionForm from '@/components/qa/QuestionForm.vue'
@@ -54,10 +52,8 @@ import QuestionSearchBar from '@/components/qa/QuestionSearchBar.vue'
 import QuestionList from '@/components/qa/QuestionList.vue'
 
 const router = useRouter()
-const authStore = useAuthStore()
 const questionStore = useQuestionStore()
-const xpStore = useXpStore()
-const { toastSuccess, toastError, toastXp } = useToast()
+const { toastSuccess, toastError } = useToast()
 
 const showForm = ref(false)
 
@@ -84,12 +80,8 @@ const handleSubmitQuestion = async (payload) => {
     toastSuccess('Question created successfully!')
     showForm.value = false
     
-    // Refresh XP data if user is authenticated (XP is awarded on backend)
-    if (authStore.isAuthenticated && authStore.user?.id) {
-      await xpStore.fetchXpSummary(authStore.user.id)
-      // Show XP toast if XP was awarded (backend handles this)
-      toastXp(10) // Question created = 10 XP
-    }
+    // XP reward will be shown via realtime notification from backend
+    // when task is completed (if applicable)
     
     // Navigate to the new question
     router.push(`/questions/${question.id}`)

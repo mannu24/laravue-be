@@ -1,95 +1,87 @@
 <!--
   TaskItem Component
-  Purpose: Displays individual task with action button to complete and status indicator
+  Purpose: Displays individual task with status indicator (tasks are auto-completed)
   Props: task (Object with id, title, description, xp_reward, frequency, status, completed_at)
-  Emits: complete (taskId), assign (taskId)
+  Emits: assign (taskId)
 -->
 <template>
   <Transition name="task-complete">
     <div
       ref="taskRef"
-      class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-all"
+      class="relative overflow-hidden rounded-3xl border p-5 cursor-pointer transition-all duration-300 hover:shadow-lg"
       :class="{
-        'opacity-75': task.status === 'completed',
-        'border-green-500 dark:border-green-400': task.status === 'completed',
-        'task-completed': isCompleting
+        'bg-gradient-to-br from-sky-100 via-blue-50 to-emerald-100 dark:from-sky-500/20 dark:via-blue-900/30 dark:to-emerald-500/20 border-gray-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-indigo-300/60 hover:shadow-blue-200/50 dark:hover:shadow-sky-500/20 text-gray-900 dark:text-white': task.status === 'pending',
+        'bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-sky-500/20 dark:via-blue-900/30 dark:to-emerald-500/20 border-emerald-200 dark:border-white/10 opacity-75 ring-2 ring-emerald-300/50 dark:ring-emerald-300/70 ring-emerald-400/50 dark:ring-emerald-400/60 text-gray-900 dark:text-white': task.status === 'completed'
       }"
       data-test="task-item"
     >
-      <div class="flex items-start justify-between gap-4">
+      <div class="pointer-events-none absolute inset-0 bg-gradient-to-tr from-indigo-500/5 dark:from-indigo-500/10 via-transparent to-transparent"></div>
+      <div class="relative z-10 flex items-start justify-between gap-4">
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-2">
             <h4
-              class="font-semibold text-gray-900 dark:text-white transition-all"
-              :class="{ 'line-through text-gray-400 dark:text-gray-500': task.status === 'completed' }"
+              class="font-semibold transition-all"
+              :class="{
+                'text-gray-900 dark:text-white': task.status === 'pending',
+                'line-through text-gray-500 dark:text-gray-400': task.status === 'completed'
+              }"
             >
               {{ task.title }}
             </h4>
-            <span
-              :class="frequencyBadgeClass"
-              class="px-2 py-0.5 text-xs font-medium rounded-full"
-            >
-              {{ task.frequency }}
-            </span>
             <Transition name="checkmark">
               <span
                 v-if="task.status === 'completed'"
-                class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 flex items-center gap-1"
+                class="px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500 dark:bg-emerald-900/60 text-white dark:text-emerald-200 flex items-center gap-1"
               >
                 <span class="checkmark-icon">✓</span>
-                Completed
+                Done
               </span>
             </Transition>
           </div>
-          <p v-if="task.description" class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          <p v-if="task.description" class="text-sm text-gray-600 dark:text-white/80 mb-3">
             {{ task.description }}
           </p>
+          <!-- Progress for weekly tasks -->
+          <div v-if="task.frequency === 'weekly' && task.progress && task.status !== 'completed'" class="mb-3">
+            <div class="flex items-center justify-between text-xs font-medium text-gray-700 dark:text-white/80 mb-1.5">
+              <span>Progress</span>
+              <span>{{ task.progress.current }} / {{ task.progress.target }}</span>
+            </div>
+            <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div
+                class="h-full bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-400 dark:to-blue-500 transition-all duration-500 ease-out rounded-full"
+                :style="{ width: `${task.progress.percentage}%` }"
+              ></div>
+            </div>
+          </div>
           <div class="flex items-center gap-4 text-sm">
-            <div class="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-              <span class="font-semibold text-blue-600 dark:text-blue-400">
+            <div class="flex items-center gap-1 text-gray-700 dark:text-white/90">
+              <span class="font-semibold text-sky-600 dark:text-sky-300">
                 +{{ task.xp_reward || 0 }}
               </span>
               <span>XP</span>
             </div>
-            <div v-if="task.completed_at" class="text-gray-500 dark:text-gray-500 text-xs">
+            <div v-if="task.completed_at" class="text-gray-500 dark:text-white/60 text-xs">
               Completed {{ formatDate(task.completed_at) }}
             </div>
           </div>
         </div>
-        <div class="flex-shrink-0">
-          <button
-            v-if="task.status !== 'completed'"
-            type="button"
-            @click="handleComplete"
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-all hover:scale-105 active:scale-95"
-            data-test="complete-task-button"
-          >
-            Complete
-          </button>
-          <button
-            v-else
-            type="button"
-            disabled
-            class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400 text-sm font-medium rounded-lg cursor-not-allowed"
-          >
-            Done
-          </button>
+        <div class="flex-shrink-0 flex flex-col items-end gap-2">
+          <span
+              :class="frequencyBadgeClass"
+              class="px-2 py-0.5 text-xs font-semibold rounded-full uppercase tracking-wide"
+            >
+              {{ task.frequency }}
+            </span>
         </div>
       </div>
       
-      <!-- Sparkle burst effect -->
-      <div
-        v-if="showSparkle"
-        ref="sparkleContainer"
-        class="sparkle-container"
-      ></div>
     </div>
   </Transition>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useAnimation } from '@/composables/useAnimation'
 
 const props = defineProps({
   task: {
@@ -107,38 +99,16 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['complete', 'assign'])
+const emit = defineEmits(['assign'])
 
 const taskRef = ref(null)
-const sparkleContainer = ref(null)
-const isCompleting = ref(false)
-const showSparkle = ref(false)
-const { playSparkle } = useAnimation()
 
 const frequencyBadgeClass = computed(() => {
   return props.task.frequency === 'daily'
-    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-    : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+    ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
+    : 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300'
 })
 
-const handleComplete = () => {
-  isCompleting.value = true
-  showSparkle.value = true
-  
-  // Play sparkle animation
-  setTimeout(() => {
-    if (taskRef.value) {
-      playSparkle(taskRef.value, 8)
-    }
-  }, 100)
-  
-  // Emit after animation
-  setTimeout(() => {
-    emit('complete', props.task.id)
-    isCompleting.value = false
-    showSparkle.value = false
-  }, 600)
-}
 
 const formatDate = (dateString) => {
   if (!dateString) return ''
@@ -165,17 +135,6 @@ watch(() => props.task.status, (newStatus) => {
 </script>
 
 <style scoped>
-.sparkle-container {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.task-completed {
-  animation: task-complete-bounce 0.6s ease-out;
-}
-
 .just-completed {
   animation: task-complete-bounce 0.6s ease-out;
 }

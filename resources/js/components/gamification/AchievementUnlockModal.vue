@@ -11,14 +11,24 @@
         v-if="visible"
         ref="modalRef"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-        @click.self="handleClose"
-        @keydown.esc="handleClose"
+        @click.self="handleCloseWithClear"
+        @keydown.esc="handleCloseWithClear"
         role="dialog"
         aria-modal="true"
         aria-labelledby="achievement-title"
         data-test="achievement-unlock-modal"
       >
         <div class="achievement-content">
+          <!-- Close Button -->
+          <button
+            type="button"
+            @click="handleCloseWithClear"
+            class="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/10 dark:bg-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300 transition-colors"
+            aria-label="Close modal"
+          >
+            <X class="w-5 h-5" />
+          </button>
+          
           <div class="text-center relative z-10">
             <!-- Title -->
             <div class="mb-6">
@@ -37,19 +47,22 @@
               ref="badgeContainerRef"
               class="badge-container mb-6"
             >
-              <div class="golden-ring"></div>
-              <div class="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl p-8 relative overflow-hidden">
+              <div 
+                class="badge-type-ring"
+                :class="badgeRingClass"
+              ></div>
+              <div 
+                class="rounded-2xl p-8 relative overflow-hidden"
+                :class="badgeGradientClass"
+              >
                 <div class="burst-particles"></div>
-                <div
+                <img
                   v-if="badge.icon_path"
-                  class="w-24 h-24 mx-auto mb-4 rounded-full bg-white/20 flex items-center justify-center animate-badge-pop"
-                >
-                  <img
-                    :src="badge.icon_path"
-                    :alt="badge.name"
-                    class="w-20 h-20 object-contain"
-                  />
-                </div>
+                  :src="badge.icon_path"
+                  :alt="badge.name"
+                  class="w-[80px] h-[80px] mx-auto mb-2 object-contain"
+                  :class="badgeImageShadowClass"
+                />
                 <div
                   v-else
                   class="w-24 h-24 mx-auto mb-4 rounded-full bg-white/20 flex items-center justify-center animate-badge-pop"
@@ -64,22 +77,22 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="space-y-3 animate-fade-in-delay">
+            <div class="flex gap-3 animate-fade-in-delay">
               <button
                 type="button"
-                @click="handleShare"
-                class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl animate-pulse-hover"
-                data-test="share-button"
+                @click="handleGoToProfile"
+                class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
               >
-                <span>📤</span>
-                Share Achievement
+                Go to Profile
               </button>
               <button
                 type="button"
-                @click="handleClose"
-                class="w-full px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
+                @click="handleShare"
+                class="flex-1 flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+                data-test="share-button"
               >
-                Continue
+                <Share2 class="w-5 h-5" />
+                Share
               </button>
             </div>
           </div>
@@ -90,8 +103,12 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { toast } from '@/components/ui/toast'
 import { useAnimation } from '@/composables/useAnimation'
+import { useAchievementPopups } from '@/composables/useAchievementPopups'
+import { Share2, X } from 'lucide-vue-next'
 
 const props = defineProps({
   visible: {
@@ -112,28 +129,108 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
+const router = useRouter()
 const modalRef = ref(null)
 const badgeContainerRef = ref(null)
 const { playBadgeUnlockSequence, playParticleBurst } = useAnimation()
+const { clearQueue } = useAchievementPopups()
+
+// Get badge type (default to 'participation' if not set)
+const badgeType = computed(() => {
+  return props.badge?.type || 'participation'
+})
+
+// Badge gradient classes based on type
+const badgeGradientClass = computed(() => {
+  const type = badgeType.value
+  const gradients = {
+    quality: 'bg-gradient-to-br from-blue-500 to-cyan-500',
+    contribution: 'bg-gradient-to-br from-green-500 to-emerald-500',
+    rare: 'bg-gradient-to-br from-red-500 to-rose-500',
+    event: 'bg-gradient-to-br from-purple-500 to-violet-500',
+    participation: 'bg-gradient-to-br from-yellow-400 to-amber-500',
+    consistency: 'bg-gradient-to-br from-green-700 to-emerald-800'
+  }
+  return gradients[type] || gradients.participation
+})
+
+// Badge ring glow classes based on type
+const badgeRingClass = computed(() => {
+  const type = badgeType.value
+  const rings = {
+    quality: 'border-blue-500',
+    contribution: 'border-green-500',
+    rare: 'border-red-500',
+    event: 'border-purple-500',
+    participation: 'border-yellow-400',
+    consistency: 'border-green-700'
+  }
+  return rings[type] || rings.participation
+})
+
+// Badge image shadow classes based on type
+const badgeImageShadowClass = computed(() => {
+  const type = badgeType.value
+  const shadows = {
+    quality: 'drop-shadow-[0_8px_16px_rgba(59,130,246,0.6)]',
+    contribution: 'drop-shadow-[0_8px_16px_rgba(34,197,94,0.6)]',
+    rare: 'drop-shadow-[0_8px_16px_rgba(239,68,68,0.6)]',
+    event: 'drop-shadow-[0_8px_16px_rgba(168,85,247,0.6)]',
+    participation: 'drop-shadow-[0_8px_16px_rgba(234,179,8,0.6)]',
+    consistency: 'drop-shadow-[0_8px_16px_rgba(21,128,61,0.6)]'
+  }
+  return shadows[type] || shadows.participation
+})
 
 const handleClose = () => {
   emit('close')
 }
 
+const handleCloseWithClear = () => {
+  // Clear the queue when closing to prevent popup from showing again
+  clearQueue()
+  handleClose()
+}
+
+const handleGoToProfile = () => {
+  // Clear the queue when navigating away to prevent popup from showing again
+  clearQueue()
+  handleClose()
+  router.push('/dashboard')
+}
+
 const handleShare = () => {
+  const shareText = `I just unlocked the ${props.badge.name} badge! 🏆`
+  const shareUrl = window.location.origin + '/dashboard'
+  
   if (navigator.share) {
     navigator.share({
-      title: `I just unlocked the ${props.badge.name} badge!`,
-      text: props.badge.description,
-      url: window.location.href
-    }).catch(() => {
-      // User cancelled or error
+      title: 'Badge Unlocked!',
+      text: shareText,
+      url: shareUrl
+    }).then(() => {
+      toast({
+        title: 'Shared successfully!',
+        description: 'Your achievement has been shared.',
+      })
+    }).catch((error) => {
+      if (error.name !== 'AbortError') {
+        // Fallback: Copy to clipboard
+        navigator.clipboard.writeText(`${shareText} ${shareUrl}`).then(() => {
+          toast({
+            title: 'Link Copied!',
+            description: 'Achievement link copied to clipboard',
+          })
+        })
+      }
     })
   } else {
     // Fallback: Copy to clipboard
-    const text = `I just unlocked the ${props.badge.name} badge! ${props.badge.description}`
-    navigator.clipboard.writeText(text).then(() => {
-      // TODO: Show toast notification
+    navigator.clipboard.writeText(`${shareText} ${shareUrl}`).then(() => {
+      toast({
+        title: 'Link Copied!',
+        description: 'Achievement link copied to clipboard',
+      })
     })
   }
 }
@@ -155,7 +252,6 @@ watch(() => props.visible, async (newVal) => {
 <style scoped>
 .achievement-content {
   background: white;
-  dark:bg-gray-800;
   border-radius: 1.5rem;
   padding: 2rem;
   max-width: 28rem;
@@ -166,15 +262,19 @@ watch(() => props.visible, async (newVal) => {
   z-index: 10;
 }
 
+.dark .achievement-content {
+  background: #1f2937;
+}
+
 .badge-container {
   position: relative;
   display: inline-block;
 }
 
-.golden-ring {
+.badge-type-ring {
   position: absolute;
   inset: -15px;
-  border: 3px solid #fbbf24;
+  border: 3px solid;
   border-radius: 1.5rem;
   opacity: 0.8;
   filter: blur(8px);

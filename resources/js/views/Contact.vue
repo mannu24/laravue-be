@@ -61,27 +61,9 @@ const officeHours = [
 </script>
 
 <template>
-  <div :class="['min-h-screen transition-colors duration-300',
-    themeStore.isDark ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-900'
-  ]">
+  <div class="min-h-screen">
     <!-- Hero Section with Background -->
     <div class="relative overflow-hidden">
-      <!-- Background Pattern -->
-      <div class="absolute inset-0 -z-10">
-        <div :class="['absolute inset-0 transition-all duration-500',
-          themeStore.isDark
-            ? 'bg-gradient-to-br from-gray-900 via-red-900/10 to-gray-900'
-            : 'bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50'
-        ]"></div>
-
-        <!-- Grid Pattern -->
-        <div :class="['absolute inset-0 opacity-20',
-          themeStore.isDark ? 'bg-grid-white/[0.05]' : 'bg-grid-black/[0.05]'
-        ]"
-          style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 30px 30px;">
-        </div>
-      </div>
-
       <div class="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto">
           <h1 class="text-5xl font-extrabold tracking-tight mb-6">

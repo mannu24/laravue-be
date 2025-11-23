@@ -33,6 +33,10 @@ class UserResource extends JsonResource
             'is_following' => $this->is_following ?? false,
             'followers_count' => $this->followers_count ?? 0,
             'following_count' => $this->following_count ?? 0,
+            'social_links' => $this->whenLoaded(
+                'socialLinks',
+                fn() => SocialLinkResource::collection($this->socialLinks)
+            ),
         ];
     }
 }

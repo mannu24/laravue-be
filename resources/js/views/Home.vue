@@ -186,28 +186,16 @@ const categories = [
 </script>
 
 <template>
-  <div :class="['min-h-screen transition-all duration-500',
-    themeStore.isDark ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-900'
-  ]">
+  <div class="min-h-screen">
 
     <!-- Hero Section with Animated Background -->
     <section class="relative overflow-hidden">
       <div class="absolute inset-0 -z-10">
-                <div :class="['absolute inset-0 transition-all duration-500',
-          themeStore.isDark 
-            ? 'bg-gradient-to-br from-gray-900 via-primary/10 to-gray-900' 
-            : 'bg-gradient-to-br from-primary/5 via-secondary/5 to-primary/5'
-        ]"></div>
-        <div class="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full animate-pulse"></div>
+        <div class="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full animate-bounce"></div>
         <div class="absolute top-40 right-20 w-32 h-32 bg-secondary/10 rounded-full animate-bounce"
           style="animation-delay: 1s;"></div>
-        <div class="absolute bottom-20 left-1/4 w-16 h-16 bg-primary/5 rounded-full animate-pulse"
+        <div class="absolute bottom-20 left-1/4 w-16 h-16 bg-primary/5 rounded-full animate-bounce"
           style="animation-delay: 2s;"></div>
-        <div :class="['absolute inset-0 opacity-20',
-          themeStore.isDark ? 'bg-grid-white/[0.05]' : 'bg-grid-black/[0.05]'
-        ]"
-          style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 50px 50px;">
-        </div>
       </div>
 
       <div class="container mx-auto px-4 py-20 sm:py-32 lg:py-30">
@@ -274,9 +262,7 @@ const categories = [
     </section>
 
     <!-- Categories Section -->
-    <section :class="['py-20 transition-colors duration-500',
-      themeStore.isDark ? 'bg-gray-900/50' : 'bg-white'
-    ]">
+    <section class="py-20">
       <div class="container mx-auto px-4">
         <div class="text-center mb-16">
           <h2 class="text-4xl font-bold mb-4" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
@@ -435,9 +421,7 @@ const categories = [
     </section>
 
     <!-- Q&A Section -->
-    <section :class="['py-20 transition-colors duration-500',
-      themeStore.isDark ? 'bg-gray-900/30' : 'bg-gray-50'
-    ]">
+    <section class="py-20">
       <div class="container mx-auto px-4">
         <div class="flex items-center justify-between mb-16">
           <div>
@@ -621,9 +605,7 @@ const categories = [
     </section>
 
     <!-- Laravel Features Showcase -->
-    <section :class="['py-20 transition-colors duration-500',
-      themeStore.isDark ? 'bg-gradient-to-r from-gray-900 via-red-900/10 to-gray-900' : 'bg-gradient-to-r from-red-50 via-orange-50 to-yellow-50'
-    ]">
+    <section class="py-20">
       <div class="container mx-auto px-4">
         <div class="text-center mb-16">
           <h2 class="text-4xl font-bold mb-4" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
@@ -635,7 +617,7 @@ const categories = [
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div v-for="feature in laravelFeatures" :key="feature.title" :class="['group p-8 rounded-3xl transition-all duration-500 hover:scale-105 hover:shadow-2xl text-center',
+          <div v-for="feature in laravelFeatures" :key="feature.title" :class="['group p-8 rounded-3xl transition-all duration-500 hover:scale-105 shadow hover:shadow-2xl text-center',
             themeStore.isDark ? 'bg-gray-800/50 hover:bg-gray-800' : 'bg-white/80 backdrop-blur-sm hover:bg-white'
           ]">
 
@@ -659,41 +641,27 @@ const categories = [
     <!-- CTA Section -->
     <section class="py-20 sm:py-32">
       <div class="container mx-auto px-4">
-        <div :class="['relative overflow-hidden rounded-3xl p-12 lg:p-20 text-center',
-          themeStore.isDark ? 'bg-gradient-to-r from-gray-800 to-gray-900' : 'bg-gradient-to-r from-primary to-primary/80'
-        ]">
-
-          <!-- Background Pattern -->
-          <div class="absolute inset-0 opacity-10">
-            <div class="absolute inset-0"
-              style="background-image: radial-gradient(circle, currentColor 2px, transparent 2px); background-size: 40px 40px;">
-            </div>
-          </div>
-
+        <div class="relative overflow-hidden rounded-3xl p-12 lg:p-20 text-center">
           <div class="relative z-10">
-            <h2 class="text-4xl sm:text-5xl lg:text-6xl font-black mb-6 text-white">
+            <h2 class="text-4xl sm:text-5xl lg:text-6xl font-black mb-6" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
               Ready to Build Something Amazing?
             </h2>
 
-            <p class="text-xl lg:text-2xl mb-12 text-white/90 max-w-3xl mx-auto">
+            <p class="text-xl lg:text-2xl mb-12" :class="themeStore.isDark ? 'text-white/90' : 'text-gray-600'">
               Join thousands of Laravel developers sharing knowledge, building projects, and growing together.
             </p>
 
             <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                            <Button @click="router.push('/register')" 
-                      class="bg-white text-primary hover:bg-gray-100 px-10 py-4 text-lg font-semibold rounded-full shadow-2xl transform hover:scale-105 transition-all duration-300">
+              <Button @click="router.push('/login')"  :class="themeStore.isDark ? 'bg-white text-primary hover:bg-gray-100' : 'bg-primary text-white hover:bg-primary/90'">
                 <Rocket class="w-5 h-5 mr-2" />
                 Join Community Free
               </Button>
-              <Button variant="outline" @click="router.push('/projects')"
-                      class="border-2 border-white text-white hover:bg-white hover:text-primary px-10 py-4 text-lg font-semibold rounded-full transition-all duration-300 hover:scale-105">
+              <Button variant="outline" @click="router.push('/projects')" :class="themeStore.isDark ? 'border-2 border-gray-600 text-gray-300 hover:bg-gray-800' : 'border-2 border-gray-300 text-gray-700 hover:bg-gray-50'">
                 <Eye class="w-5 h-5 mr-2" />
                 Browse Projects
               </Button>
             </div>
-
-            <!-- Social Proof -->
-            <div class="mt-12 flex justify-center items-center space-x-8 text-white/80">
+            <div class="mt-12 flex justify-center items-center space-x-8" :class="themeStore.isDark ? 'text-white/80' : 'text-gray-600'">
               <div class="flex items-center">
                 <Users class="w-5 h-5 mr-2" />
                 <span class="font-semibold">25,000+ Developers</span>

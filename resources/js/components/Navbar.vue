@@ -194,12 +194,17 @@ watch(showSearch, async (isOpen) => {
 
 // Close on outside click
 const handleClickOutside = (event) => {
+    // Get the actual DOM element from the component ref
+    // Component refs in Vue 3 might expose $el or be the element directly
+    const searchButtonElement = searchButtonRef.value?.$el || searchButtonRef.value
+    
     // Don't close if clicking the search button or its children
-    if (searchButtonRef.value && searchButtonRef.value.contains(event.target)) {
+    // Check if element exists and has contains method before calling
+    if (searchButtonElement && typeof searchButtonElement.contains === 'function' && searchButtonElement.contains(event.target)) {
         return
     }
     // Close if clicking outside the modal
-    if (searchModalRef.value && !searchModalRef.value.contains(event.target)) {
+    if (searchModalRef.value && typeof searchModalRef.value.contains === 'function' && !searchModalRef.value.contains(event.target)) {
         closeSearch()
     }
 }
@@ -274,11 +279,11 @@ defineOptions({
                                 <NavigationMenuItem v-for="item in navigation" :key="item.name">
                                     <router-link :to="item.href" :class="[
                                         'relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300',
-                                        'hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10',
-                                        'hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20',
+                                        'text-gray-700 dark:text-gray-300 dark:hover:text-white hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10',
+                                        'focus:outline-none focus:ring-2 focus:ring-primary/20',
                                         item.current
-                                            ? 'text-foreground bg-gradient-to-r from-primary/10 to-secondary/10 shadow-lg'
-                                            : 'text-muted-foreground hover:text-foreground'
+                                            ? 'bg-gradient-to-r from-primary/10 to-secondary/10 shadow-lg dark:text-white text-gray-900'
+                                            : 'text-gray-700 dark:text-gray-300 dark:hover:text-white hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10'
                                     ]">
                                         {{ item.name }}
                                         <div v-if="item.current"
@@ -292,11 +297,11 @@ defineOptions({
                     <!-- Right side controls -->
                     <div class="flex items-center space-x-3">
                         <!-- Theme Toggle -->
-                        <Button ref="searchButtonRef" variant="ghost" size="icon" @click="showSearch = true" class="relative overflow-hidden hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300">
+                        <Button ref="searchButtonRef" variant="ghost" size="icon" @click="showSearch = true" class="relative overflow-hidden hover:bg-transparent hover:text-gray-700 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 text-gray-700 dark:text-gray-300 dark:hover:text-white">
                             <Search class="h-5 w-5 rotate-0 scale-100 transition-all duration-300" />
                             <span class="sr-only">Search</span>
                         </Button>
-                        <Button variant="ghost" size="icon" @click="themeStore.toggleTheme()" class="relative overflow-hidden hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300">
+                        <Button variant="ghost" size="icon" @click="themeStore.toggleTheme()" class="relative overflow-hidden hover:bg-transparent hover:text-gray-700 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 text-gray-700 dark:text-gray-300 dark:hover:text-white">
                             <Sun v-if="themeStore.isDark" class="h-5 w-5 rotate-0 scale-100 transition-all duration-300" />
                             <Moon v-else class="h-5 w-5 rotate-0 scale-100 transition-all duration-300" />
                             <span class="sr-only">Toggle theme</span>
@@ -305,10 +310,10 @@ defineOptions({
                         <template v-if="authStore.isAuthenticated">
                             <Button 
                                 variant="ghost"
-                                @click="router.push(`/profile/@${authStore?.user?.username}`)"
-                                class="flex items-center space-x-2 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300">
+                                @click="router.push(`/dashboard`)"
+                                class="flex items-center space-x-2 hover:bg-gray-100 dark:hover:bg-gradient-to-r dark:hover:from-primary/10 dark:hover:to-secondary/10 transition-all duration-300 text-gray-700 dark:text-gray-300">
                                 <div
-                                    class="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary/80 flex items-center justify-center text-primary-foreground text-sm font-bold">
+                                    class="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold">
                                     {{ authStore?.user?.username?.charAt(0).toUpperCase() }}
                                 </div>
                                 <!-- <span class="hidden sm:block font-medium">{{ authStore?.user?.username }}</span> -->
@@ -316,13 +321,13 @@ defineOptions({
                         </template>
                         <template v-else>
                             <Button @click="router.push('/login')"
-                                class="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300">
+                                class="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg hover:shadow-xl transition-all duration-300">
                                 <Zap class="mr-50" />
                                 Sign In
                             </Button>
                         </template>
                         <Button variant="ghost" size="icon"
-                            class="lg:hidden hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300"
+                            class="lg:hidden hover:bg-gray-100 dark:hover:bg-gradient-to-r dark:hover:from-primary/10 dark:hover:to-secondary/10 transition-all duration-300 text-gray-700 dark:text-gray-300"
                             @click="isMobileMenuOpen = !isMobileMenuOpen">
                             <Menu v-if="!isMobileMenuOpen" class="h-6 w-6" />
                             <X v-else class="h-6 w-6" />
@@ -372,7 +377,7 @@ defineOptions({
                     <div v-else class="flex items-center justify-between">
                         <Button 
                             variant="ghost"
-                            @click="router.push(`/profile/@${authStore?.user?.username}`); isMobileMenuOpen = false"
+                            @click="router.push(`/dashboard`); isMobileMenuOpen = false"
                             class="flex items-center space-x-3 w-full justify-start hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300">
                             <div
                                 class="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-primary/80 flex items-center justify-center text-primary-foreground font-bold">
@@ -380,7 +385,7 @@ defineOptions({
                             </div>
                             <div>
                                 <div class="font-medium text-foreground">{{ authStore?.user?.username }}</div>
-                                <div class="text-sm text-muted-foreground">View Profile</div>
+                                <div class="text-sm text-muted-foreground">Dashboard</div>
                             </div>
                         </Button>
                     </div>

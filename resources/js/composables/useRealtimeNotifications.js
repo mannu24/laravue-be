@@ -21,6 +21,9 @@ let reconnectAttempts = 0
 const MAX_RECONNECT_ATTEMPTS = 5
 const RECONNECT_DELAY = 3000 // 3 seconds
 
+// Track notifications that were received via realtime to prevent double-counting
+const realtimeReceivedIds = new Set()
+
 /**
  * Initialize real-time notification listener
  * 
@@ -109,12 +112,33 @@ export function useRealtimeNotifications(
      */
     const handleNotificationReceived = (notification) => {
         try {
+            // Check if notification already exists (prevent duplicates)
+            const exists = notifications.value.some(n => n.id === notification.id)
+            if (exists) {
+                // Notification already exists, don't increment count
+                return
+            }
+
+            // Check if we've already processed this notification via realtime
+            // This prevents double-counting if the same notification is received multiple times
+            if (realtimeReceivedIds.has(notification.id)) {
+                return
+            }
+
+            // Mark as received via realtime
+            realtimeReceivedIds.add(notification.id)
+
             // Add notification to the beginning of the list
             notifications.value.unshift(notification)
 
             // Update unread count if notification is unread
+            // Only increment if this is a truly new notification that wasn't already counted
             if (!notification.read) {
-                unreadCount.value = (unreadCount.value || 0) + 1
+                // Increment the count - this is a new notification from realtime
+                // The API will be the source of truth when fetchNotifications is called
+                const currentCount = unreadCount.value || 0
+                unreadCount.value = currentCount + 1
+                updateUnreadCount(unreadCount.value)
             }
 
             // Call custom callback if provided
@@ -190,10 +214,21 @@ export function useRealtimeNotifications(
      * Update unread count
      */
     const updateUnreadCount = (count) => {
-        unreadCount.value = count
-        if (onUnreadCountUpdate && typeof onUnreadCountUpdate === 'function') {
-            onUnreadCountUpdate(count)
+        // Only update if count is different to prevent unnecessary updates
+        if (unreadCount.value !== count) {
+            unreadCount.value = count
+            if (onUnreadCountUpdate && typeof onUnreadCountUpdate === 'function') {
+                onUnreadCountUpdate(count)
+            }
         }
+    }
+
+    /**
+     * Reset realtime received IDs (called when API fetch happens to prevent stale tracking)
+     */
+    const resetRealtimeTracking = () => {
+        // Clear the set when API fetch happens - API is source of truth
+        realtimeReceivedIds.clear()
     }
 
     /**
@@ -234,6 +269,7 @@ export function useRealtimeNotifications(
                 disconnect()
                 notifications.value = []
                 unreadCount.value = 0
+                realtimeReceivedIds.clear()
             }
         },
         { immediate: true }
@@ -261,6 +297,7 @@ export function useRealtimeNotifications(
         updateUnreadCount,
         markAsRead,
         removeNotification,
+        resetRealtimeTracking,
     }
 }
 
