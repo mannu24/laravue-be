@@ -1,0 +1,2 @@
+import{a as n,O as c,f as u,o as d,w as p,r as f,m as i,u as e,e as m,an as _}from"./app-DI7wrdgO.js";const x={__name:"DialogDescription",props:{asChild:{type:Boolean,required:!1},as:{type:null,required:!1},class:{type:null,required:!1}},setup(t){const s=t,o=n(()=>{const{class:a,...r}=s;return r}),l=c(o);return(a,r)=>(d(),u(e(_),i(e(l),{class:e(m)("text-sm text-muted-foreground",s.class)}),{default:p(()=>[f(a.$slots,"default")]),_:3},16,["class"]))}};export{x as _};
+//# sourceMappingURL=DialogDescription-BY-qrgoj.js.map
