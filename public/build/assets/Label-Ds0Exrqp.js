@@ -1,0 +1,2 @@
+import{a as o,f as n,o as d,w as c,r as p,m as u,u as r,e as i,aS as f}from"./app-Bvnl7d0n.js";const _={__name:"Label",props:{for:{type:String,required:!1},asChild:{type:Boolean,required:!1},as:{type:null,required:!1},class:{type:null,required:!1}},setup(l){const e=l,t=o(()=>{const{class:s,...a}=e;return a});return(s,a)=>(d(),n(r(f),u(t.value,{class:r(i)("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",e.class)}),{default:c(()=>[p(s.$slots,"default")]),_:3},16,["class"]))}};export{_};
+//# sourceMappingURL=Label-Ds0Exrqp.js.map

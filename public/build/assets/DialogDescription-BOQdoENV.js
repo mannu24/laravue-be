@@ -1,0 +1,2 @@
+import{a as c,O as n,f as p,o as u,w as d,r as f,m as i,u as e,e as m,ap as _}from"./app-Bvnl7d0n.js";const x={__name:"DialogDescription",props:{asChild:{type:Boolean,required:!1},as:{type:null,required:!1},class:{type:null,required:!1}},setup(t){const s=t,o=c(()=>{const{class:a,...r}=s;return r}),l=n(o);return(a,r)=>(u(),p(e(_),i(e(l),{class:e(m)("text-sm text-muted-foreground",s.class)}),{default:d(()=>[f(a.$slots,"default")]),_:3},16,["class"]))}};export{x as _};
+//# sourceMappingURL=DialogDescription-BOQdoENV.js.map

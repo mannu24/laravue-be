@@ -1,2 +1,0 @@
-import{b as l,o as r,r as t,z as n,u as o,e as c}from"./app-BusCMfsw.js";const i={__name:"CardHeader",props:{class:{type:null,required:!1}},setup(s){const e=s;return(a,p)=>(r(),l("div",{class:n(o(c)("flex flex-col gap-y-1.5 p-6",e.class))},[t(a.$slots,"default")],2))}},d={__name:"CardTitle",props:{class:{type:null,required:!1}},setup(s){const e=s;return(a,p)=>(r(),l("h3",{class:n(o(c)("text-2xl font-semibold leading-none tracking-tight",e.class))},[t(a.$slots,"default")],2))}};export{i as _,d as a};
-//# sourceMappingURL=CardTitle-BaSWMxRf.js.map
