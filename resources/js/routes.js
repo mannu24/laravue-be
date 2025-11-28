@@ -116,7 +116,7 @@ const router = createRouter({
             meta: {auth: false, both: true},
         },
         {
-            path: '/@:username/post_:post_code',
+            path: '/feed/post_:post_code',
             name: 'post-detail',
             component: () => import('./views/PostDetail.vue'),
             meta: { auth: false, both: true },

@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router'
 import { useThemeStore } from '../../stores/theme'
 import { Card, CardContent } from '../../components/ui/card'
 import PostCard from '../feed/PostCard.vue'
-import QuestionCard from '../qna/QuestionCard.vue'
+import QuestionCard from '../qa/QuestionCard.vue'
 import { Bookmark, FileText, MessageSquare, FolderOpen } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -112,6 +112,7 @@ const handleCardClick = () => {
             slug: bookmark.record.slug || bookmark.record.id,
             bookmarked: true
           }"
+          :navigate-on-click="false"
           @bookmarked_action="handleBookmarkedAction"
         />
       </div>

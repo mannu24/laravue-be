@@ -2,13 +2,13 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { LucideChevronLeft, LucideChevronRight, LucideEllipsisVertical } from 'lucide-vue-next';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { CardFooter } from '@/components/ui/card';
 import PostForm from './PostForm.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useBookmark } from '../../composables/useBookmark';
 import { Bookmark } from 'lucide-vue-next';
+import axios from 'axios';
 
 const { post } = defineProps(['post'])
 const element = ref(null)
@@ -17,7 +17,7 @@ const isModalVisible = ref(false)
 const emit = defineEmits(['load_more', 'fetch', 'delete_post', 'liked_action', 'share_url', 'bookmarked_action'])
 const $router = useRouter();
 const authStore = useAuthStore()
-const post_url = computed(() => '/@' + post.user.username + '/' + post.post_code)
+const post_url = computed(() => '/feed/' + post.post_code)
 
 // Bookmark functionality
 const { isBookmarked, bookmarkCount, isLoading: isBookmarkLoading, toggleBookmark, initialize } = useBookmark(post, 'post')
@@ -160,54 +160,57 @@ onMounted(() => {
 </script>
 <template>
     <div ref="element">
-        <article @click="$router.push(post_url)" 
-            class="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-gray-900/50 hover:shadow-xl dark:hover:shadow-gray-900 rounded-2xl overflow-hidden hover:cursor-pointer transition-all duration-300 ease-out hover:border-gray-300 dark:hover:border-gray-600">
-            <!-- Header Section -->
-            <div class="flex items-start justify-between p-5 pb-4">
-                <div class="flex items-center gap-3 flex-1 min-w-0">
-                    <router-link :to="post.user.username != authStore.user?.username ? '/@' + post.user.username : '/dashboard'" @click.stop class="flex-shrink-0">
-                        <div class="relative">
-                            <img v-if="post.user?.profile_photo" :src="post.user?.profile_photo" alt="User Avatar"
-                                class="w-14 h-14 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700 transition-all duration-300 group-hover:ring-green-500/50" 
-                                @error="errorFallbackUserImage" />
-                            <img v-else src="/assets/front/images/user.png" alt="User Avatar" 
-                                class="w-14 h-14 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700 transition-all duration-300 group-hover:ring-green-500/50" 
-                                @error="errorFallbackUserImage" />
+        <article
+            @click="$router.push(post_url)"
+            class="group bg-white/95 dark:bg-card border border-gray-200 dark:border-gray-800 rounded-xl p-5 shadow-[0_20px_70px_rgba(15,23,42,0.08)] dark:shadow-none hover:shadow-[0_25px_80px_rgba(15,23,42,0.12)] dark:hover:shadow-xl transition-all duration-300 hover:cursor-pointer hover:border-gray-300 dark:hover:border-gray-700"
+        >
+            <div class="flex flex-col gap-4">
+                <!-- Title and Content Section -->
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex-1 min-w-0">
+                        <h3 v-if="post.title" 
+                            class="text-lg cursor-pointer group-hover:text-green-600 dark:group-hover:text-green-400 lg:text-xl font-semibold text-gray-900 dark:text-white leading-tight mb-2 line-clamp-2">
+                            {{ post.title }}
+                        </h3>
+                        <div class="prose prose-sm dark:prose-invert max-w-none">
+                            <p class="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed whitespace-pre-wrap break-words" 
+                                v-html="renderContent(post.content)" 
+                                @click.stop></p>
                         </div>
-                    </router-link>
-                    <router-link @click.stop :to="post.user.username != authStore.user?.username ? '/@' + post.user.username : '/dashboard'" class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2">
-                            <h4 class="font-semibold text-gray-900 dark:text-white text-base truncate group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-                                {{ post.user.name }}
-                            </h4>
-                            <span class="text-sm text-gray-500 dark:text-gray-400 truncate">@{{ post.user.username }}</span>
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ post.posted_at }}</p>
-                    </router-link>
-                </div>
-                <div class="relative inline-block ml-2 self-start" v-if="authStore.isAuthenticated && post.owner">
-                    <button @click.stop="showDropdown = !showDropdown" 
-                        class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
-                        <LucideEllipsisVertical class="w-5 h-5" />
-                    </button>
-                    <transition enter-active-class="transition ease-out duration-100"
-                        enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100"
-                        leave-active-class="transition ease-in duration-75"
-                        leave-from-class="transform opacity-100 scale-100"
-                        leave-to-class="transform opacity-0 scale-95">
-                        <div v-if="showDropdown" @click.stop
-                            class="absolute right-0 top-full mt-2 z-20 w-40 origin-top-right bg-white dark:bg-gray-800 rounded-xl shadow-lg ring-1 ring-black/5 dark:ring-white/10 overflow-hidden"
-                            role="menu" aria-orientation="vertical">
-                            <div role="none">
-                                <button @click.stop="edit_post()"
-                                    class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors flex items-center gap-2">
+                    </div>
+
+                    <div
+                        v-if="authStore.isAuthenticated && post.owner"
+                        class="relative flex-shrink-0"
+                        @click.stop
+                    >
+                        <button
+                            @click="showDropdown = !showDropdown"
+                            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700/60 text-gray-500 dark:text-gray-400"
+                        >
+                            <LucideEllipsisVertical class="w-5 h-5" />
+                        </button>
+                        <transition name="fade">
+                            <div
+                                v-if="showDropdown"
+                                @click.stop
+                        class="absolute right-2 top-full mt-2 z-20 w-40 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
+                                role="menu"
+                                aria-orientation="vertical"
+                            >
+                                <button
+                                    @click.stop="edit_post()"
+                                    class="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700/60 text-gray-700 dark:text-gray-300"
+                                >
                                     <i class="fas fa-pencil-alt text-xs"></i>
                                     Edit Post
                                 </button>
                                 <AlertDialog>
                                     <AlertDialogTrigger as-child>
-                                        <button @click.stop
-                                            class="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2">
+                                        <button
+                                            @click.stop
+                                            class="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400"
+                                        >
                                             <i class="fas fa-trash text-xs"></i>
                                             Delete
                                         </button>
@@ -226,126 +229,122 @@ onMounted(() => {
                                     </AlertDialogContent>
                                 </AlertDialog>
                             </div>
-                        </div>
-                    </transition>
-                </div>
-            </div>
-
-            <!-- Content Section -->
-            <div class="px-5 pb-4">
-                <h3 v-if="post.title" 
-                    class="font-bold text-xl text-gray-900 dark:text-white mb-3 leading-tight line-clamp-2">
-                    {{ post.title }}
-                </h3>
-                <div class="prose prose-sm dark:prose-invert max-w-none mb-4">
-                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words" 
-                       v-html="renderContent(post.content)" 
-                       @click.stop></p>
+                        </transition>
+                    </div>
                 </div>
 
                 <!-- Media Gallery -->
                 <div v-if="post.media_urls && post.media_urls.length" 
-                     class="rounded-xl overflow-hidden mb-4 border border-gray-200 dark:border-gray-700">
-                    <div v-if="post.media_urls.length === 1" 
-                         class="relative group/media">
-                        <img :src="post.media_urls[0]" alt="Post Media"
-                            class="w-full h-auto max-h-[500px] object-cover cursor-pointer transition-transform duration-300 group-hover:scale-[1.02]" 
-                            @click.stop="handleOpenGallery(0)"
-                            @error="errorFallbackImage" />
-                    </div>
-                    <div v-else-if="post.media_urls.length === 2" 
-                         class="grid grid-cols-2 gap-1">
-                        <template v-for="(media, index) in post.media_urls" :key="media">
-                            <img v-if="index < 2" :src="media" alt="Post Media" 
-                                class="w-full h-64 object-cover cursor-pointer transition-transform duration-300 hover:scale-105" 
-                                @click.stop="handleOpenGallery(index)"
+                    class="rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700">
+                        <div v-if="post.media_urls.length === 1" 
+                            class="relative group/media">
+                            <img :src="post.media_urls[0]" alt="Post Media"
+                                class="w-full h-auto max-h-[500px] object-cover cursor-pointer transition-transform duration-300 group-hover:scale-[1.02]" 
+                                @click.stop="handleOpenGallery(0)"
                                 @error="errorFallbackImage" />
-                        </template>
-                    </div>
-                    <div v-else-if="post.media_urls.length === 3" 
-                         class="grid grid-cols-2 gap-1">
-                        <template v-for="(media, index) in post.media_urls.slice(0, 2)" :key="index">
-                            <img :src="media" alt="Post Media" 
-                                class="w-full h-48 object-cover cursor-pointer transition-transform duration-300 hover:scale-105" 
-                                @click.stop="handleOpenGallery(index)"
-                                @error="errorFallbackImage" />
-                        </template>
-                        <img :src="post.media_urls[2]" alt="Post Media" 
-                            class="col-span-2 w-full h-64 object-cover cursor-pointer transition-transform duration-300 hover:scale-105" 
-                            @click.stop="handleOpenGallery(2)"
-                            @error="errorFallbackImage" />
-                    </div>
-                    <div v-else 
-                         class="grid grid-cols-2 gap-1 relative">
-                        <template v-for="(media, index) in post.media_urls.slice(0, 4)" :key="index">
-                            <div class="relative overflow-hidden">
-                                <img :src="media" alt="Post Media" 
-                                    class="w-full h-48 object-cover cursor-pointer transition-transform duration-300 hover:scale-110" 
+                        </div>
+                        <div v-else-if="post.media_urls.length === 2" 
+                            class="grid grid-cols-2 gap-1">
+                            <template v-for="(media, index) in post.media_urls" :key="media">
+                                <img v-if="index < 2" :src="media" alt="Post Media" 
+                                    class="w-full h-64 object-cover cursor-pointer transition-transform duration-300 hover:scale-105" 
                                     @click.stop="handleOpenGallery(index)"
                                     @error="errorFallbackImage" />
-                                <div v-if="index === 3 && post.media_urls.length > 4"
-                                    class="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-lg font-bold cursor-pointer backdrop-blur-sm"
-                                    @click.stop="handleOpenGallery(3)">
-                                    +{{ post.media_urls.length - 4 }} more
+                            </template>
+                        </div>
+                        <div v-else-if="post.media_urls.length === 3" 
+                            class="grid grid-cols-2 gap-1">
+                            <template v-for="(media, index) in post.media_urls.slice(0, 2)" :key="index">
+                                <img :src="media" alt="Post Media" 
+                                    class="w-full h-48 object-cover cursor-pointer transition-transform duration-300 hover:scale-105" 
+                                    @click.stop="handleOpenGallery(index)"
+                                    @error="errorFallbackImage" />
+                            </template>
+                            <img :src="post.media_urls[2]" alt="Post Media" 
+                                class="col-span-2 w-full h-64 object-cover cursor-pointer transition-transform duration-300 hover:scale-105" 
+                                @click.stop="handleOpenGallery(2)"
+                                @error="errorFallbackImage" />
+                        </div>
+                        <div v-else 
+                            class="grid grid-cols-2 gap-1 relative">
+                            <template v-for="(media, index) in post.media_urls.slice(0, 4)" :key="index">
+                                <div class="relative overflow-hidden">
+                                    <img :src="media" alt="Post Media" 
+                                        class="w-full h-48 object-cover cursor-pointer transition-transform duration-300 hover:scale-110" 
+                                        @click.stop="handleOpenGallery(index)"
+                                        @error="errorFallbackImage" />
+                                    <div v-if="index === 3 && post.media_urls.length > 4"
+                                        class="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-lg font-bold cursor-pointer backdrop-blur-sm"
+                                        @click.stop="handleOpenGallery(3)">
+                                        +{{ post.media_urls.length - 4 }} more
+                                    </div>
                                 </div>
-                            </div>
-                        </template>
+                            </template>
+                        </div>
+                    </div>
+
+                <!-- User Info Section -->
+                <div class="flex flex-wrap items-center justify-between gap-3 text-sm">
+                    <div class="flex items-center gap-3 text-gray-500 dark:text-gray-400">
+                        <div class="flex items-center gap-2">
+                            <router-link :to="post.user.username != authStore.user?.username ? '/@' + post.user.username : '/dashboard'" @click.stop class="flex-shrink-0">
+                                <img v-if="post.user?.profile_photo" :src="post.user?.profile_photo" alt="User Avatar"
+                                    class="w-8 h-8 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                                    @error="errorFallbackUserImage" />
+                                <img v-else src="/assets/front/images/user.png" alt="User Avatar"
+                                    class="w-8 h-8 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                                    @error="errorFallbackUserImage" />
+                            </router-link>
+                            <router-link @click.stop :to="post.user.username != authStore.user?.username ? '/@' + post.user.username : '/dashboard'">
+                                <div>
+                                    <p class="font-medium text-gray-900 dark:text-gray-100">
+                                        {{ post.user.name }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ post.posted_at }}</p>
+                                </div>
+                            </router-link>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                        <span>{{ post.views_count || 0 }} views &bull; {{ post.likes_count || 0 }} likes</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Actions Footer -->
-            <div class="px-5 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-6">
-                        <button @click.stop="handleLike" 
-                            :class="[
-                                'flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200',
-                                post.liked 
-                                    ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20' 
-                                    : 'text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'
-                            ]">
-                            <i :class="post.liked ? 'fas fa-heart' : 'far fa-heart'" class="text-base"></i>
-                            <span class="text-sm font-medium">{{ post.likes_count || 0 }}</span>
-                        </button>
-                        <button @click.stop="handleComment" 
-                            class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all duration-200">
-                            <i class="far fa-comment text-base"></i>
-                            <span class="text-sm font-medium">{{ post.comments_count || 0 }}</span>
-                        </button>
-                        <button @click.stop="handleShare" 
-                            class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all duration-200">
-                            <i class="far fa-paper-plane text-base"></i>
-                            <span class="text-sm font-medium">{{ post.views_count || 0 }}</span>
-                        </button>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                            <i class="far fa-eye"></i>
-                            <span>{{ post.views_count || 0 }} views</span>
-                        </div>
-                        <!-- Bookmark/Save Button (Instagram style) -->
-                        <button 
-                            @click.stop="handleBookmark"
-                            :disabled="isBookmarkLoading || !authStore.isAuthenticated"
-                            :class="[
-                                'p-2 rounded-lg transition-all duration-200',
-                                isBookmarked
-                                    ? 'text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
-                                    : 'text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-gray-100 dark:hover:bg-gray-700/50',
-                                isBookmarkLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                            ]"
-                            :title="isBookmarked ? 'Remove from bookmarks' : 'Save to bookmarks'"
+                <!-- Actions Footer -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center">
+                        <button
+                            class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors"
+                            :class="post.liked ? 'bg-red-600/10 text-red-600 dark:bg-red-600/20' : 'bg-gray-50 text-gray-600 dark:bg-card dark:text-gray-300'"
+                            @click.stop="handleLike"
                         >
-                            <Bookmark 
-                                :class="[
-                                    'w-5 h-5 transition-transform duration-200',
-                                    isBookmarked ? 'fill-current' : '',
-                                    isBookmarkLoading ? 'animate-pulse' : ''
-                                ]"
-                            />
+                            <i :class="post.liked ? 'fas fa-heart' : 'far fa-heart'" class="text-base"></i>
+                            <span>{{ post.likes_count || 0 }}</span>
+                        </button>
+                        <button
+                            class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-gray-50 text-gray-600 dark:bg-card dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300"
+                            @click.stop="handleComment"
+                        >
+                            <i class="far fa-comment text-base"></i>
+                            <span>{{ post.comments_count || 0 }}</span>
+                        </button>
+                        <button
+                            class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-gray-50 dark:bg-card hover:text-vue transition-all duration-300 text-gray-600 dark:text-gray-300"
+                            @click.stop="handleShare"
+                        >
+                            <i class="far fa-paper-plane text-base"></i>
+                            <span>Share</span>
                         </button>
                     </div>
+                    <button
+                        :disabled="isBookmarkLoading || !authStore.isAuthenticated"
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors"
+                        :class="isBookmarked ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' : 'bg-gray-50 text-gray-600 dark:bg-card dark:text-gray-300'"
+                        @click.stop="handleBookmark"
+                    >
+                        <Bookmark :class="['w-4 h-4', isBookmarked ? 'fill-current' : '']" />
+                        <span>{{ bookmarkCount || post.bookmark_count || 0 }}</span>
+                    </button>
                 </div>
             </div>
         </article>

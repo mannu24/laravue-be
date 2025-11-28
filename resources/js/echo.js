@@ -177,7 +177,7 @@ export const reinitializeEcho = () => {
             setupEchoHandlers(echo);
             console.log('[Echo] Reinitialized with new auth token');
         } else {
-            console.warn('[Echo] Broadcasting not configured. Set VITE_BROADCAST_DRIVER in .env');
+            console.log('[Echo] Broadcasting not configured. Set VITE_BROADCAST_DRIVER in .env');
         }
     } catch (error) {
         console.error('[Echo] Failed to reinitialize:', error);
@@ -191,8 +191,6 @@ try {
     if (echo) {
         window.Echo = echo;
         setupEchoHandlers(echo);
-    } else {
-        console.warn('[Echo] Broadcasting not configured. Set VITE_BROADCAST_DRIVER in .env');
     }
 } catch (error) {
     console.error('[Echo] Failed to initialize:', error);

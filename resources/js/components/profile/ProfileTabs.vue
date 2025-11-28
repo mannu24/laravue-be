@@ -6,7 +6,6 @@ import EmptyState from '../ui/EmptyState.vue'
 import SocialLinks from './SocialLinks.vue'
 import InfiniteScroll from '../elements/InfiniteScroll.vue'
 import ActivityScroll from './ActivityScroll.vue'
-import ProjectsInfiniteList from '../projects/ProjectsInfiniteList.vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
     Code2, 
@@ -108,7 +107,7 @@ const slideClass = computed(() => {
 
 <template>
     <div class="w-full">
-        <Tabs :model-value="activeTab" @update:model-value="handleTabChange" class="bg-transparent border-0 space-y-8">
+        <Tabs :model-value="activeTab" @update:model-value="handleTabChange" class="bg-transparent border-0 space-y-5">
             <!-- Tabs List - Consistent Design -->
             <TabsList :class="['grid w-full max-w-2xl !p-0 !h-[unset] mx-auto border-0 shadow-lg overflow-hidden',
                 gridColsClass,
@@ -159,9 +158,10 @@ const slideClass = computed(() => {
             <TabsContent v-if="tabs.find(t => t.value === 'projects')" value="projects" class="mt-0 tab-content-wrapper">
                 <Transition :name="`slide-${slideDirection}`" mode="out-in">
                     <div v-if="activeTab === 'projects'" :key="activeTab" class="tab-content-inner">
-                        <ProjectsInfiniteList
+                        <InfiniteScroll
                             v-if="userId"
-                            :user-id="userId"
+                            scrolling="project"
+                            :user-id="Number(userId)"
                             :per-page="12"
                         />
                         <EmptyState

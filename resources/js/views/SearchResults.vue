@@ -475,26 +475,16 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div :class="[
-        'min-h-screen transition-colors duration-300',
-        themeStore.isDark ? 'bg-gray-950' : 'bg-gray-50'
-    ]">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Search Header -->
+    <div class="min-h-screen">
+        <div class="max-w-6xl mx-auto py-5">
             <div class="mb-8">
-                <h1 class="text-3xl font-bold mb-6" :class="[
-                    themeStore.isDark ? 'text-white' : 'text-gray-900'
-                ]">
+                <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
                     Search Results
                 </h1>
-
-                <!-- Search Input -->
                 <div class="mb-6">
                     <div class="flex gap-3 items-center">
                         <div class="relative flex-1">
-                            <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 pointer-events-none z-10" :class="[
-                                themeStore.isDark ? 'text-gray-400' : 'text-gray-500'
-                            ]" />
+                            <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 pointer-events-none z-10 text-gray-500 dark:text-gray-400" />
                             <Input
                                 v-model="searchQuery"
                                 type="text"

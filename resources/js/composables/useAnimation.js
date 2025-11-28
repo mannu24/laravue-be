@@ -43,7 +43,7 @@ export function useAnimation() {
       const angle = Math.random() * Math.PI * 2
       const velocity = 2 + Math.random() * 3
       const xVelocity = Math.cos(angle) * velocity
-      const yVelocity = Math.sin(angle) * velocity + 2
+      let yVelocity = Math.sin(angle) * velocity + 2
 
       let x = Math.random() * container.offsetWidth
       let y = -10

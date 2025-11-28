@@ -48,17 +48,17 @@ class AnswerRepository
 
     public function upvote($id, $userId)
     {
-        $question = $this->model->findOrFail($id);
+        $answers = $this->model->findOrFail($id);
 
-        if ($question->user_id === Auth()->id()) {
-            throw new \Exception("You cannot upvote your own question.");
+        if ($answers->user_id === Auth()->id()) {
+            throw new \Exception("You cannot upvote your own answer.");
         }
 
-        if ($question->upvotes()->where('user_id', $userId)->exists()) {
-            throw new \Exception("You have already upvoted this question.");
+        if ($answers->upvotes()->where('user_id', $userId)->exists()) {
+            throw new \Exception("You have already upvoted this answer.");
         }
 
-        $question->upvotes()->create(['user_id' => $userId]);
+        $answers->upvotes()->create(['user_id' => $userId]);
     }
 
     public function deleteAnswer($answerId)

@@ -15,7 +15,7 @@ class Question extends Model
     use HasFactory, HasSlug;
 
     protected $hidden = ['created_at', 'updated_at'];
-    protected $appends = ['posted_at', 'owner', 'liked', 'bookmarked', 'bookmark_count'];
+    protected $appends = ['posted_at', 'owner', 'liked', 'upvoted', 'bookmarked', 'bookmark_count', 'is_verified'];
     protected $fillable = [
         'user_id',
         'title',
@@ -78,6 +78,11 @@ class Question extends Model
         return $this->hasMany(Answer::class);
     }
 
+    public function getIsVerifiedAttribute()
+    {
+        return $this->answers()->where('is_verified', true)->exists();
+    }
+
     public function getOwnerAttribute()
     {
         return $this->user_id === auth()->guard('api')->id();
@@ -86,6 +91,11 @@ class Question extends Model
     public function getLikedAttribute()
     {
         return !auth()->guard('api')->check() ? false : $this->likes()->where('user_id', auth()->guard('api')->id())->exists();
+    }
+
+    public function getUpvotedAttribute()
+    {
+        return !auth()->guard('api')->check() ? false : $this->upvotes()->where('user_id', auth()->guard('api')->id())->exists();
     }
 
     public function getPostedAtAttribute()

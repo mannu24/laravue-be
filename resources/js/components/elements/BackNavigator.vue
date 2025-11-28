@@ -90,19 +90,19 @@ const hasValidSegments = computed(() =>
         </router-link> -->
 
         <!-- Breadcrumb Trail -->
-        <div class="flex flex-wrap items-center">
+        <div class="flex items-start">
             <template v-for="(segment, index) in segments" :key="segment.path">
                 <!-- Separator -->
-                <span v-if="index > 0" class="mx-2 text-gray-500" aria-hidden="true">/</span>
+                <span v-if="index > 0" class="mx-0.5 text-gray-500" aria-hidden="true">/</span>
 
                 <!-- Segment -->
                 <template v-if="segment.exists">
-                    <router-link v-if="!segment.isLast" :to="segment.path" class="px-2 py-1 rounded-md transition-colors duration-200
-                            text-gray-400 hover:text-white hover:bg-gray-800
+                    <router-link v-if="!segment.isLast" :to="segment.path" class="px-2 rounded-md transition-colors duration-200
+                            text-gray-700 dark:text-gray-400 hover:text-white hover:bg-gray-800
                             focus:outline-none focus:ring-2 focus:ring-emerald-500/40">
                         {{ segment.label }}
                     </router-link>
-                    <span v-else :class="['px-2 py-1 font-medium', routeColorClass]">
+                    <span v-else :class="['px-2 font-medium break-all', routeColorClass]">
                         {{ segment.label }}
                     </span>
                 </template>

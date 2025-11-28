@@ -3,7 +3,7 @@
   Purpose: Full list of all badges with filters
 -->
 <template>
-  <div class="container mx-auto px-4 py-8 max-w-6xl">
+  <div class="mx-auto py-5 max-w-6xl">
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-4xl font-bold text-gray-900 dark:text-white">Badges</h1>
@@ -13,7 +13,7 @@
     </div>
 
     <!-- Filters -->
-    <div class="mb-6 flex flex-wrap gap-3">
+    <div class="mb-6 flex flex-col lg:flex-row gap-3">
       <!-- Status Filter -->
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium text-gray-700 dark:text-white/70">Status:</span>
@@ -34,18 +34,20 @@
       <!-- Type Filter -->
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium text-gray-700 dark:text-white/70">Type:</span>
-        <button
-          v-for="type in typeFilters"
-          :key="type.id"
-          @click="activeTypeFilter = type.id"
-          class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
-          :class="{
-            'bg-purple-500 text-white shadow-lg shadow-purple-500/30': activeTypeFilter === type.id,
-            'bg-gray-200 dark:bg-gray-900 text-gray-700 dark:text-white/70 hover:bg-gray-300 dark:hover:bg-gray-800': activeTypeFilter !== type.id
-          }"
-        >
-          {{ type.label }}
-        </button>
+        <div class="flex flex-row gap-2 overflow-x-auto" v-mask-scroll>
+          <button
+            v-for="type in typeFilters"
+            :key="type.id"
+            @click="activeTypeFilter = type.id"
+            class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
+            :class="{
+              'bg-purple-500 text-white shadow-lg shadow-purple-500/30': activeTypeFilter === type.id,
+              'bg-gray-200 dark:bg-gray-900 text-gray-700 dark:text-white/70 hover:bg-gray-300 dark:hover:bg-gray-800': activeTypeFilter !== type.id
+            }"
+          >
+            {{ type.label }}
+          </button>
+        </div>
       </div>
     </div>
 

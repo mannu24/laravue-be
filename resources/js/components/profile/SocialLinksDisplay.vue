@@ -3,14 +3,14 @@
   Purpose: Read-only display of visible social links for profile card
 -->
 <template>
-  <div v-if="visibleLinks.length > 0" class="flex flex-wrap gap-3 mt-4">
+  <div v-if="visibleLinks.length > 0" class="flex gap-3 mt-5 overflow-x-auto" v-mask-scroll>
     <a
       v-for="link in visibleLinks"
       :key="link.id"
       :href="link.url"
       target="_blank"
       rel="noopener noreferrer"
-      class="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 hover:scale-[1.03]"
+      class="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 hover:scale-[1.03] h-100"
       :class="[
         themeStore.isDark
           ? 'bg-gray-800/50 border border-gray-700/50 hover:border-gray-600 hover:bg-gray-800/70 text-gray-300'

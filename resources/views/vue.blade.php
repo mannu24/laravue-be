@@ -20,6 +20,7 @@
     <meta name="twitter:description" content="Explore Q&A, feeds, blogs, projects, and connect with Laravel and Vue.js developers worldwide.">
     <meta name="twitter:image" content="{{ asset('app-assets/images/laravue-logo.png') }}">
     <meta name="theme-color" content="#42b883">
+    <link rel="icon" href="{{ asset('assets/front/logo/logo.png') }}">
     <link rel="canonical" href="https://www.laravue.in">
     <title>{{ env('APP_NAME', 'Laravue') }} - The Laravel & Vue.js Developer Community</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>

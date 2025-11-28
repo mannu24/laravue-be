@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button'
 import { Switch } from '../components/ui/switch'
 import { Label } from '../components/ui/label'
-import { Bell, Mail, Smartphone, ArrowLeft, Loader2, ChevronDown, ChevronUp, AlertCircle } from 'lucide-vue-next'
+import { Bell, Mail, Smartphone, ArrowLeft, Loader2, ChevronDown, ChevronUp, AlertCircle, Sun, Moon } from 'lucide-vue-next'
 import { usePushNotifications } from '../composables/usePushNotifications'
 import axios from 'axios'
 
@@ -201,13 +201,10 @@ onMounted(() => {
 </script>
 
 <template>
-    <div :class="[
-        'min-h-screen transition-colors duration-300',
-        themeStore.isDark ? 'bg-gray-950' : 'bg-gray-50'
-    ]">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="min-h-screen">
+        <div class="max-w-4xl mx-auto py-5">
             <!-- Header -->
-            <div class="flex items-center gap-4 mb-8">
+            <div class="flex items-center gap-5 mb-5">
                 <Button
                     variant="ghost"
                     size="icon"
@@ -243,7 +240,44 @@ onMounted(() => {
             </div>
 
             <!-- Settings Content -->
-            <div v-else class="space-y-6">
+            <div v-else class="space-y-5">
+                <!-- App Preferences -->
+                <Card :class="[
+                    'border-0 shadow-sm',
+                    themeStore.isDark ? 'bg-gray-900/50' : 'bg-white'
+                ]">
+                    <CardHeader>
+                        <div class="flex items-center justify-between gap-4">
+                            <div>
+                                <CardTitle :class="[themeStore.isDark ? 'text-white' : 'text-gray-900']">
+                                    App Preferences
+                                </CardTitle>
+                                <CardDescription :class="[themeStore.isDark ? 'text-gray-400' : 'text-gray-600']">
+                                    Choose how Laravue looks on this device
+                                </CardDescription>
+                            </div>
+                            <Button
+                                variant="outline"
+                                class="flex items-center gap-2 rounded-full border-2 transition-all duration-300"
+                                :class="themeStore.isDark
+                                    ? 'border-white/20 text-white hover:bg-white/5'
+                                    : 'border-gray-200 text-gray-800 hover:bg-gray-50'"
+                                @click="themeStore.toggleTheme()"
+                            >
+                                <Sun v-if="themeStore.isDark" class="h-4 w-4" />
+                                <Moon v-else class="h-4 w-4" />
+                                <span class="text-sm font-semibold">
+                                    {{ themeStore.isDark ? 'Light Mode' : 'Dark Mode' }}
+                                </span>
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-sm" :class="[themeStore.isDark ? 'text-gray-400' : 'text-gray-600']">
+                            Theme preference syncs across the app after you toggle it here. Use this to switch between light and dark experiences.
+                        </div>
+                    </CardContent>
+                </Card>
                 <!-- Notification Preferences Card -->
                 <Card :class="[
                     'border-0 shadow-sm',

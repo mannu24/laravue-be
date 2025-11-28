@@ -4,13 +4,17 @@ namespace App\Http\Controllers\v1\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
+use App\Models\Follower;
 use App\Models\Notification;
 use App\Models\Post;
+use App\Models\Tag;
+use App\Models\TagAssociate;
 use App\Models\User;
 use App\Services\NotificationService;
 use App\Traits\TracksViewsWithRateLimit;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Str;
 
@@ -19,25 +23,75 @@ class PostController extends Controller
     use TracksViewsWithRateLimit;
     public function index(Request $request)
     {
-        $query = Post::query()->with(['user:id,name,username'])->withCount('likes', 'comments');
+        $query = Post::query()
+            ->with(['user:id,name,username'])
+            ->withCount('likes', 'comments')
+            ->where('is_blocked', false);
 
+        // Filter by username if provided
         if ($request->has('username') && $request->username) {
             $query->whereHas('user', function ($q) {
                 $q->where('username', request()->input('username'));
             });
         }
 
-        $posts = $query->latest()->get()->each(function ($q) {
-            $q->views_count = 10;
+        // Filter by tags (multiselect)
+        if ($request->has('tags') && !empty($request->tags)) {
+            $tagNames = is_array($request->tags) ? $request->tags : explode(',', $request->tags);
+            $tagIds = \App\Models\Tag::whereIn('name', $tagNames)->pluck('id');
+            
+            if ($tagIds->isNotEmpty()) {
+                $query->whereHas('tags', function ($q) use ($tagIds) {
+                    $q->whereIn('tags.id', $tagIds);
+                });
+            }
+        }
+
+        // Apply sorting
+        $sort = $request->input('sort', 'latest');
+        switch ($sort) {
+            case 'comments':
+                $query->orderByRaw('(SELECT COUNT(*) FROM comments WHERE comments.record_id = posts.id AND comments.record_type = "post") DESC')
+                      ->orderBy('created_at', 'DESC');
+                break;
+            case 'highest_rated':
+                $query->orderByRaw('(SELECT COUNT(*) FROM likes WHERE likes.record_id = posts.id AND likes.record_type = "post") DESC')
+                      ->orderBy('created_at', 'DESC');
+                break;
+            case 'trending':
+                $query->orderByRaw('((SELECT COUNT(*) FROM likes WHERE likes.record_id = posts.id AND likes.record_type = "post") * 2 + 
+                                    (SELECT COUNT(*) FROM comments WHERE comments.record_id = posts.id AND comments.record_type = "post") + 
+                                    COALESCE(posts.views, 0)) DESC')
+                      ->orderBy('created_at', 'DESC');
+                break;
+            case 'latest':
+            default:
+                $query->orderBy('created_at', 'DESC');
+                break;
+        }
+
+        $posts = $query->get()->each(function ($q) {
+            $q->views_count = $q->views ?? 10;
             $q->makeHidden('media', 'id', 'user_id', 'meta_content');
+            if ($q->user) {
             $q->user->makeHidden('id', 'media');
+            }
         });
 
-        $page = $_GET['page'];
-        $perPage = 2;
-        $paginatedData = new LengthAwarePaginator($posts->forPage($page, $perPage)->values(), $posts->count(), $perPage);
+        $page = $request->input('page', 1);
+        $perPage = $request->input('per_page', 10);
+        $paginatedData = new LengthAwarePaginator(
+            $posts->forPage($page, $perPage)->values(), 
+            $posts->count(), 
+            $perPage, 
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
-        return response()->json(['status' => 'success', 'records' => $paginatedData]);
+        return response()->json([
+            'status' => 'success', 
+            'records' => $paginatedData
+        ]);
     }
 
     public function store(Request $request)
@@ -372,5 +426,174 @@ class PostController extends Controller
         $post->delete();
 
         return response()->json(['message' => 'Post deleted successfully']);
+    }
+
+    /**
+     * Get feed sidebar data (recommended users and popular tags)
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function feedSidebar(Request $request)
+    {
+        try {
+            $authUser = auth()->guard('api')->user();
+            
+            if (!$authUser) {
+                return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+            }
+
+            $usersLimit = min((int)$request->input('users_limit', 10), 20);
+            $tagsLimit = min((int)$request->input('tags_limit', 20), 50);
+            $tagsDays = (int)$request->input('tags_days', 7);
+
+            // Get recommended users
+            $usersCacheKey = "recommended_users_{$authUser->id}_{$usersLimit}";
+            $users = Cache::remember($usersCacheKey, 3600, function () use ($authUser, $usersLimit) {
+                return $this->getRecommendedUsers($authUser, $usersLimit);
+            });
+
+            // Get all unique tags for filtering
+            $tagsCacheKey = "all_tags_for_filtering";
+            $tags = Cache::remember($tagsCacheKey, 3600, function () {
+                return $this->getAllTags();
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'users' => $users,
+                    'tags' => $tags
+                ],
+                'message' => 'Feed sidebar data retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve feed sidebar data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get recommended users to follow (helper method)
+     * 
+     * @param User $authUser
+     * @param int $limit
+     * @return array
+     */
+    private function getRecommendedUsers($authUser, $limit)
+    {
+        // Get users that the auth user is already following
+        $followingIds = Follower::where('follower_id', $authUser->id)
+            ->pluck('following_id')
+            ->toArray();
+        
+        // Add auth user's own ID to exclude
+        $excludeIds = array_merge($followingIds, [$authUser->id]);
+
+        // Get recommended users based on:
+        // 1. Users with most followers (popular users)
+        // 2. Users that are followed by people you follow (mutual connections)
+        // 3. Users with recent activity (posts in last 7 days)
+        
+        $mutualFollowingIds = [];
+        if (!empty($followingIds)) {
+            // Get users followed by people you follow
+            $mutualFollowingIds = Follower::whereIn('follower_id', $followingIds)
+                ->whereNotIn('following_id', $excludeIds)
+                ->select('following_id', DB::raw('COUNT(*) as mutual_count'))
+                ->groupBy('following_id')
+                ->orderBy('mutual_count', 'desc')
+                ->limit($limit)
+                ->pluck('following_id')
+                ->toArray();
+        }
+
+        // Get popular users (most followers)
+        $popularUserIds = User::whereNotIn('id', $excludeIds)
+            ->withCount('followers')
+            ->orderBy('followers_count', 'desc')
+            ->limit($limit * 2)
+            ->pluck('id')
+            ->toArray();
+
+        // Get active users (posted in last 7 days)
+        $activeUserIds = Post::where('created_at', '>=', now()->subDays(7))
+            ->whereNotIn('user_id', $excludeIds)
+            ->select('user_id', DB::raw('COUNT(*) as post_count'))
+            ->groupBy('user_id')
+            ->orderBy('post_count', 'desc')
+            ->limit($limit)
+            ->pluck('user_id')
+            ->toArray();
+
+        // Combine and prioritize: mutual connections > active users > popular users
+        $recommendedIds = array_unique(array_merge($mutualFollowingIds, $activeUserIds, $popularUserIds));
+        $recommendedIds = array_slice($recommendedIds, 0, $limit);
+
+        if (empty($recommendedIds)) {
+            return [];
+        }
+
+        return User::whereIn('id', $recommendedIds)
+            ->withCount(['followers', 'following', 'projects'])
+            ->get()
+            ->map(function ($user) use ($authUser) {
+                // Check if auth user is following this user
+                $isFollowing = Follower::where('follower_id', $authUser->id)
+                    ->where('following_id', $user->id)
+                    ->exists();
+
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                    'avatar' => $user->profile_photo,
+                    'profile_photo' => $user->profile_photo,
+                    'followers_count' => $user->followers_count ?? 0,
+                    'following_count' => $user->following_count ?? 0,
+                    'projects_count' => $user->projects_count ?? 0,
+                    'is_following' => $isFollowing,
+                ];
+            })
+            ->toArray();
+    }
+
+    /**
+     * Get all unique tags for filtering (helper method)
+     * Returns all tags from the database with their usage count
+     * 
+     * @return array
+     */
+    private function getAllTags()
+    {
+        // Get all tags with their usage count from posts
+        $tagCounts = TagAssociate::where('record_type', 'post')
+            ->join('posts', function ($join) {
+                $join->on('tag_associates.record_id', '=', 'posts.id')
+                     ->where('posts.is_blocked', false);
+            })
+            ->select('tag_associates.tag_id', DB::raw('COUNT(*) as count'))
+            ->groupBy('tag_associates.tag_id')
+            ->get();
+
+        $tagIds = $tagCounts->pluck('tag_id')->toArray();
+        $countsMap = $tagCounts->pluck('count', 'tag_id')->toArray();
+
+        // Get all tags (including those with 0 usage)
+        $allTags = Tag::all();
+
+        return $allTags
+            ->map(function ($tag) use ($countsMap) {
+                return [
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                    'count' => $countsMap[$tag->id] ?? 0,
+                ];
+            })
+            ->sortBy('name') // Sort alphabetically for easier filtering
+            ->values()
+            ->toArray();
     }
 }

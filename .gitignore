@@ -3,6 +3,8 @@
 # /public/build
 /public/hot
 /public/storage
+/storage/*.pem
+/storage/*.ppk
 /storage/*.key
 *.txt
 /storage/pail
@@ -22,3 +24,5 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+deploy-guide.md
+deploy-aws-ubuntu.sh

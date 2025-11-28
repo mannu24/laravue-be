@@ -66,7 +66,7 @@ const handleCancel = () => {
 
 <template>
   <AlertDialog :open="isOpen" @update:open="isOpen = $event">
-    <AlertDialogContent>
+    <AlertDialogContent class="w-[calc(100%-2rem)] max-w-md sm:max-w-lg mx-auto">
       <AlertDialogHeader>
         <div class="flex items-center gap-3">
           <div 

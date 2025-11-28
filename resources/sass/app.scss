@@ -22,3 +22,19 @@
 .bg-transparent {
     background-color: transparent !important;
 }
+
+.mask-right {
+mask-image: linear-gradient(to right, black 85%, transparent);
+-webkit-mask-image: linear-gradient(to right, black 85%, transparent);
+}
+
+.mask-left {
+    mask-image: linear-gradient(to left, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(to left, black 85%, transparent);
+}
+
+.mask-both {
+    mask-image: linear-gradient(to right, black 85%, transparent, transparent, black 15%);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+}
+  

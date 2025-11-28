@@ -126,11 +126,11 @@ class QuestionController extends Controller
         );
     }
 
-    public function upvote($id)
+    public function toggleUpvote($id)
     {
         try {
             $question = $this->service->getQuestionById($id);
-            $this->service->upvoteQuestion($id);
+            $upvoted = $this->service->toggleUpvote($id);
             
             // Notify question owner (if not upvoting own question)
             if ($question->user_id !== auth()->guard('api')->id()) {
@@ -150,6 +150,10 @@ class QuestionController extends Controller
             }
             
             return $this->success(
+                data: [
+                    'upvoted' => $upvoted,
+                    'upvotes_count' => $question->upvotes()->count()
+                ],
                 message: 'Question upvoted successfully'
             );
         } catch (Exception $e) {

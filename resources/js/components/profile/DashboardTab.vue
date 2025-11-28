@@ -1,12 +1,12 @@
 <template>
-    <div class="flex flex-col gap-10">
-        <Card class="border border-gray-200 dark:border-white/10 shadow-2xl overflow-hidden relative rounded-3xl bg-gradient-to-br from-sky-100 via-blue-50 to-emerald-100 dark:from-sky-500/20 dark:via-blue-900/30 dark:to-emerald-500/20 p-8 sm:p-10 shadow-2xl">
+    <div class="flex flex-col gap-5 lg:gap-8">
+        <Card class="border border-gray-200 dark:border-white/10 shadow-2xl overflow-hidden relative rounded-3xl bg-gradient-to-br from-sky-100 via-blue-50 to-emerald-100 dark:from-sky-500/20 dark:via-blue-900/30 dark:to-emerald-500/20 p-5 lg:p-8 shadow-2xl">
             <!-- Radial Gradient Overlay -->
             <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.15),_transparent_55%)] dark:bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.35),_transparent_55%)]"></div>
-                <div class="relative z-10 flex flex-col gap-8">
+            <div class="relative z-10 flex flex-col gap-5 lg:gap-8">
                 <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                     <div class="max-w-2xl">
-                        <h1 class="text-xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white lg:text-3xl">
                             Level up your learning journey
                         </h1>
                         <p class="mt-3 text-base text-gray-700 dark:text-white/80">
@@ -14,21 +14,16 @@
                         </p>
 
                     </div>
-                    <div class="flex flex-col items-end gap-3">
-                        <!-- <button
-                            class="inline-flex items-center rounded-full bg-sky-500 dark:bg-sky-400 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition hover:-translate-y-0.5"
-                            @click="handleOpenProfile">
-                            View Public Profile
-                        </button> -->
+                    <div class="flex flex-col items-end gap-3 hidden lg:block">
                         <span class="rounded-full bg-gray-100 dark:bg-slate-900/60 px-4 py-1 text-sm font-semibold text-gray-800 dark:text-white/80">
                             {{ levelName }} • {{ levelProgress }}%
                         </span>
                     </div>
                 </div>
 
-                <div class="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
+                <div class="grid gap-5 lg:gap-8 lg:grid-cols-[1.6fr_1fr]">
                     <!-- Progress Stats -->
-                    <div class="rounded-2xl border border-gray-200 dark:border-white/15 bg-white/80 dark:bg-white/10 p-6 backdrop-blur">
+                    <div class="rounded-2xl border border-gray-200 dark:border-white/15 bg-white/80 dark:bg-white/10 p-5 backdrop-blur">
                         <div class="mb-6 flex items-center justify-between">
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-[0.3em] text-gray-600 dark:text-white/70">
@@ -38,12 +33,12 @@
                                     Your Progress
                                 </h4>
                             </div>
-                            <button class="text-sm font-semibold text-sky-600 dark:text-sky-200 transition hover:text-sky-700 dark:hover:text-white"
+                            <!-- <button class="text-sm font-semibold text-sky-600 dark:text-sky-200 transition hover:text-sky-700 dark:hover:text-white"
                                 @click="handleOpenProfile">
                                 View Profile →
-                            </button>
+                            </button> -->
                         </div>
-                        <div class="relative grid gap-6 sm:grid-cols-2">
+                        <div class="relative grid gap-6 grid-cols-2">
                             <div>
                                 <div class="text-3xl font-bold text-gray-900 dark:text-white">
                                     {{ gamificationSummary.xp_total || 0 }}
@@ -60,9 +55,7 @@
                                     Current Level
                                 </p>
                             </div>
-                            <div
-                                class="h-px w-full bg-gray-300 dark:bg-white/10 sm:absolute sm:left-1/2 sm:top-2 sm:bottom-2 sm:h-auto sm:w-px">
-                            </div>
+                            <div class="h-px w-full bg-gray-300 dark:bg-white/10 absolute sm:left-1/2 top-1/2 sm:top-2 sm:bottom-2 sm:h-auto sm:w-px"></div>
                             <div>
                                 <div class="text-3xl font-bold text-gray-900 dark:text-white">
                                     {{ gamificationSummary.badges_count || 0 }}
@@ -83,7 +76,7 @@
                     </div>
 
                     <!-- XP Tracker -->
-                    <div class="rounded-2xl border border-gray-200 dark:border-white/15 bg-gray-50 dark:bg-slate-900/50 p-6 backdrop-blur">
+                    <div class="rounded-2xl border border-gray-200 dark:border-white/15 bg-gray-50 dark:bg-slate-900/50 p-5 backdrop-blur">
                         <div class="mb-4 flex items-center justify-between">
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-[0.3em] text-gray-600 dark:text-white/60">
@@ -128,7 +121,7 @@
                 </div>
             </div>
         </Card>
-        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section class="grid gap-5 grid-cols-2 lg:grid-cols-4">
             <div v-for="card in [
                 { label: 'Total XP', value: gamificationSummary.xp_total || 0, suffix: '' },
                 { label: 'Badges Earned', value: gamificationSummary.badges_count || 0, suffix: '' },
@@ -139,14 +132,14 @@
                 <div
                     class="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-100 via-blue-50 to-emerald-100  dark:from-sky-500/20 dark:via-blue-900/30 dark:to-emerald-500/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                 </div>
-                <div class="relative z-10">
+                <div class="relative z-10 flex flex-col-reverse items-center md:items-start text-center md:text-left md:flex-col gap-5 md:gap-0">
                     <p class="text-xs font-semibold uppercase tracking-[0.3em] text-gray-600 dark:text-white/60">{{ card.label }}</p>
                     <h2 class="mt-3 text-3xl font-bold text-gray-900 dark:text-white">{{ card.value }}{{ card.suffix }}</h2>
                 </div>
             </div>
         </section>
-        <section class="flex flex-col gap-6">
-            <div class="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-card p-6 shadow-xl transition duration-300">
+        <section class="flex flex-col gap-5">
+            <div class="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-card p-5 shadow-xl transition duration-300">
                 <div class="relative z-10 mb-4 flex items-center justify-between">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.3em] text-gray-600 dark:text-white/60">
@@ -161,8 +154,14 @@
                 </div>
                 <div class="relative z-10">
                     <!-- Horizontal Scrollable Badge List on Mobile, Grid on Desktop -->
-                    <div v-if="allBadges.length > 0">
-                        <BadgeList :badges="allBadges" ui="list" @view-badge="handleViewBadge" />
+                    <div v-if="allBadges.length > 0" class="flex flex-row gap-3 overflow-x-auto" v-mask-scroll>
+                        <BadgeItem
+                        v-for="badge in allBadges"
+                            :badge="badge"
+                            @click="handleViewBadge"
+                            data-test="badge-item"
+                            class="w-75"
+                        />
                     </div>
                     <div v-else class="py-8">
                         <EmptyState
@@ -174,7 +173,7 @@
                     </div>
                 </div>
             </div>
-            <div class="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-card p-6 shadow-xl transition duration-300">
+            <div class="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-card p-5 shadow-xl transition duration-300">
                 <div class="relative z-10 mb-4">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.3em] text-gray-600 dark:text-white/60">
@@ -206,6 +205,7 @@ import TaskList from '@/components/gamification/TaskList.vue'
 import LevelUpModal from '@/components/gamification/LevelUpModal.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import BadgeList from '../gamification/BadgeList.vue'
+import BadgeItem from '../gamification/BadgeItem.vue'
 
 const router = useRouter()
 const globalDataStore = useGlobalDataStore()
@@ -229,9 +229,9 @@ const levelProgress = computed(() => {
     )
 })
 
-const handleOpenProfile = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-}
+// const handleOpenProfile = () => {
+//     window.scrollTo({ top: 0, behavior: 'smooth' })
+// }
 
 const handleLevelUp = () => {
     newLevel.value = xpSummaryData.value.current_level || {

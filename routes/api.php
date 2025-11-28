@@ -32,6 +32,11 @@ Route::prefix('v1')->group(function () {
     Route::get('/search/tag-suggestions', [SearchController::class, 'tagSuggestions']);
     Route::get('/search/user-suggestions', [SearchController::class, 'userSuggestions']);
 
+    // Feed Sidebar Routes (Authenticated)
+    Route::middleware(['auth:api'])->group(function () {
+        Route::get('/feed-sidebar', [PostController::class, 'feedSidebar']);
+    });
+
     // Activity Routes
     Route::get('/activities', [ActivityController::class, 'index']);
 
@@ -109,7 +114,7 @@ Route::prefix('v1')->group(function () {
         });
 
         // Question Routes
-        Route::post('questions/{question}/upvote', [QuestionController::class, 'upvote'])->name('questions.upvote');
+        Route::post('questions/{id}/toggle-upvote', [QuestionController::class, 'toggleUpvote'])->name('questions.toggleUpvote');
         Route::get('questions/like-unlike/{slug}', [QuestionController::class, 'like_unlike']);
         Route::apiResource('questions', QuestionController::class)->except(['index', 'create', 'edit', 'show']);
 
@@ -190,6 +195,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Feed Public Routes
+    Route::get('/posts', [PostController::class, 'index']);
     Route::controller(PostController::class)->group(function () {
         Route::post('feed', 'index');
         Route::get('posts/{post_code}', 'show');

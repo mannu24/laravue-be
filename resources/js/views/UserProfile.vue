@@ -73,7 +73,7 @@ const fetchUserProfile = async () => {
 
 // Handle route updates when navigating to same route with different params
 onBeforeMount(async (to, from) => {
-    if (to.params.username !== from.params.username) {
+    if (to?.params?.username !== from?.params?.username) {
         username.value = to.params.username
         await fetchUserProfile()
     }
@@ -120,7 +120,7 @@ onMounted(async () => {
             />
 
             <!-- Tabs Section -->
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8 pb-24 -mt-8">
+            <div class="pb-5 lg:pb-10">
                 <ProfileTabs
                     :user-id="user?.id"
                     :tabs="[

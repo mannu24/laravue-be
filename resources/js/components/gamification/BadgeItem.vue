@@ -1,7 +1,7 @@
 <template>
   <Card
     ref="badgeRef"
-    class="relative cursor-pointer transition-all duration-300 p-6 rounded-2xl border hover:-translate-y-1"
+    class="relative cursor-pointer transition-all duration-300 p-6 rounded-2xl border hover:-translate-y-1 text-nowrap"
     :class="{
       // Unlocked badge colors based on type (more vibrant)
       'bg-gradient-to-br from-blue-500/15 to-cyan-500/15 dark:from-blue-500/20 dark:to-cyan-500/20 border-blue-500/30 dark:border-blue-500/30 hover:border-blue-500/50 dark:hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/30 dark:hover:shadow-blue-500/30': badge.awarded_at && badgeType === 'quality',

@@ -1,98 +1,96 @@
 <template>
   <div>
-    <div class="container max-w-6xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto py-5 lg:py-16">
       <Card class="border border-gray-200 dark:border-white/10 shadow-2xl overflow-hidden relative rounded-3xl bg-gradient-to-br from-sky-100 via-blue-50 to-emerald-100 dark:from-sky-500/20 dark:via-blue-900/30 dark:to-emerald-500/20">
         <!-- Radial Gradient Overlay -->
         <div
           class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.15),_transparent_55%)] dark:bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.35),_transparent_55%)]">
         </div>
 
-        <CardContent class="p-8 relative z-10">
+        <CardContent class="p-5 lg:p-8 relative z-10">
           <div v-if="user">
             <!-- Header: Avatar + Name/Username on left, Buttons on right -->
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
-              <!-- Left: Avatar + Name/Username -->
-              <div class="flex items-start gap-6 flex-1">
-                <!-- Avatar -->
-                <div class="relative group flex-shrink-0">
-                  <div class="absolute inset-0 rounded-full bg-gray-300/30 dark:bg-gray-600/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
+              <div class="flex flex-row items-center md:items-start gap-4 md:gap-6 flex-1 md:text-left">
+                <div class="relative group flex-shrink-0 text-center">
                   <img 
                     v-if="user"
                     :src="userAvatar" 
                     :alt="user.name"
-                    class="relative w-24 h-24 rounded-full border-4 shadow-xl object-cover transition-transform duration-300 group-hover:scale-105"
+                    class="relative w-28 h-28 md:w-24 md:h-24 rounded-full border-4 shadow-xl object-cover transition-transform duration-300 group-hover:scale-105"
                     :class="[
                       themeStore.isDark 
                         ? 'border-gray-600' 
                         : 'border-gray-200'
                     ]">
-                </div>
-                
-                <!-- Name and Username -->
-                <div class="flex-1">
-                  <div class="flex items-center gap-3 mb-2 flex-wrap">
-                    <h1 class="text-4xl font-bold" :class="[
-                      themeStore.isDark ? 'text-white' : 'text-gray-900'
-                    ]">
-                      {{ user.name }}
-                    </h1>
-                    <span v-if="user?.completed" 
-                      class="px-2.5 py-0.5 text-xs font-semibold rounded-full"
+                    <div v-if="user?.completed" 
+                      class="lg:hidden px-2.5 py-0.5 text-xs z-[1000] inline-block font-semibold rounded-full"
                       :class="[
                         themeStore.isDark 
                           ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
                           : 'bg-green-100 text-green-700 border border-green-200'
                       ]">
                       ✓ Verified
-                    </span>
+                    </div>
+                </div>
+                <div class="flex-1 w-full">
+                  <div class="flex flex-col md:flex-row md:items-center md:justify-start">
+                    <div class="flex flex-col items-start md:items-start text-left w-full">
+                      <div class="flex items-center gap-2 mb-1">
+                        <h1 class="text-2xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+                          {{ user.name }}
+                        </h1>
+                        <span v-if="user?.completed" class="hidden lg:block px-2.5 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700 border border-green-200 dark:bg-green-500/20 dark:text-green-400 dark:border-green-500/30">
+                          ✓ Verified
+                        </span>
+                      </div>
+                      <p class="text-base md:text-xl font-medium mb-1 text-gray-600 dark:text-gray-300">
+                        @{{ user.username }}
+                      </p>
+                    </div>
                   </div>
-                  <p class="text-xl font-medium mb-2" :class="[
-                    themeStore.isDark 
-                      ? 'text-gray-300' 
-                      : 'text-gray-600'
-                  ]">
-                    @{{ user.username }}
-                  </p>
-                  <p class="text-sm" :class="[
-                    themeStore.isDark ? 'text-gray-400' : 'text-gray-500'
-                  ]">
-                    {{ isOwnProfile ? 'This is your profile. Customize it to showcase your work and interests.' : `View ${user.name}'s profile and achievements.` }}
+                  <p class="text-sm md:text-base max-w-2xl text-gray-500 dark:text-gray-400">
+                    {{ isOwnProfile ? 'Customize your profile to showcase your work.' : `View ${user.name}'s profile and achievements.` }}
                   </p>
                 </div>
               </div>
               
               <!-- Right: Action Buttons - Only show for own profile -->
-              <div v-if="isOwnProfile" class="flex items-center justify-center gap-2">
-                <button
+              <div v-if="isOwnProfile" class="flex items-center lg:justify-center gap-2 text-nowrap overflow-x-auto lg:overflow-visible" v-mask-scroll>
+                <Button
                   @click="$emit('update-profile')"
                   class="w-full h-10 rounded-lg font-medium transition-all duration-200 flex items-center justify-start gap-3 px-4 group"
-                  :class="[
-                    themeStore.isDark
-                      ? 'bg-gray-800/60 hover:bg-gray-800 text-white border border-gray-700/50 hover:border-gray-600'
-                      : 'bg-gray-900 hover:bg-gray-800 text-white border border-gray-800'
-                  ]">
+                  size="sm"
+                  variant="outline">
                   <Edit class="h-4 w-4 flex-shrink-0" />
-                  <span class="block md:hidden">Update Profile</span>
-                  <span class="hidden md:inline-block">Profile</span>
-                </button>
-                <button
+                  <span class="block md:hidden">Profile</span>
+                </Button>
+                <Button
                   @click="$emit('settings')"
                   class="w-full h-10 rounded-lg font-medium transition-all duration-200 flex items-center justify-start gap-3 px-4 group"
-                  :class="[
-                    themeStore.isDark
-                      ? 'bg-gray-800/60 hover:bg-gray-800 text-white border border-gray-700/50 hover:border-gray-600'
-                      : 'bg-gray-900 hover:bg-gray-800 text-white border border-gray-800'
-                  ]">
+                  size="sm"
+                  variant="outline">
                   <Settings class="h-4 w-4 flex-shrink-0" />
                   <span class="block md:hidden">Settings</span>
-                </button>
-                <button
+                </Button>
+                <Button
                   @click="$emit('logout')"
                   :disabled="isLoggingOut"
-                  class="w-full h-10 rounded-lg font-medium transition-all duration-200 flex items-center justify-start gap-3 px-4 group disabled:opacity-50 disabled:cursor-not-allowed bg-laravel/75 hover:bg-laravel/90 text-white border border-laravel/75 hover:border-laravel/90">
+                  size="lg"
+                  variant="laravel">
                   <LogOut class="h-4 w-4 flex-shrink-0" />
                   <span>{{ isLoggingOut ? 'Logging out...' : 'Logout' }}</span>
-                </button>
+                </Button>
+              </div>
+              <div v-else>
+                <FollowButton 
+                  v-if="!isOwnProfile && authStore.isAuthenticated"
+                  :username="user.username"
+                  :initial-following="isFollowing"
+                  @followed="handleFollowed"
+                  @unfollowed="handleUnfollowed"
+                  class="w-full md:w-auto"
+                />
               </div>
             </div>
 
@@ -109,30 +107,7 @@
                     ? 'bg-gray-800/30 border border-gray-700/30 hover:border-gray-600/50 hover:bg-gray-800/50' 
                     : 'bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100'
                 ]">
-                <div class="text-3xl font-bold mb-1" :class="[
-                  themeStore.isDark ? 'text-gray-300' : 'text-gray-900'
-                ]">
-                  <!-- Placeholder: Projects count - will be implemented in future -->
-                  --
-                </div>
-                <div class="text-xs font-medium uppercase tracking-wider" :class="[
-                  themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
-                ]">Projects</div>
-                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Code2 class="h-4 w-4" :class="[
-                    themeStore.isDark ? 'text-gray-400' : 'text-gray-500'
-                  ]" />
-                </div>
-              </div>
-              <div class="group relative p-4 rounded-lg cursor-pointer transition-all duration-300"
-                :class="[
-                  themeStore.isDark 
-                    ? 'bg-gray-800/30 border border-gray-700/30 hover:border-gray-600/50 hover:bg-gray-800/50' 
-                    : 'bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100'
-                ]">
-                <div class="text-3xl font-bold mb-1" :class="[
-                  themeStore.isDark ? 'text-gray-300' : 'text-gray-900'
-                ]">
+                <div class="text-3xl font-bold mb-1 text-gray-900 dark:text-gray-300">
                   {{ user.followers_count || 0 }}
                 </div>
                 <div class="text-xs font-medium uppercase tracking-wider" :class="[
@@ -170,17 +145,32 @@
                     ? 'bg-gray-800/30 border border-gray-700/30 hover:border-gray-600/50 hover:bg-gray-800/50' 
                     : 'bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100'
                 ]">
-                <div class="text-3xl font-bold mb-1" :class="[
-                  themeStore.isDark ? 'text-gray-300' : 'text-gray-900'
-                ]">
-                  <!-- Placeholder: Stars count - will be implemented in future -->
-                  --
+                <div class="text-3xl font-bold mb-1 text-gray-900 dark:text-gray-300">
+                  {{ user.projects_count || 0 }}
                 </div>
                 <div class="text-xs font-medium uppercase tracking-wider" :class="[
                   themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
-                ]">Stars</div>
+                ]">Projects</div>
                 <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Star class="h-4 w-4" :class="[
+                  <Code2 class="h-4 w-4" :class="[
+                    themeStore.isDark ? 'text-gray-400' : 'text-gray-500'
+                  ]" />
+                </div>
+              </div>
+              <div class="group relative p-4 rounded-lg cursor-pointer transition-all duration-300"
+                :class="[
+                  themeStore.isDark 
+                    ? 'bg-gray-800/30 border border-gray-700/30 hover:border-gray-600/50 hover:bg-gray-800/50' 
+                    : 'bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100'
+                ]">
+                <div class="text-3xl font-bold mb-1 text-gray-900 dark:text-gray-300">
+                  {{ user.questions_count || 0 }}
+                </div>
+                <div class="text-xs font-medium uppercase tracking-wider" :class="[
+                  themeStore.isDark ? 'text-gray-400' : 'text-gray-600'
+                ]">Questions</div>
+                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <MessageCircle class="h-4 w-4" :class="[
                     themeStore.isDark ? 'text-gray-400' : 'text-gray-500'
                   ]" />
                 </div>
@@ -189,7 +179,7 @@
               <div 
                 v-if="!isOwnProfile"
                 @click="showProgressModal = true"
-                class="group relative p-4 rounded-lg cursor-pointer transition-all duration-300 overflow-hidden"
+                class="group relative p-4 rounded-lg cursor-pointer transition-all duration-300 overflow-hidden col-span-2 md:col-span-1"
                 :class="[
                   themeStore.isDark 
                     ? 'bg-gradient-to-br from-purple-600/20 via-pink-600/20 to-indigo-600/20 border border-purple-500/30 hover:border-purple-400/50 hover:from-purple-600/30 hover:via-pink-600/30 hover:to-indigo-600/30' 
@@ -207,15 +197,12 @@
                   ]">
                     Player's Progress
                   </div>
-                  <div class="mt-1 text-xs opacity-70" :class="[
-                    themeStore.isDark ? 'text-purple-400' : 'text-purple-600'
-                  ]">
+                  <div class="mt-1 text-xs opacity-70 text-purple-600 dark:text-purple-400 hidden lg:block">
                     Click to explore
                   </div>
                 </div>
               </div>
             </div>
-
             <div class="flex flex-wrap gap-4 text-sm mb-4"
               :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
               <div v-if="user.email && isOwnProfile" class="flex items-center">
@@ -235,7 +222,6 @@
                 Joined {{ joinDate }}
               </div>
             </div>
-
             <!-- Social Links Display -->
             <SocialLinksDisplay :social-links="socialLinks" />
           </div>
@@ -339,11 +325,16 @@ import {
   UserPlus,
   Star,
   Sparkles,
-  X
+  X,
+  MessageCircle
 } from 'lucide-vue-next'
 import SocialLinksDisplay from './SocialLinksDisplay.vue'
 import { useThemeStore } from '../../stores/theme'
 import { useAuthStore } from '../../stores/auth'
+import FollowButton from '../FollowButton.vue'
+import { useFollow } from '../../composables/useFollow'
+import { useGlobalDataStore } from '../../stores/globalData'
+import Button from '../ui/button/Button.vue'
 
 const props = defineProps({
   user: {
@@ -371,9 +362,13 @@ const props = defineProps({
 
 const emit = defineEmits(['update-profile', 'settings', 'logout'])
 
+const globalDataStore = useGlobalDataStore()
 const themeStore = useThemeStore()
 const authStore = useAuthStore()
 const showProgressModal = ref(false)
+const { isFollowing, initialize } = useFollow()
+
+initialize(props.user.username, props.user)
 
 // Check if viewing own profile
 const isOwnProfile = computed(() => {
@@ -408,6 +403,20 @@ const joinDate = computed(() => {
 const levelName = computed(() => {
   return props.user?.level?.name || 'Level 1'
 })
+
+const handleFollowed = () => {
+    if (props.user) {
+      props.user.followers_count = (props.user.followers_count || 0) + 1
+      globalDataStore.user.following_count = (globalDataStore.user.following_count || 0) + 1
+    }
+}
+
+const handleUnfollowed = () => {
+    if (props.user) {
+        props.user.followers_count = Math.max(0, (props.user.followers_count || 0) - 1)
+        globalDataStore.user.following_count = Math.max(0, (globalDataStore.user.following_count || 0) - 1)
+    }
+}
 </script>
 
 <style scoped>

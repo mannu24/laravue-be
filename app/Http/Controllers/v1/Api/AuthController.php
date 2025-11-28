@@ -10,6 +10,7 @@ use App\Http\Traits\HttpResponse;
 use App\Mail\OtpMail;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -106,7 +107,13 @@ class AuthController extends Controller
                     }
 
                     $user->update(['last_active_at' => now()]);
-                    $token = $user->createToken('API Token')->accessToken;
+
+                    $tokenResult = $user->createToken('API Token');
+                    $passportToken = $tokenResult->token;
+                    $passportToken->expires_at = Carbon::tomorrow()->startOfDay(); // expire at upcoming midnight
+                    $passportToken->save();
+
+                    $token = $tokenResult->accessToken;
                     $isNew = true;
                     $data = [
                         'token' => $token,

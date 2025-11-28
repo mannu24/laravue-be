@@ -15,7 +15,7 @@ class SocialLinkRequest extends FormRequest
     {
         return [
             'social_link_type_id' => 'required|exists:social_link_types,id',
-            'username' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:user_social_links,username',
             'position' => 'nullable|integer',
             'is_visible' => 'boolean',
         ];

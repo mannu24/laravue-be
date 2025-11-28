@@ -66,6 +66,53 @@ export default {
                 trigger: 'hover'             
             })
         })
+        app.directive('mask-scroll', {
+            mounted(el, binding) {
+                const checkScroll = () => {
+                  const scrollLeft = el.scrollLeft;
+                  const scrollWidth = el.scrollWidth;
+                  const clientWidth = el.clientWidth;
+            
+                  const canScroll = scrollWidth > clientWidth;
+                  const isAtStart = scrollLeft <= 1;
+                  const isAtEnd = Math.ceil(scrollLeft + clientWidth) >= scrollWidth;
+          
+                  // If cannot scroll at all, remove both masks
+                  if (!canScroll) {
+                    el.classList.remove('mask-left', 'mask-right');
+                    return;
+                  }
+          
+                  if (isAtStart) {
+                      el.classList.add('mask-right');
+                      el.classList.remove('mask-left', 'mask-both');
+                    } else if (isAtEnd) {
+                      el.classList.add('mask-left');
+                      el.classList.remove('mask-right', 'mask-both');
+                    } else {
+                      el.classList.add('mask-both');
+                      el.classList.remove('mask-left', 'mask-right');
+                    }
+                };
+            
+                // Add scroll listener
+                el._maskScrollHandler = () => requestAnimationFrame(checkScroll);
+                el.addEventListener('scroll', el._maskScrollHandler, { passive: true });
+            
+                // Add resize listener
+                el._maskResizeHandler = () => requestAnimationFrame(checkScroll);
+                window.addEventListener('resize', el._maskResizeHandler);
+            
+                // Initial check (in case of pre-scrolled state)
+                requestAnimationFrame(checkScroll);
+            },
+            unmounted(el, binding) {
+            el.removeEventListener('scroll', el._maskScrollHandler);
+            window.removeEventListener('resize', el._maskResizeHandler);
+            delete el._maskScrollHandler; 
+            delete el._maskResizeHandler;
+            }
+        }); 
         app.directive('click-outside', {
             mounted(el, binding) {
               const handleClickOutside = (event) => {

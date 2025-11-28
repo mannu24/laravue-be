@@ -45,9 +45,9 @@
               >
                 Level Up!
               </h2>
-              <p class="text-lg text-gray-600 dark:text-gray-400 animate-fade-in">
+              <!-- <p class="text-lg text-gray-600 dark:text-gray-400 animate-fade-in">
                 You've reached <span class="font-semibold text-blue-600 dark:text-blue-400">{{ level?.name || 'New Level' }}</span>
-              </p>
+              </p> -->
             </div>
 
             <!-- Level Badge with Glow -->
@@ -56,7 +56,7 @@
               ref="levelBadgeRef"
               class="level-badge-container mb-6"
             >
-              <div class="level-badge-glow"></div>
+              <!-- <div class="level-badge-glow"></div> -->
               <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden">
                 <div class="shine-effect"></div>
                 <div class="text-5xl font-bold mb-2 animate-level-name">{{ level.name }}</div>

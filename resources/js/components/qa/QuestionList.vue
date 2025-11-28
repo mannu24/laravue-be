@@ -20,6 +20,7 @@
         v-for="question in questions"
         :key="question.id"
         :question="question"
+        :navigate-on-click="false"
         @open="handleSelectQuestion"
         data-test="question-card"
       />

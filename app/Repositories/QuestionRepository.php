@@ -17,7 +17,7 @@ class QuestionRepository
 
     public function getAll()
     {
-        return $this->model->with(['user', 'upvotes', 'likes'])
+        return $this->model->with(['user', 'upvotes', 'likes', 'tags'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
     }
@@ -81,4 +81,17 @@ class QuestionRepository
 
         $question->upvotes()->create(['user_id' => $userId]);
     }
+
+    public function toggleUpvote($id)
+    {
+        $question = $this->model->findOrFail($id);
+        if ($question->upvotes()->where('user_id', auth()->guard('api')->id())->exists()) {
+            $question->upvotes()->where('user_id', auth()->guard('api')->id())->delete();
+            return false; // Return false when unliked
+        } else {
+            $question->upvotes()->create(['user_id' => auth()->guard('api')->id()]);
+            return true; // Return true when liked
+        }
+    }
+
 }

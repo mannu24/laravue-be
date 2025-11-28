@@ -164,7 +164,9 @@ const handleNotificationClick = (notification) => {
 // Toggle dropdown
 const toggleDropdown = () => {
     isOpen.value = !isOpen.value
-    if (isOpen.value) {
+    // Only fetch if dropdown is opening and realtime is not connected
+    // If realtime is connected, notifications are already synced via websocket
+    if (isOpen.value && !isRealtimeConnected.value) {
         fetchNotifications()
     }
 }
@@ -238,12 +240,14 @@ const formatTime = (dateString) => {
 let pollingIntervalId = null
 const POLLING_INTERVAL = 10000
 
-const startPolling = () => {
+const startPolling = (fetchImmediately = false) => {
     if (pollingIntervalId || !authStore.isAuthenticated) {
         return
     }
-    // Initial fetch when polling starts
-    fetchNotifications()
+    // Fetch immediately if requested (e.g., when realtime disconnects)
+    if (fetchImmediately) {
+        fetchNotifications()
+    }
     pollingIntervalId = setInterval(() => {
         fetchNotifications()
     }, POLLING_INTERVAL)
@@ -260,13 +264,18 @@ watch(isRealtimeConnected, (connected) => {
     if (connected) {
         stopPolling()
     } else {
-        startPolling()
+        // When realtime disconnects, fetch immediately to get latest notifications
+        startPolling(true)
     }
-}, { immediate: true })
+})
 
 onMounted(() => {
     if (authStore.isAuthenticated) {
-        // fetchNotifications already returns unread_count, so no need for separate fetchUnreadCount call
+        // Always fetch initial notifications once to populate the list
+        fetchNotifications()
+        
+        // If realtime is not connected, start polling for updates
+        // The watcher will handle stopping polling when realtime connects
         if (!isRealtimeConnected.value) {
             startPolling()
         }
@@ -303,7 +312,7 @@ onBeforeUnmount(() => {
         <Transition name="dropdown">
             <div
                 v-if="isOpen"
-                class="absolute right-0 mt-2 w-96 max-h-[500px] rounded-xl shadow-2xl border backdrop-blur-xl overflow-hidden z-50"
+                class="absolute left-0 right-0 translate-x-[-62%] md:left-auto md:right-0 md:translate-x-0 mt-2 w-96 max-h-[500px] rounded-xl shadow-2xl border backdrop-blur-xl overflow-hidden z-50"
                 :class="[
                     themeStore.isDark
                         ? 'bg-gray-900/95 border-gray-800'
@@ -455,7 +464,6 @@ onBeforeUnmount(() => {
         </Transition>
     </div>
 </template>
-
 <style scoped>
 .dropdown-enter-active,
 .dropdown-leave-active {
@@ -465,7 +473,15 @@ onBeforeUnmount(() => {
 .dropdown-enter-from,
 .dropdown-leave-to {
     opacity: 0;
-    transform: translateY(-10px) scale(0.95);
+    transform: translate(0, -10px);
+}
+
+@media (min-width: 1024px) {
+    .dropdown-enter-from,
+    .dropdown-leave-to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
 }
 
 .line-clamp-2 {

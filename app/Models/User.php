@@ -64,7 +64,9 @@ class User extends Authenticatable implements HasMedia
         'completed',
         'is_following',
         'followers_count',
-        'following_count'
+        'following_count',
+        'projects_count',
+        'questions_count'
     ];
 
     public function getCompletedAttribute()
@@ -126,6 +128,22 @@ class User extends Authenticatable implements HasMedia
     public function getFollowingCountAttribute()
     {
         return $this->following()->count();
+    }
+
+    /**
+     * Get projects count
+     */
+    public function getProjectsCountAttribute()
+    {
+        return $this->projects()->count();
+    }
+
+    /**
+     * Get questions count
+     */
+    public function getQuestionsCountAttribute()
+    {
+        return $this->questions()->count();
     }
 
     public function projects()

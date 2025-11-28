@@ -4,11 +4,8 @@
   UI similar to Settings page
 -->
 <template>
-  <div :class="[
-    'min-h-screen transition-colors duration-300',
-    themeStore.isDark ? 'bg-gray-950' : 'bg-gray-50'
-  ]">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="min-h-screen">
+    <div class="max-w-4xl mx-auto py-5 lg:py-16">
       <!-- Header -->
       <div class="flex items-center gap-4 mb-8">
         <Button

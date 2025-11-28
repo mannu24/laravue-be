@@ -1,7 +1,6 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useThemeStore } from '../stores/theme'
 import { useAuthStore } from '../stores/auth'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -23,17 +22,15 @@ import {
   ChevronDown,
   User,
   Folder,
-  ArrowRight,
   Plus,
   Github
 } from 'lucide-vue-next'
 import axios from 'axios'
 import GitHubImportModal from '@/components/github/GitHubImportModal.vue'
 import { useNavbarSearch } from '@/composables/useNavbarSearch'
-import ProjectsInfiniteList from '@/components/projects/ProjectsInfiniteList.vue'
+import InfiniteScroll from '@/components/elements/InfiniteScroll.vue'
 
 const router = useRouter()
-const themeStore = useThemeStore()
 const authStore = useAuthStore()
 const { openSearch } = useNavbarSearch()
 
@@ -44,16 +41,51 @@ const technologies = ref([])
 const selectedTechnology = ref('')
 const showGitHubModal = ref(false)
 
+const projectListKey = ref(0)
 const handleProjectImported = () => {
-  fetchProjects()
+  projectListKey.value++
 }
 
 const stats = ref([
-  { label: 'Total Projects', value: '0', icon: Folder },
-  { label: 'Downloads', value: '0', icon: Download },
-  { label: 'Stars Given', value: '0', icon: Star },
-  { label: 'Active Users', value: '0', icon: User },
+  { label: 'Projects launched', value: '0', icon: Folder },
+  { label: 'Total installs', value: '0', icon: Download },
+  { label: 'Community stars', value: '0', icon: Star },
+  { label: 'Active makers', value: '0', icon: User }
 ])
+
+const showcaseHighlights = [
+  {
+    title: 'Production-ready kits',
+    description: 'Premium headless starters, dashboards, and SaaS templates built with Laravel + Vue.',
+    icon: Zap,
+    badge: 'Premium'
+  },
+  {
+    title: 'Open-source labs',
+    description: 'Cloneable examples with detailed READMEs, tests, and design tokens to remix freely.',
+    icon: Heart,
+    badge: 'OSS'
+  },
+  {
+    title: 'Client delivery vault',
+    description: 'Private repos for agencies to share deliverables with stakeholders securely.',
+    icon: Folder,
+    badge: 'Studios'
+  }
+]
+
+const projectFilters = computed(() => {
+  const filters = {
+    sort: selectedSort.value
+  }
+  if (selectedFilter.value !== 'all') {
+    filters.type = selectedFilter.value
+  }
+  if (selectedTechnology.value) {
+    filters.technology = selectedTechnology.value
+  }
+  return filters
+})
 
 const fetchTechnologies = async () => {
   try {
@@ -70,215 +102,193 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <div class="relative overflow-hidden">
-      <div class="container mx-auto px-4 py-20 sm:px-6 lg:px-8">
-        <div class="text-center max-w-4xl mx-auto">
-          <div class="flex items-center justify-center mb-6">
-            <div
-              class="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-2xl">
-              <Code2 class="h-8 w-8 text-white" />
-            </div>
-          </div>
-
-          <h1 class="text-5xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
-            <span class="font-semibold" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">Discover </span>
+  <div class="min-h-screen space-y-10 py-5">
+    <!-- Hero -->
+    <section class="relative overflow-hidden rounded-lg bg-gradient-to-br from-gray-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-900/85 dark:to-indigo-900/40 border border-gray-200 dark:border-white/5 hover:shadow-[0_0_80px_rgba(30,41,59,0.15)] dark:hover:shadow-[0_0_80px_rgba(30,41,59,0.55)] transition-all duration-300">
+      <div class="absolute inset-0 opacity-30 pointer-events-none">
+        <div class="absolute -top-24 -right-12 w-80 h-80 bg-blue-500/20 dark:bg-blue-500/40 blur-[120px]"></div>
+        <div class="absolute bottom-0 left-0 w-72 h-72 bg-purple-500/20 dark:bg-purple-500/35 blur-[120px]"></div>
+      </div>
+      <div class="relative px-6 sm:px-10 lg:px-16 py-14 text-center max-w-5xl mx-auto space-y-8">
+        <div>
+          <h3 class="text-3xl lg:text-6xl font-black leading-tight mb-5">
+            <span class="text-gray-900 dark:text-white">Discover, remix, and ship with </span>
             <span class="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent font-bold">
-              Amazing Projects
+              LaraVue
             </span>
-          </h1>
-
-          <p class="text-lg md:text-xl mb-12 leading-relaxed max-w-3xl mx-auto font-normal"
-            :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-600'">
-            Explore thousands of high-quality projects from talented developers. Find the perfect solution
-            for your next project or get inspired by innovative ideas from our community.
+          </h3>
+          <p class="lg:text-lg text-gray-600 dark:text-gray-300 py-5 leading-relaxed">
+            Tap into battle-tested starters, premium SaaS kits, and open-source experiments curated by the community. Filters, reviews, and deployment notes make launching your next idea effortless.
           </p>
-
-          <!-- Search Bar -->
-          <div class="relative max-w-2xl mx-auto mb-8">
-            <div class="absolute inset-y-0 z-10 left-0 pl-4 flex items-center pointer-events-none">
-              <Search class="h-5 w-5 text-gray-400" />
-            </div>
-            <Input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search projects, technologies, or authors..."
-              class="pl-12 pr-4 py-5 h-12 text-lg rounded-xl border-0 shadow-xl backdrop-blur-sm transition-all duration-300 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              :class="themeStore.isDark ? 'bg-gray-800/90 text-white' : 'bg-white/90'"
-              @click="openSearch(searchQuery)"
-              readonly
-            />
+        </div>
+        <div class="relative max-w-2xl mx-auto">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search class="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </div>
+          <Input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search projects, stacks..."
+            class="pl-12 pr-4 py-5 h-14 text-lg rounded-2xl border-0 shadow-[0_20px_70px_rgba(59,130,246,0.15)] dark:shadow-[0_20px_70px_rgba(59,130,246,0.35)] focus:ring-2 focus:ring-blue-500/70 cursor-pointer bg-white dark:bg-white/15 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-300"
+            @click="openSearch(searchQuery)"
+            readonly
+          />
+        </div>
+        <div class="flex flex-wrap justify-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+          <span class="px-3 py-1 rounded-full border border-gray-300 dark:border-white/10 bg-gray-100 dark:bg-white/5">Laravel SaaS</span>
+          <span class="px-3 py-1 rounded-full border border-gray-300 dark:border-white/10 bg-gray-100 dark:bg-white/5">Tailwind UI Kits</span>
+          <span class="px-3 py-1 rounded-full border border-gray-300 dark:border-white/10 bg-gray-100 dark:bg-white/5">Nuxt Jamstack</span>
         </div>
       </div>
-    </div>
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-10">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card v-for="stat in stats" :key="stat.label" :class="['text-center transition-all duration-300 hover:scale-105 border-0 shadow-xl backdrop-blur-sm',
-          themeStore.isDark ? 'bg-gray-800/90' : 'bg-white/90'
-        ]">
-          <CardContent class="p-4">
-            <div class="flex justify-center mb-2">
-              <div
-                class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                <component :is="stat.icon" class="h-4 w-4 text-white" />
-              </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <Card
+        v-for="stat in stats"
+        :key="stat.label"
+        class="bg-white dark:bg-card/80 backdrop-blur border border-gray-200 dark:border-white/5 shadow-xl hover:shadow-[0_15px_45px_rgba(79,70,229,0.25)] dark:hover:shadow-[0_15px_45px_rgba(79,70,229,0.45)] hover:-translate-y-1 transition"
+      >
+        <CardContent class="p-5 flex flex-col items-center text-center gap-2">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/35 via-purple-500/25 to-indigo-500/25 flex items-center justify-center">
+            <component :is="stat.icon" class="w-5 h-5 text-white" />
+          </div>
+          <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ stat.value }}</p>
+          <p class="text-sm uppercase tracking-wide text-gray-600 dark:text-gray-400">{{ stat.label }}</p>
+        </CardContent>
+      </Card>
+    </section>
+
+    <!-- Highlights -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Card
+        v-for="highlight in showcaseHighlights"
+        :key="highlight.title"
+        class="bg-white dark:bg-card/70 backdrop-blur border border-gray-200 dark:border-white/5 shadow-xl hover:border-blue-500/40 transition"
+      >
+        <CardContent class="p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-indigo-500/20 text-white flex items-center justify-center">
+              <component :is="highlight.icon" class="w-5 h-5" />
             </div>
-            <div
-              class="text-3xl font-semibold mb-2 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-              {{ stat.value }}
-            </div>
-            <div class="text-sm font-normal tracking-wide" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
-              {{ stat.label }}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            <span class="text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 tracking-wide">{{ highlight.badge }}</span>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ highlight.title }}</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{{ highlight.description }}</p>
+        </CardContent>
+      </Card>
+    </section>
 
     <!-- Filters and Projects -->
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <!-- Filter Bar -->
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12">
-        <div class="flex flex-wrap gap-3">
-          <Button variant="ghost" :class="[
-            'transition-all duration-200 text-sm font-medium',
-            selectedFilter === 'all'
-              ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 dark:bg-blue-500/20'
-              : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-          ]" @click="selectedFilter = 'all'">
-            All Projects
-          </Button>
-          <Button variant="ghost" :class="[
-            'transition-all duration-200 text-sm font-medium',
-            selectedFilter === 'sellable'
-              ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 dark:bg-blue-500/20'
-              : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-          ]" @click="selectedFilter = 'sellable'">
-            <Zap class="h-4 w-4 mr-2" />
-            Premium
-          </Button>
-          <Button variant="ghost" :class="[
-            'transition-all duration-200 text-sm font-medium',
-            selectedFilter === 'open'
-              ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 dark:bg-blue-500/20'
-              : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-          ]" @click="selectedFilter = 'open'">
-            <Heart class="h-4 w-4 mr-2" />
-            Open Source
-          </Button>
-        </div>
-
-        <div class="flex gap-3">
-          <!-- Technology Filter -->
-          <DropdownMenu>
-            <DropdownMenuTrigger as="div">
-              <Button variant="outline"
-                class="text-sm font-medium transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-300'">
-                <Code2 class="h-4 w-4 mr-2" />
-                {{ selectedTechnology || 'Technology' }}
-                <ChevronDown class="h-4 w-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent class="w-48 max-h-60 overflow-y-auto">
-              <DropdownMenuItem @click="selectedTechnology = ''">All Technologies</DropdownMenuItem>
-              <DropdownMenuItem
-                v-for="tech in technologies"
-                :key="tech.id"
-                @click="selectedTechnology = tech.name"
+    <div class="py-5 space-y-10">
+      <Card class="bg-white dark:bg-card/70 border border-gray-200 dark:border-white/5 shadow-md">
+        <CardContent class="p-5 flex flex-col gap-5">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-7 lg:gap-5">
+            <div class="flex gap-3">
+              <Button
+                variant="ghost"
+                :class="[selectedFilter === 'all' ? 'bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5']"
+                  @click="selectedFilter = 'all'"
               >
-                {{ tech.name }}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <!-- Sort Dropdown -->
-          <DropdownMenu>
-            <DropdownMenuTrigger as="div">
-              <Button variant="outline"
-                class="text-sm font-medium transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-300'">
-                <Filter class="h-4 w-4 mr-2" />
-                Sort by
-                <ChevronDown class="h-4 w-4 ml-2" />
+                All
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent class="w-48">
-              <DropdownMenuItem @click="selectedSort = 'recent'">Most Recent</DropdownMenuItem>
-              <DropdownMenuItem @click="selectedSort = 'popular'">Most Popular</DropdownMenuItem>
-              <DropdownMenuItem @click="selectedSort = 'views'">Most Viewed</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <!-- Add Project Button -->
-          <Button
-            v-if="authStore.isAuthenticated"
-            class="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200"
-            @click="router.push('/projects/create')"
-          >
-            <Plus class="h-4 w-4 mr-2" />
-            Add Project
-          </Button>
-        </div>
-      </div>
-
-      <!-- Projects Infinite List -->
-      <ProjectsInfiniteList
-        :filters="{
-          search: searchQuery,
-          type: selectedFilter,
-          sort: selectedSort,
-          technology: selectedTechnology
-        }"
+              <Button
+                variant="ghost"
+                :class="[selectedFilter === 'sellable' ? 'bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5']"
+                  @click="selectedFilter = 'sellable'"
+                >
+                <Zap class="h-4 w-4 mr-2" /> Premium
+              </Button>
+              <Button
+                variant="ghost"
+                :class="[selectedFilter === 'open' ? 'bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5']"
+                  @click="selectedFilter = 'open'"
+                >
+                <Heart class="h-4 w-4 mr-2" /> Open source
+              </Button>
+            </div>
+            <div class="flex flex-col md:flex-row gap-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger as="div" class="w-full md:w-auto">
+                  <Button class="w-full justify-between md:w-56 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-white/10">
+                    <Code2 class="h-4 w-4 mr-2" />
+                    {{ selectedTechnology || 'Technology' }}
+                    <ChevronDown class="h-4 w-4 ml-auto" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent class="w-56 max-h-64 overflow-y-auto">
+                  <DropdownMenuItem @click="selectedTechnology = ''">All technologies</DropdownMenuItem>
+                  <DropdownMenuItem
+                    v-for="tech in technologies"
+                    :key="tech.id"
+                    @click="selectedTechnology = tech.name"
+                  >
+                    {{ tech.name }}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger as="div" class="w-full md:w-auto">
+                  <Button class="w-full justify-between md:w-56 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-white/10">
+                    <Filter class="h-4 w-4 mr-2" />
+                    Sort by
+                    <ChevronDown class="h-4 w-4 ml-auto" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent class="w-56">
+                  <DropdownMenuItem @click="selectedSort = 'recent'">Most recent</DropdownMenuItem>
+                  <DropdownMenuItem @click="selectedSort = 'popular'">Most popular</DropdownMenuItem>
+                  <DropdownMenuItem @click="selectedSort = 'views'">Most viewed</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                v-if="authStore.isAuthenticated"
+                class="w-full md:w-auto bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 text-white hover:shadow-[0_0_25px_rgba(79,70,229,0.45)] transition-all duration-300"
+                @click="router.push('/projects/create')"
+              >
+                <Plus class="h-4 w-4 mr-2" />
+                Add project
+              </Button>
+            </div>
+            </div>
+        </CardContent>
+      </Card>
+      <InfiniteScroll
+        scrolling="project"
+        :filters="projectFilters"
         :per-page="12"
+        :fetch-key="projectListKey"
       />
     </div>
 
     <!-- CTA Section -->
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <CardContent class="p-8 md:p-12 text-center">
-        <div class="flex justify-center mb-6">
-          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 flex items-center justify-center border"
-            :class="themeStore.isDark ? 'border-gray-800' : 'border-gray-200'">
-            <Code2 class="h-8 w-8 text-[#a855f7]" />
-          </div>
-        </div>
-        <h2 class="text-3xl md:text-4xl font-semibold mb-4 leading-tight tracking-tight"
-          :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
-          Ready to Share Your Project?
-        </h2>
-        <p class="text-base md:text-lg mb-8 max-w-2xl mx-auto leading-relaxed font-normal"
-          :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-600'">
-          Join thousands of developers who showcase their work on LaraVue.
-          Upload your project today and reach a global audience of fellow developers.
+    <section class="relative overflow-hidden rounded-lg bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-blue-600/25 dark:via-slate-900/90 dark:to-indigo-900 border border-blue-200 dark:border-blue-500/25 hover:shadow-[0_0_80px_rgba(30,41,59,0.15)] dark:hover:shadow-[0_0_80px_rgba(30,41,59,0.55)] transition-all duration-300 overflow-hidden">
+      <CardContent class="p-10 sm:p-12 text-center space-y-6">
+        <p class="text-sm uppercase tracking-[0.35em] text-blue-600 dark:text-blue-300">Launch on LaraVue</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Show the community what you're building</h2>
+        <p class="text-lg text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
+          Import directly from GitHub, add deployment notes, and earn marketplace badges for every version you ship.
+          Prefer a guided experience? Our team can help polish your listing before launch.
         </p>
-        <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
-            class="bg-vue hover:bg-vue/90 text-white px-6 py-2.5 text-base font-medium shadow-sm hover:shadow-md transition-all duration-200"
-            @click="showGitHubModal = true">
-            <Github class="h-4 w-4 mr-2" />
+            class="bg-white dark:bg-white text-slate-900 px-8 py-3 text-base font-semibold shadow-xl hover:-translate-y-0.5"
+            @click="showGitHubModal = true"
+          >
+            <Github class="h-5 w-5 mr-2" />
             Import from GitHub
           </Button>
           <Button
             variant="outline"
-            class="px-6 py-2.5 text-base font-medium border transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800"
-            :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-300'"
-            @click="router.push('/projects/create')">
-            <Code2 class="h-4 w-4 mr-2" />
-            Share Own Project
+            class="border-gray-300 dark:border-white/40 text-gray-700 dark:text-white px-8 py-3 text-base font-semibold hover:bg-gray-100 dark:hover:bg-white/10"
+            @click="router.push('/projects/create')"
+          >
+            <Code2 class="h-5 w-5 mr-2" />
+            Publish manually
           </Button>
-          <!-- <Button 
-            variant="ghost" 
-            class="px-6 py-2.5 text-base font-medium transition-all duration-200"
-            :class="themeStore.isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'"
-            @click="router.push('/about')">
-            Learn More
-            <ArrowRight class="h-4 w-4 ml-2" />
-          </Button> -->
         </div>
       </CardContent>
-    </div>
+    </section>
 
     <!-- GitHub Import Modal -->
     <GitHubImportModal

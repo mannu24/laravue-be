@@ -57,7 +57,7 @@ const shouldShowTabs = computed(() => {
 <template>
   <div>
     <!-- Tabs Filter (only show if showFilter is true and we have daily/weekly tasks) -->
-    <div v-if="shouldShowTabs" class="mb-6">
+    <div v-if="shouldShowTabs">
       <Tabs 
         :tabs="[
           { id: 'daily', label: 'Daily Tasks' },

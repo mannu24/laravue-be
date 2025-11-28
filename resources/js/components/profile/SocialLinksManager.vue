@@ -1,23 +1,146 @@
-<!--
-  SocialLinksManager Component
-  Purpose: Full management interface for social links (add, edit, delete, reorder)
--->
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { Button } from '@/components/ui/button'
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+import { useThemeStore } from '@/stores/theme'
+import { useAuthStore } from '@/stores/auth'
+import { Plus, X, Eye, EyeOff, Trash2, Loader2 } from 'lucide-vue-next'
+import axios from 'axios'
+import { useGlobalDataStore } from '@/stores/globalData'
+
+const themeStore = useThemeStore()
+const authStore = useAuthStore()
+const globalDataStore = useGlobalDataStore()
+
+const socialLinks = computed(() => globalDataStore.user?.social_links ?? [])
+const socialLinkTypes = ref([])
+const newLink = ref({
+  social_link_type_id: '',
+  username: ''
+})
+const formErrors = ref({})
+const showAddForm = ref(false)
+const isAdding = ref(false)
+const showDeleteDialog = ref(false)
+const linkToDelete = ref(null)
+
+const fetchSocialLinkTypes = async () => {
+  try {
+    const response = await axios.get('/api/v1/social-links/types', {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`
+      }
+    })
+    socialLinkTypes.value = response.data || []
+  } catch (error) {
+    console.error('Error fetching social link types:', error)
+  }
+}
+
+const resetFormErrors = () => {
+  formErrors.value = {}
+}
+
+const addSocialLink = async () => {
+  isAdding.value = true
+  resetFormErrors()
+  try {
+    await axios.post('/api/v1/social-links', newLink.value, {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`
+      }
+    })
+    globalDataStore.fetchGlobalData({ force: true })
+    newLink.value = { social_link_type_id: '', username: '' }
+    showAddForm.value = false
+  } catch (error) {
+    console.error('Error adding social link:', error)
+    if (error.response?.status === 422) {
+      formErrors.value = error.response.data?.errors ?? {}
+      if (!formErrors.value.general && error.response.data?.message) {
+        formErrors.value.general = [error.response.data.message]
+      }
+    } else {
+      alert('Failed to add social link. Please try again.')
+    }
+  } finally {
+    isAdding.value = false
+  }
+}
+
+const getError = (field) => formErrors.value?.[field]?.[0] ?? null
+const generalError = computed(() => getError('general') ?? getError('message'))
+
+const toggleVisibility = async (link) => {
+  link.social_link_type_id = link.social_link_type.id
+  try {
+    const response = await axios.put(
+      `/api/v1/social-links/${link.id}`,
+      {
+        ...link,
+        is_visible: !link.is_visible
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${authStore.token}`
+        }
+      }
+    )
+    globalDataStore.user.social_links.find(l => l.id === link.id).is_visible = response.data.data.is_visible
+  } catch (error) {
+    console.error('Error toggling visibility:', error)
+    alert('Failed to update visibility. Please try again.')
+  }
+}
+
+const showDeleteConfirmation = (link) => {
+  linkToDelete.value = link
+  showDeleteDialog.value = true
+}
+
+const deleteSocialLink = async () => {
+  if (!linkToDelete.value) return
+
+  try {
+    await axios.delete(`/api/v1/social-links/${linkToDelete.value.id}`, {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`
+      }
+    })
+    globalDataStore.user.social_links = globalDataStore.user.social_links.filter(
+      (l) => l.id !== linkToDelete.value.id
+    )
+    linkToDelete.value = null
+    showDeleteDialog.value = false
+  } catch (error) {
+    console.error('Error deleting social link:', error)
+    alert('Failed to delete social link. Please try again.')
+  }
+}
+
+const formatUsername = (username) => {
+  return username.replace(/^https?:\/\//, '').replace(/\/$/, '')
+}
+
+onMounted(() => {
+  fetchSocialLinkTypes()
+})
+</script>
 <template>
   <div class="social-links-manager">
-    <!-- Add New Social Link Form -->
     <div class="mb-6">
       <Button
         @click="showAddForm = !showAddForm"
-        class="bg-red-600 hover:bg-red-700 text-white"
+        :variant="showAddForm ? 'outline' : ''"
       >
-        <Plus class="h-4 w-4 mr-2" />
+        <X v-if="showAddForm" class="h-4 w-4 mr-2" />
+        <Plus v-else class="h-4 w-4 mr-2" />
         {{ showAddForm ? 'Cancel' : 'Add New Link' }}
       </Button>
 
-      <!-- Add Form -->
       <div
         v-if="showAddForm"
-        class="mt-4 p-6 border rounded-lg shadow-sm"
+        class="mt-4 p-5 border rounded-lg shadow-sm"
         :class="[
           themeStore.isDark
             ? 'bg-gray-800/50 border-gray-700'
@@ -66,13 +189,19 @@
                   {{ type.name }}
                 </option>
               </select>
+              <p
+                v-if="getError('social_link_type_id')"
+                class="mt-1 text-xs text-red-500"
+              >
+                {{ getError('social_link_type_id') }}
+              </p>
             </div>
 
             <div class="w-full sm:w-1/2">
               <label class="block text-sm font-medium mb-1.5" :class="[
                 themeStore.isDark ? 'text-gray-300' : 'text-gray-700'
               ]">
-                Username/URL
+                URL
               </label>
               <input
                 v-model="newLink.username"
@@ -80,12 +209,21 @@
                 class="flex h-10 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 :class="[
                   themeStore.isDark
-                    ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    ? 'bg-gray-800 text-white placeholder-gray-400'
+                    : 'bg-white text-gray-900 placeholder-gray-500',
+                  getError('username')
+                    ? (themeStore.isDark ? 'border-red-600' : 'border-red-300')
+                    : (themeStore.isDark ? 'border-gray-600' : 'border-gray-300')
                 ]"
-                placeholder="Enter username or full URL"
+                placeholder="Enter full URL"
                 required
               />
+              <p
+                v-if="getError('username')"
+                class="mt-1 text-xs text-red-500"
+              >
+                {{ getError('username') }}
+              </p>
             </div>
 
             <div class="flex gap-2">
@@ -100,8 +238,7 @@
       </div>
     </div>
 
-    <!-- Social Links List -->
-    <div v-if="socialLinks.length > 0">
+    <div v-if="socialLinks.length > 0" class="relative">
       <TransitionGroup name="list" tag="div" class="space-y-3">
         <div
           v-for="link in socialLinks"
@@ -195,7 +332,6 @@
       </TransitionGroup>
     </div>
 
-    <!-- Empty State -->
     <div
       v-else
       class="flex flex-col items-center justify-center py-12 text-center border rounded-lg"
@@ -242,7 +378,6 @@
       </p>
     </div>
 
-    <!-- Delete Confirmation Dialog -->
     <ConfirmDialog
       v-model:open="showDeleteDialog"
       title="Delete Social Link"
@@ -254,132 +389,6 @@
     />
   </div>
 </template>
-
-<script setup>
-import { ref, onMounted } from 'vue'
-import { Button } from '@/components/ui/button'
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
-import { useThemeStore } from '@/stores/theme'
-import { useAuthStore } from '@/stores/auth'
-import { Plus, X, Eye, EyeOff, Trash2, Loader2 } from 'lucide-vue-next'
-import axios from 'axios'
-
-const themeStore = useThemeStore()
-const authStore = useAuthStore()
-
-const socialLinks = ref([])
-const socialLinkTypes = ref([])
-const newLink = ref({
-  social_link_type_id: '',
-  username: ''
-})
-const showAddForm = ref(false)
-const isAdding = ref(false)
-const showDeleteDialog = ref(false)
-const linkToDelete = ref(null)
-
-const fetchSocialLinks = async () => {
-  try {
-    const response = await axios.get('/api/v1/social-links', {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`
-      }
-    })
-    socialLinks.value = response.data.data || []
-  } catch (error) {
-    console.error('Error fetching social links:', error)
-    socialLinks.value = []
-  }
-}
-
-const fetchSocialLinkTypes = async () => {
-  try {
-    const response = await axios.get('/api/v1/social-links/types', {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`
-      }
-    })
-    socialLinkTypes.value = response.data || []
-  } catch (error) {
-    console.error('Error fetching social link types:', error)
-  }
-}
-
-const addSocialLink = async () => {
-  isAdding.value = true
-  try {
-    const response = await axios.post('/api/v1/social-links', newLink.value, {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`
-      }
-    })
-    socialLinks.value.push(response.data.data)
-    newLink.value = { social_link_type_id: '', username: '' }
-    showAddForm.value = false
-  } catch (error) {
-    console.error('Error adding social link:', error)
-    alert('Failed to add social link. Please try again.')
-  } finally {
-    isAdding.value = false
-  }
-}
-
-const toggleVisibility = async (link) => {
-  try {
-    const response = await axios.put(
-      `/api/v1/social-links/${link.id}`,
-      {
-        ...link,
-        is_visible: !link.is_visible
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${authStore.token}`
-        }
-      }
-    )
-    link.is_visible = response.data.data.is_visible
-  } catch (error) {
-    console.error('Error toggling visibility:', error)
-    alert('Failed to update visibility. Please try again.')
-  }
-}
-
-const showDeleteConfirmation = (link) => {
-  linkToDelete.value = link
-  showDeleteDialog.value = true
-}
-
-const deleteSocialLink = async () => {
-  if (!linkToDelete.value) return
-
-  try {
-    await axios.delete(`/api/v1/social-links/${linkToDelete.value.id}`, {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`
-      }
-    })
-    socialLinks.value = socialLinks.value.filter(
-      (l) => l.id !== linkToDelete.value.id
-    )
-    linkToDelete.value = null
-    showDeleteDialog.value = false
-  } catch (error) {
-    console.error('Error deleting social link:', error)
-    alert('Failed to delete social link. Please try again.')
-  }
-}
-
-const formatUsername = (username) => {
-  return username.replace(/^https?:\/\//, '').replace(/\/$/, '')
-}
-
-onMounted(() => {
-  fetchSocialLinks()
-  fetchSocialLinkTypes()
-})
-</script>
-
 <style scoped>
 .list-move,
 .list-enter-active,

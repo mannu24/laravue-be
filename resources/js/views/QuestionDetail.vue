@@ -1,47 +1,36 @@
 <template>
-    <div class="max-w-4xl mx-auto py-8 px-4">
-        <div v-if="loading" class="text-center">
+    <div class="max-w-4xl mx-auto py-5">
+        <div v-if="loading" class="min-h-[60vh] flex flex-col items-center justify-center text-center gap-3">
             <LoadingSpinner size="lg" />
-            <p class="mt-2 text-gray-600">Loading question...</p>
+            <p class="text-gray-600 dark:text-gray-300">Loading question...</p>
         </div>
-
         <div v-else-if="question" class="space-y-6">
             <BackNavigator :items="questionBreadcrumbs" />
-            <Card>
-                <CardHeader>
-                    <div class="flex items-center justify-between">
-                        <CardTitle class="text-2xl font-bold">{{ question.title }}</CardTitle>
-                        <Button @click="upvoteQuestion" variant="outline" size="sm" class="flex items-center space-x-1">
-                            <CircleChevronUp class="h-6 w-6" />
-                            <span>{{ question.upvotes_count }}</span>
-                        </Button>
-                    </div>
-                    <CardDescription class="flex items-center space-x-2 text-sm text-gray-500">
-                        <UserIcon class="h-4 w-4" />
-                        <span>{{ question.user ? question.user.name : 'Anonymous' }}</span>
-                        <span>•</span>
-                        <span>{{ (question.created_at) }}</span>
-                    </CardDescription>
+            <QuestionCard
+                class="mb-5"
+                :question="question"
+                :navigate-on-click="false"
+                :show-description="false"
+                @open="() => {}"
+            />
+
+            <Card class="border border-gray-200 dark:border-gray-800 bg-white dark:bg-black/60 shadow-sm">
+                <CardHeader class="px-5 pt-5 pb-3">
+                    <CardTitle class="text-base font-semibold text-gray-900 dark:text-white">
+                        Question Description
+                    </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div v-html="truncatedContent" class="prose max-w-none"></div>
-                    <Button v-if="isContentTruncated" @click="showFullContent = !showFullContent" variant="link"
-                        class="mt-2">
+                <CardContent class="px-5 pb-5">
+                    <div v-html="truncatedContent" class="prose max-w-none dark:prose-invert"></div>
+                    <Button
+                        v-if="isContentTruncated"
+                        @click="showFullContent = !showFullContent"
+                        variant="link"
+                        class="mt-3 px-0 text-primary dark:text-primary"
+                    >
                         {{ showFullContent ? 'Show less' : 'Read more' }}
                     </Button>
                 </CardContent>
-                <CardFooter class="flex justify-between items-center">
-                    <div class="flex space-x-4">
-                        <span class="flex items-center space-x-1">
-                            <MessageSquareIcon class="h-4 w-4 text-gray-500" />
-                            <span class="text-sm text-gray-500">{{ (answers || []).length }} Answers</span>
-                        </span>
-                        <span v-if="question.views_count" class="flex items-center space-x-1">
-                            <EyeIcon class="h-4 w-4 text-gray-500" />
-                            <span class="text-sm text-gray-500">{{ question.views_count }} Views</span>
-                        </span>
-                    </div>
-                </CardFooter>
             </Card>
             <div class="flex justify-between mt-4">
                 <h2 class="text-lg font-medium">{{ (answers || []).length }} Answers</h2>
@@ -77,13 +66,14 @@
                     @upvote="handleUpvote" />
             </div>
         </div>
-
-        <div v-else class="text-center py-12">
-            <AlertCircleIcon class="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p class="text-xl font-semibold">Question not found</p>
-            <p class="text-gray-500 mt-2">The question you're looking for doesn't seem to exist.</p>
-            <Button @click="router.push('/questions')" variant="link" class="mt-4">Browse all questions</Button>
-        </div>
+        <EmptyState
+            v-else
+            icon="FileText"
+            title="Question not found"
+            subtitle="The question you're looking for doesn't seem to exist."
+            action-label="Browse all questions"
+            :action-handler="() => router.push('/qna')"
+        />
     </div>
 </template>
 
@@ -95,12 +85,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '../components/ui/button'
 import { useToast } from '../components/ui/toast'
 import { useAuthStore } from '../stores/auth'
-import { CircleChevronUp, UserIcon, MessageSquareIcon, EyeIcon, LockIcon, AlertCircleIcon } from 'lucide-vue-next'
+import { LockIcon, PenLine } from 'lucide-vue-next'
 import BackNavigator from '../components/elements/BackNavigator.vue'
 import MarkDownEditor from '../components/elements/MarkDownEditor.vue'
 import AnswersWithReplies from '../components/elements/AnswersWithReplies.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
-import { PenLine } from 'lucide-vue-next'
+import EmptyState from '../components/ui/EmptyState.vue'
+import QuestionCard from '../components/qa/QuestionCard.vue'
 
 const route = useRoute();
 const router = useRouter();
@@ -154,12 +145,15 @@ onMounted(async () => {
 });
 
 const fetchQuestionData = async () => {
-    const response = await axios.get(`/api/v1/questions/${routeSlug.value}`);
+    const response = await axios.get(
+        `/api/v1/questions/${routeSlug.value}`,
+        authStore.isAuthenticated ? authStore.config : {}
+    );
     question.value = response.data.data.question;
     answers.value = response.data.data.answers || [];
 }
 
-watch(route.params.slug, (newSlug) => {
+watch(() => route.params.slug, (newSlug) => {
     routeSlug.value = newSlug;
     fetchQuestionData();
 });

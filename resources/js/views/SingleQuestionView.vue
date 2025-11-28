@@ -12,6 +12,7 @@
       <div class="mb-6">
         <QuestionCard
           :question="question"
+          :navigate-on-click="false"
           @open="() => {}"
         />
       </div>

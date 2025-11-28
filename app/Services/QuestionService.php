@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Repositories\QuestionRepository;
 use App\Services\Gamification\XpService;
 use App\Services\Gamification\GamificationService;
+use App\Services\Gamification\TaskService;
 
 class QuestionService
 {
@@ -14,17 +15,20 @@ class QuestionService
     protected TagService $tagService;
     protected ?XpService $xpService;
     protected ?GamificationService $gamificationService;
+    protected ?TaskService $taskService;
 
     public function __construct(
         QuestionRepository $repository,
         TagService $tagService,
         ?XpService $xpService = null,
-        ?GamificationService $gamificationService = null
+        ?GamificationService $gamificationService = null,
+        ?TaskService $taskService = null
     ) {
         $this->repository = $repository;
         $this->tagService = $tagService;
         $this->xpService = $xpService;
         $this->gamificationService = $gamificationService;
+        $this->taskService = $taskService;
     }
 
     public function getAllQuestions()
@@ -74,10 +78,19 @@ class QuestionService
                     ->whereDate('assigned_at', today())
                     ->exists();
                 
-                // Only award XP for QUESTION_CREATED if there's no pending task
-                // If there's a pending task, the task completion will award XP instead
-                if (!$hasPendingTask) {
-                    // Use unified gamification service if available, otherwise fallback to XP service
+                if ($hasPendingTask && $this->taskService) {
+                    try {
+                        $this->taskService->completeByTitle('Ask 1 Question', $user);
+                    } catch (\Exception $e) {
+                        logger()->debug('[QuestionService] Task auto-completion failed', [
+                            'user_id' => $user->id,
+                            'question_id' => $question->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                } else {
+                    // Only award XP for QUESTION_CREATED if there's no pending task
+                    // If there's a pending task, the task completion will award XP instead
                     if ($this->gamificationService) {
                         $this->gamificationService->awardXpAndProcess(
                             $user,
@@ -118,9 +131,10 @@ class QuestionService
         $this->repository->delete($slug);
     }
 
-    public function upvoteQuestion($id)
+    public function toggleUpvote($id)
     {
-        $this->repository->upvote($id, auth()->guard('api')->id());
+        $this->repository->toggleUpvote($id);
+        return $this->repository->findById($id)->upvoted;
     }
 
     public function like_unlike($slug)

@@ -160,32 +160,32 @@ const gamificationSummary = computed(() => globalDataStore.gamificationSummary)
 
     <!-- Profile Content -->
     <div v-else-if="user">
-    <!-- Hero Section with Profile Header -->
-    <ProfileCard
-      :user="user"
-      :social-links="socialLinks"
-      :gamification-summary="gamificationSummary"
-      :is-logging-out="isLoading"
-      @update-profile="router.push('/profile/update')"
-      @settings="router.push('/settings')"
-      @logout="logout"
-    />
-
-    <!-- Main Content -->
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 pb-24 -mt-8">
-      <ProfileTabs
-        :user-id="user?.id"
-        :tabs="[
-          { value: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-          { value: 'projects', label: 'Projects', icon: Code2 },
-          { value: 'activity', label: 'Activity', icon: Users },
-          { value: 'saved', label: 'Saved', icon: Bookmark }
-        ]"
-        :default-tab="route.query.tab || 'dashboard'"
-        :is-own-profile="true"
-        :projects="projects"
+      <!-- Hero Section with Profile Header -->
+      <ProfileCard
+        :user="user"
+        :social-links="socialLinks"
+        :gamification-summary="gamificationSummary"
+        :is-logging-out="isLoading"
+        @update-profile="router.push('/profile/update')"
+        @settings="router.push('/settings')"
+        @logout="logout"
       />
-    </div>
+
+      <!-- Main Content -->
+      <div class="mx-auto pb-5 lg:pb-16 lg:-mt-8">
+        <ProfileTabs
+          :user-id="user?.id"
+          :tabs="[
+            { value: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+            { value: 'projects', label: 'Projects', icon: Code2 },
+            { value: 'activity', label: 'Activity', icon: Users },
+            { value: 'saved', label: 'Saved', icon: Bookmark }
+          ]"
+          :default-tab="route.query.tab || 'dashboard'"
+          :is-own-profile="true"
+          :projects="projects"
+        />
+      </div>
     </div>
     <div v-else class="flex items-center justify-center min-h-screen">
       <div class="text-center">

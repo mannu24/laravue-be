@@ -8,7 +8,8 @@ import { useThemeStore } from './stores/theme'
 import { toast, Toaster } from './components/ui/toast'
 import ToastContainer from './components/ui/ToastContainer.vue'
 import { useGamificationRealtime } from './composables/useGamificationRealtime'
-import NotificationConsent from './components/NotificationConsent.vue'
+import CookieConsent from './components/CookieConsent.vue'
+import NotificationConsentDialog from './components/NotificationConsentDialog.vue'
 import AchievementPopups from './components/gamification/AchievementPopups.vue'
 import { useGlobalDataStore } from './stores/globalData'
 
@@ -22,9 +23,10 @@ const dotColor = computed(() => {
     const path = route.path
     
     if (path.startsWith('/feed')) {
-        return '#41B883' // Vue green
+        // return '#41B883' // Vue green
+        return '#347958' // Vue green
     } else if (path.startsWith('/qna')) {
-        return '#ff756f' // Laravel red
+        return '#cd180e' // Laravel red
     } else if (path.startsWith('/dashboard')) {
         return '#3b82f6' // Blue
     } else if (path.startsWith('/projects')) {
@@ -48,7 +50,7 @@ const updateDotColor = () => {
         const opacity = themeStore.isDark ? '40' : '30'
         document.documentElement.style.setProperty('--polka-dot-color', color + opacity)
     } else {
-        document.documentElement.style.setProperty('--polka-dot-color', color + '60') // Add 60 for opacity
+        document.documentElement.style.setProperty('--polka-dot-color', color) // Add 60 for opacity
     }
 }
 
@@ -106,19 +108,21 @@ const shareUrl = (data: string) => {
         <!-- 1px Progress bar for global-data API loading -->
         <div v-if="globalDataStore.loading" class="fixed top-0 left-0 right-0 h-[1px] z-50 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 progress-bar-animate"></div>
         <Navbar />
-        <main class="container px-4 sm:px-0">
+        <main class="container px-4 lg:px-0">
             <router-view @share_url="shareUrl" />
         </main>
         <Transition name="fade">
             <button v-if="isScrollTopVisible"
-                class="fixed right-10 bottom-10 flex justify-center items-center text-white bg-vue/80 w-10 h-10 transition-all duration-300 ease-in-out rounded-full hover:bg-laravel/70 hover:scale-110"
+                class="fixed right-5 bottom-5 flex justify-center items-center text-white w-10 h-10 transition-all duration-300 ease-in-out rounded-full hover:opacity-80 hover:scale-110 z-[100]"
+                :style="{ backgroundColor: dotColor }"
                 type="button" @click="scrollTop()">
                 <i class="fas fa-arrow-up me-0"></i>
             </button>
         </Transition>
         <Toaster />
         <ToastContainer />
-        <NotificationConsent />
+        <CookieConsent />
+        <NotificationConsentDialog />
         <AchievementPopups />
     </div>
 </template>
@@ -138,9 +142,9 @@ const shareUrl = (data: string) => {
 .polka-dots {
     background-color: transparent;
     opacity: 1;
-    background-image:  radial-gradient(var(--polka-dot-color, #444cf760) 0.65px, transparent 0.65px), radial-gradient(var(--polka-dot-color, #444cf760) 0.65px, transparent 0.65px);
-    background-size: 26px 26px;
-    background-position: 0 0,13px 13px;
+    background-image:  radial-gradient(var(--polka-dot-color) 0.85px, transparent 0.85px), radial-gradient(var(--polka-dot-color) 0.85px, transparent 0.85px);
+    background-size: 27px 27px;
+    background-position: 0 0, 13px 13px;
     transition: background-image 0.3s ease;
 }
 
