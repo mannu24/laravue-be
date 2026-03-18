@@ -1,9 +1,11 @@
 <template>
-    <QuillEditor v-model:content="content" contentType="html" :options="editorOptions" :min-height="minHeight" />
+    <div class="markdown-editor-wrapper" :style="{ '--editor-min-height': minHeight + 'px' }">
+        <QuillEditor v-model:content="content" contentType="html" :options="editorOptions" />
+    </div>
 </template>
 
 <script setup>
-import { ref, watch, defineProps, defineEmits, computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
@@ -51,3 +53,9 @@ const editorOptions = computed(() => ({
     placeholder: props.placeholder
 }))
 </script>
+
+<style>
+.markdown-editor-wrapper .ql-editor {
+    min-height: var(--editor-min-height, 300px);
+}
+</style>

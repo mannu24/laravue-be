@@ -32,6 +32,15 @@ Route::prefix('v1')->group(function () {
     Route::get('/search/tag-suggestions', [SearchController::class, 'tagSuggestions']);
     Route::get('/search/user-suggestions', [SearchController::class, 'userSuggestions']);
 
+    // Public Feature Flags (safe to expose, values are booleans only)
+    Route::get('/app-config', function () {
+        return response()->json([
+            'features' => [
+                'ai_qna' => (bool) config('ai.qna_enabled'),
+            ],
+        ]);
+    });
+
     // Feed Sidebar Routes (Authenticated)
     Route::middleware(['auth:api'])->group(function () {
         Route::get('/feed-sidebar', [PostController::class, 'feedSidebar']);
@@ -58,17 +67,17 @@ Route::prefix('v1')->group(function () {
         // Notification Settings
         Route::get('/settings/notifications', [SettingsController::class, 'getNotifications']);
         Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications']);
-        
+
         // Push Subscription Routes
         Route::get('/push-subscriptions', [PushSubscriptionController::class, 'index']);
         Route::post('/push-subscriptions', [PushSubscriptionController::class, 'subscribe']);
         Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'unsubscribe']);
-        
+
         // Add more settings endpoints here as needed
         // Route::get('/settings/privacy', [SettingsController::class, 'getPrivacy']);
         // Route::put('/settings/privacy', [SettingsController::class, 'updatePrivacy']);
     });
-    
+
     // Public VAPID key route (needed for subscription)
     Route::get('/push-subscriptions/vapid-key', [PushSubscriptionController::class, 'getVapidKey']);
 
@@ -163,17 +172,17 @@ Route::prefix('v1')->group(function () {
         Route::post('projects/{project}/upvote', [ProjectController::class, 'upvote']);
         Route::post('projects/{project}/fund', [ProjectController::class, 'fund']);
         Route::get('projects/drafts', [ProjectController::class, 'drafts']);
-        
+
         // Reviews
         Route::post('projects/{project}/reviews', [ProjectController::class, 'createReview']);
         Route::put('reviews/{reviewId}', [ProjectController::class, 'updateReview']);
         Route::delete('reviews/{reviewId}', [ProjectController::class, 'deleteReview']);
-        
+
         // Versions
         Route::post('projects/{project}/versions', [ProjectController::class, 'createVersion']);
-        
+
         Route::post('technologies', [ProjectController::class, 'createTechnology']);
-        
+
         // GitHub Integration Routes
         Route::prefix('github')->group(function () {
             Route::get('authorize', [\App\Http\Controllers\v1\Api\GitHub\GitHubController::class, 'authorize']);
@@ -184,7 +193,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('disconnect', [\App\Http\Controllers\v1\Api\GitHub\GitHubController::class, 'disconnect']);
         });
     });
-    
+
     // GitHub OAuth Callback (public route)
     Route::get('github/callback', [\App\Http\Controllers\v1\Api\GitHub\GitHubController::class, 'callback']);
 
@@ -200,4 +209,10 @@ Route::prefix('v1')->group(function () {
         Route::post('feed', 'index');
         Route::get('posts/{post_code}', 'show');
     });
+
+    // AI Q&A Routes
+    Route::post('/questions/ai-suggest-meta', [\App\Http\Controllers\v1\Api\AiQnaController::class, 'suggestMeta']);
+    Route::post('/questions/ai-analyze', [\App\Http\Controllers\v1\Api\AiQnaController::class, 'analyze']);
+    Route::post('/questions/{id}/ai-answer', [\App\Http\Controllers\v1\Api\AiQnaController::class, 'stream']);
+    Route::post('/ai-answers/{id}/validate', [\App\Http\Controllers\v1\Api\AiQnaController::class, 'validateAnswer']);
 });

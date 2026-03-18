@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from './stores/auth.js';
+import { useFeatureFlagsStore } from './stores/featureFlags.js';
 
 const router = createRouter({
     history: createWebHistory(),
@@ -194,6 +195,17 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
+    const featureFlags = useFeatureFlagsStore();
+
+    const isQnaRoute = to.path.startsWith('/qna') || to.path.startsWith('/questions') || to.path.startsWith('/ask-question');
+    if (isQnaRoute) {
+        if (!featureFlags.loaded) {
+            await featureFlags.fetchFlags();
+        }
+        if (!featureFlags.isAiQnaEnabled) {
+            return next('/');
+        }
+    }
 
     const isLogged = () => authStore?.isAuthenticated;
 

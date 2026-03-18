@@ -13,21 +13,31 @@ import NotificationDropdown from './notifications/NotificationDropdown.vue'
 import SearchDropdown from './search/SearchDropdown.vue'
 import { useAuthStore } from '../stores/auth.js'
 import { useThemeStore } from '../stores/theme.js'
+import { useFeatureFlagsStore } from '../stores/featureFlags.js'
 
 const router = useRouter()
 const route = useRoute()
 const isMobileMenuOpen = ref(false)
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
+const featureFlags = useFeatureFlagsStore()
 
-const navigation = computed(() => [
-    { name: 'Home', href: '/', current: route.path === '/' },
-    { name: 'About', href: '/about', current: route.path === '/about' },
-    { name: 'Projects', href: '/projects', current: route.path === '/projects' },
-    { name: 'Feed', href: '/feed', current: route.path === '/feed' },
-    { name: 'QNA', href: '/qna', current: route.path === '/qna' },
-    { name: 'Contact', href: '/contact', current: route.path === '/contact' },
-])
+const navigation = computed(() => {
+    const baseNav = [
+        { name: 'Home', href: '/', current: route.path === '/' },
+        { name: 'About', href: '/about', current: route.path === '/about' },
+        { name: 'Projects', href: '/projects', current: route.path === '/projects' },
+        { name: 'Feed', href: '/feed', current: route.path === '/feed' },
+    ]
+
+    if (featureFlags.isAiQnaEnabled) {
+        baseNav.push({ name: 'QNA', href: '/qna', current: route.path.startsWith('/qna') })
+    }
+
+    baseNav.push({ name: 'Contact', href: '/contact', current: route.path === '/contact' })
+
+    return baseNav
+})
 
 onMounted(() => {
     themeStore.initTheme()

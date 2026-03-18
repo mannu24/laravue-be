@@ -6,13 +6,8 @@
         </div>
         <div v-else-if="question" class="space-y-6">
             <BackNavigator :items="questionBreadcrumbs" />
-            <QuestionCard
-                class="mb-5"
-                :question="question"
-                :navigate-on-click="false"
-                :show-description="false"
-                @open="() => {}"
-            />
+            <QuestionCard class="mb-5" :question="question" :navigate-on-click="false" :show-description="false"
+                @open="() => { }" />
 
             <Card class="border border-gray-200 dark:border-gray-800 bg-white dark:bg-black/60 shadow-sm">
                 <CardHeader class="px-5 pt-5 pb-3">
@@ -22,16 +17,16 @@
                 </CardHeader>
                 <CardContent class="px-5 pb-5">
                     <div v-html="truncatedContent" class="prose max-w-none dark:prose-invert"></div>
-                    <Button
-                        v-if="isContentTruncated"
-                        @click="showFullContent = !showFullContent"
-                        variant="link"
-                        class="mt-3 px-0 text-primary dark:text-primary"
-                    >
+                    <Button v-if="isContentTruncated" @click="showFullContent = !showFullContent" variant="link"
+                        class="mt-3 px-0 text-primary dark:text-primary">
                         {{ showFullContent ? 'Show less' : 'Read more' }}
                     </Button>
                 </CardContent>
             </Card>
+
+            <!-- AI Answer Section -->
+            <AiAnswerPanel v-if="question && isAiQnaEnabled" :question-id="question.id" class="mt-6" />
+
             <div class="flex justify-between mt-4">
                 <h2 class="text-lg font-medium">{{ (answers || []).length }} Answers</h2>
                 <Button variant="outline" size="lg" @click="showAnswerForm = !showAnswerForm" class="gap-2">
@@ -62,18 +57,13 @@
                 </CardContent>
             </Card>
             <div class="space-y-4">
-                <AnswersWithReplies :items="answers || []" :auth-user-id="authUserId" :max-replies="2" @reply="handleReply"
-                    @upvote="handleUpvote" />
+                <AnswersWithReplies :items="answers || []" :auth-user-id="authUserId" :max-replies="2"
+                    @reply="handleReply" @upvote="handleUpvote" />
             </div>
         </div>
-        <EmptyState
-            v-else
-            icon="FileText"
-            title="Question not found"
-            subtitle="The question you're looking for doesn't seem to exist."
-            action-label="Browse all questions"
-            :action-handler="() => router.push('/qna')"
-        />
+        <EmptyState v-else icon="FileText" title="Question not found"
+            subtitle="The question you're looking for doesn't seem to exist." action-label="Browse all questions"
+            :action-handler="() => router.push('/qna')" />
     </div>
 </template>
 
@@ -92,11 +82,15 @@ import AnswersWithReplies from '../components/elements/AnswersWithReplies.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 import QuestionCard from '../components/qa/QuestionCard.vue'
+import AiAnswerPanel from '../components/qa/AiAnswerPanel.vue'
+import { useFeatureFlagsStore } from '../stores/featureFlags'
 
 const route = useRoute();
 const router = useRouter();
 const { toast } = useToast();
 const authStore = useAuthStore();
+const featureStore = useFeatureFlagsStore();
+const isAiQnaEnabled = computed(() => featureStore.isAiQnaEnabled);
 const authToken = computed(() => authStore.token);
 const authUserId = computed(() => authStore.user?.id);
 const showAnswerForm = ref(false);
@@ -224,17 +218,17 @@ const handleUpvote = async (answerIdOrObject) => {
     if (!authToken.value) {
         return toast({ title: 'Authentication required', description: 'Log in to upvote.', variant: 'warning' });
     }
-    
+
     // Handle both direct answerId and object with id and type (for replies)
     const answerId = typeof answerIdOrObject === 'object' ? answerIdOrObject.id : answerIdOrObject;
-    
+
     try {
         await axios.post(
             `/api/v1/answers/${answerId}/upvote`,
             {},
             { headers: { Authorization: `Bearer ${authToken.value}` } }
         );
-        
+
         // Find and update the answer in the answers array
         const updateAnswerUpvotes = (items) => {
             for (const item of items) {
@@ -256,7 +250,7 @@ const handleUpvote = async (answerIdOrObject) => {
             }
             return false;
         };
-        
+
         updateAnswerUpvotes(answers.value);
         toast({ title: 'Upvoted', description: 'You upvoted this answer.' });
     } catch (error) {

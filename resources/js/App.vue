@@ -12,10 +12,12 @@ import CookieConsent from './components/CookieConsent.vue'
 import NotificationConsentDialog from './components/NotificationConsentDialog.vue'
 import AchievementPopups from './components/gamification/AchievementPopups.vue'
 import { useGlobalDataStore } from './stores/globalData'
+import { useFeatureFlagsStore } from './stores/featureFlags'
 
 const themeStore = useThemeStore()
 const route = useRoute()
 const globalDataStore = useGlobalDataStore()
+const featureFlagsStore = useFeatureFlagsStore()
 useGamificationRealtime()
 
 // Computed property to determine dot color based on route
@@ -66,6 +68,8 @@ onMounted(() => {
     themeStore.initTheme()
     // Initialize dot color
     updateDotColor()
+    // Fetch global feature flags
+    featureFlagsStore.fetchFlags()
     window.addEventListener('scroll', handleScrollTop)
 })
 

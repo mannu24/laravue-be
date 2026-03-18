@@ -24,7 +24,12 @@ Transform the traditional StackOverflow-like Q&A forum into an AI-powered knowle
 
 ## Strategic Vision: Hybrid AI + Human Knowledge Platform
 
-**Core Principle**: Combine AI speed with human expertise and community validation
+**Core Principle**: Combine AI speed with human expertise and community validation, specifically tailored for the **Laravel and Vue.js ecosystem**.
+
+---
+
+## 🛡️ Strategic Scope
+The AI assistant is designed specifically as a wrapper for **Laravel and Vue.js** related technical questions. It will leverage deep context of these frameworks to provide high-quality, framework-specific solutions.
 
 ---
 
@@ -70,14 +75,13 @@ User types question → AI analyzes → Shows suggestions:
 **Feature**: AI generates contextual answers using existing Q&A database + external knowledge
 
 **Implementation**:
-- **RAG (Retrieval Augmented Generation)**: 
-  - Search existing questions/answers in database
-  - Use as context for AI answer generation
-  - Include code examples from similar solved questions
+- **Laravel AI SDK Integration**: 
+  - Utilize [Laravel AI SDK](https://laravel.com/docs/12.x/ai-sdk) to manage RAG flows.
+  - Automatic handling of vector databases for semantic search within the Q&A repository.
 - **Context-Aware Answers**: 
-  - Understand project context (Laravel, Vue.js based on tags)
-  - Reference similar questions in the platform
-  - Include relevant code snippets from user's codebase (if connected)
+  - Strict focus on Laravel and Vue.js related topics.
+  - Understand project context (Framework versions, common patterns).
+  - Include relevant code snippets from user's codebase (if connected).
 
 ### 2.2 AI Answer Quality Indicators
 **Feature**: AI evaluates and scores answer quality
@@ -205,14 +209,23 @@ User types question → AI analyzes → Shows suggestions:
 │  Laravel API    │
 └────────┬────────┘
          │
-┌────────▼──────────────────┐
-│  AI Service Layer         │
-│  - OpenAI/Anthropic API   │
-│  - Vector DB (Pinecone/  │
-│    Weaviate) for RAG     │
-│  - Embeddings Service     │
-└───────────────────────────┘
+┌────────▼────────────────────────────────┐
+│  Laravel AI SDK (The Core Wrapper)      │
+│  - Specialist: Laravel & Vue.js Logic   │
+│  - Auto-RAG & Vector DB Management      │
+└────────┬──────────────────────┬─────────┘
+         │                      │
+┌────────▼────────┐    ┌────────▼─────────┐
+│  Gemini Cloud   │    │     OpenAI       │
+│  (Model A Key)  │    │  (Model B Key)   │
+└─────────────────┘    └──────────────────┘
 ```
+
+### AI Model Strategy
+- **Multi-Model Routing**: Use different API keys and models for specific tasks.
+- **Gemini Cloud**: Optimized for large context windows and structural analysis.
+- **OpenAI**: Utilized for complex logic reasoning and code generation.
+- **Framework Focus**: The system acts as a specialized wrapper, filtering and prioritizing Laravel/Vue.js content.
 
 ### Database Changes Needed
 1. **New Tables**:
@@ -326,12 +339,12 @@ GET    /api/v1/ai/knowledge-graph/{topic}
 
 ## Next Steps
 
-1. **Choose AI Provider**: OpenAI, Anthropic, or self-hosted (Llama)
-2. **Set up Vector Database**: For RAG implementation
-3. **Create AI Service Layer**: Abstract AI calls
-4. **Build MVP Features**: Start with Phase 1
-5. **User Testing**: Get feedback on AI answers
-6. **Iterate**: Improve based on usage data
+1. **Install Laravel AI SDK**: Follow [official documentation](https://laravel.com/docs/12.x/ai-sdk) for installation.
+2. **Configure Multi-Model Keys**: Setup `.env` with Gemini and OpenAI API keys.
+3. **Initialize Vector Database**: Connect to a vector store (handled automatically by the SDK).
+4. **Build Framework-Specific Scrapers**: Seed the RAG with high-quality Laravel and Vue.js documentation and common issues.
+5. **User Testing**: Validate the AI's focus on Laravel/Vue.js topics.
+6. **Iterate**: Refine routing between Gemini and OpenAI models.
 
 ---
 
