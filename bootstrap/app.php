@@ -20,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\TestGamificationCron::class,
     ])
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->validateCsrfTokens(except: [
+        $middleware->preventRequestForgery(except: [
             'api/*'
         ]);
     })

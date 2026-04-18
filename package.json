@@ -39,7 +39,7 @@
         "mitt": "^3.0.1",
         "moment": "^2.30.1",
         "pinia": "^2.3.0",
-        "pinia-plugin-persistedstate": "^4.2.0",
+        "pinia-plugin-persistedstate": "^3.2.3",
         "radix-vue": "^1.9.13",
         "reka-ui": "^2.4.1",
         "sass": "^1.83.4",
