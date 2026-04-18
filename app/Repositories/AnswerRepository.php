@@ -41,6 +41,11 @@ class AnswerRepository
     public function updateAnswer(array $data, $answerId)
     {
         $answer = $this->model->findOrFail($answerId);
+
+        if ($answer->user_id !== auth()->guard('api')->id()) {
+            throw new \Exception("You are not authorized to edit this answer.");
+        }
+
         $answer->update($data);
 
         return $answer;
@@ -64,6 +69,11 @@ class AnswerRepository
     public function deleteAnswer($answerId)
     {
         $answer = $this->model->findOrFail($answerId);
+
+        if ($answer->user_id !== auth()->guard('api')->id()) {
+            throw new \Exception("You are not authorized to delete this answer.");
+        }
+
         $answer->delete();
     }
 

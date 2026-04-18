@@ -129,7 +129,9 @@ class DatabaseSeeder extends Seeder
                 'original_price' => $projectData['original_price'] ?? null,
                 'selling_price' => $projectData['selling_price'] ?? null,
                 'views' => rand(100, 5000),
-                'is_active' => true
+                'is_active' => true,
+                'status' => 'published',
+                'published_at' => now(),
             ]);
 
             // Attach technologies

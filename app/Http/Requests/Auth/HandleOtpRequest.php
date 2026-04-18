@@ -22,8 +22,16 @@ class HandleOtpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email',
-            'otp' => 'nullable|string',
+            'email' => 'required|email|max:255',
+            'otp' => 'nullable|string|size:6|regex:/^\d{6}$/',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'otp.size' => 'OTP must be exactly 6 digits.',
+            'otp.regex' => 'OTP must contain only numbers.',
         ];
     }
 }

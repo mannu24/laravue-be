@@ -8,6 +8,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useBookmark } from '../../composables/useBookmark';
 import { Bookmark } from 'lucide-vue-next';
+import DOMPurify from 'dompurify';
 import axios from 'axios';
 
 const { post } = defineProps(['post'])
@@ -73,16 +74,17 @@ const action = async (type) => {
         await axios.delete(`/api/v1/posts/${post.post_code}`, authStore.config).then(() => {
             emit('delete_post', post.post_code)
         })
-    } else {
-        showDropdown.value = false
-        await axios.get(`/api/v1/posts/duplicate/${post.post_code}`, authStore.config).then(() => {
-            emit('fetch')
-        })
     }
 }
 
 const renderContent = (content) => {
-    return content.replace(/@(\w+)/g, '<a href="/@$1">@$1</a>');
+    // First sanitize the HTML, allowing only safe tags
+    const clean = DOMPurify.sanitize(content, {
+        ALLOWED_TAGS: ['b', 'i', 'u', 'strong', 'em', 'br', 'p', 'a', 'mention', 'code', 'pre', 'ul', 'ol', 'li'],
+        ALLOWED_ATTR: ['href', 'data-user-id', 'class', 'target'],
+    });
+    // Convert @username text to links (for content that doesn't have <mention> tags)
+    return clean.replace(/@(\w+)/g, '<a href="/@$1" class="mention-link">@$1</a>');
 };
 
 const checkItem = () => {

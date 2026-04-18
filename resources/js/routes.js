@@ -96,7 +96,7 @@ const router = createRouter({
             path: '/projects/create',
             name: 'add-project',
             component: () => import('./views/AddProject.vue'),
-            meta: { auth: false, both: true },
+            meta: { auth: true },
         },
         {
             path: '/dashboard',

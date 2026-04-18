@@ -93,7 +93,7 @@ class AnswerController extends Controller
             );
         } catch (Exception $e) {
             return $this->internalError(
-                message: $e->getMessage()
+                message: 'Failed to upvote answer'
             );
         }
     }
@@ -119,8 +119,10 @@ class AnswerController extends Controller
                 message: 'Answer updated successfully'
             );
         } catch (Exception $e) {
-            return $this->internalError(
-                message: $e->getMessage()
+            $code = str_contains($e->getMessage(), 'not authorized') ? 403 : 500;
+            return $this->error(
+                message: $code === 403 ? $e->getMessage() : 'Failed to update answer',
+                code: $code
             );
         }
     }
@@ -134,8 +136,10 @@ class AnswerController extends Controller
                 message: 'Answer deleted successfully'
             );
         } catch (Exception $e) {
-            return $this->internalError(
-                message: $e->getMessage()
+            $code = str_contains($e->getMessage(), 'not authorized') ? 403 : 500;
+            return $this->error(
+                message: $code === 403 ? $e->getMessage() : 'Failed to delete answer',
+                code: $code
             );
         }
     }

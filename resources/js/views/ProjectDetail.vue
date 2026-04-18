@@ -225,6 +225,23 @@ const shareProject = () => {
   }
 }
 
+const handlePurchase = () => {
+  if (!authStore.isAuthenticated) {
+    toast({
+      title: "Authentication Required",
+      description: "Please login to purchase projects",
+      variant: "destructive"
+    })
+    router.push('/login')
+    return
+  }
+  // TODO: Integrate with payment gateway (Stripe/PayPal)
+  toast({
+    title: "Coming Soon",
+    description: "Payment integration is being set up. Please contact the project owner directly for now.",
+  })
+}
+
 const openNewTab = (url) => {
   window.open(url, '_blank')
 }
@@ -426,7 +443,7 @@ onMounted(() => {
               </div>
 
               <!-- Description -->
-              <p class="text-lg leading-relaxed mb-6" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'" v-html="project.description"></p>
+              <p class="text-lg leading-relaxed mb-6" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">{{ project.description }}</p>
 
               <!-- Technologies -->
               <div class="mb-6">
@@ -500,6 +517,7 @@ onMounted(() => {
                   v-if="project.is_sellable"
                   variant="outline"
                   class="w-full"
+                  @click="handlePurchase"
                 >
                   <DollarSign class="h-4 w-4 mr-2" />
                   Buy Now - {{ formatPrice(project.selling_price) }}

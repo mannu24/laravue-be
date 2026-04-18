@@ -25,9 +25,18 @@ class CreateAnswerRequest extends FormRequest
     {
         return [
             'question_id' => 'required|integer|exists:questions,id',
-            'user_id' => 'nullable|integer|exists:users,id',
             'body' => 'required|string|min:10',
         ];
+    }
+
+    /**
+     * Merge authenticated user's ID into the request.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'user_id' => $this->user()?->id,
+        ]);
     }
 }
 

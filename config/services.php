@@ -47,4 +47,8 @@ return [
         'redirect' => env('GITHUB_REDIRECT_URI', env('APP_URL') . '/api/v1/github/callback'),
     ],
 
+    'google' => [
+        'client_id' => env('VITE_GOOGLE_CLIENT_ID', env('VITE_GOOGLE_SIGNIN')),
+    ],
+
 ];

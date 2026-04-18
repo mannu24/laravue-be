@@ -57,6 +57,11 @@ class QuestionRepository
     public function delete($slug)
     {
         $question = $this->model->where('slug', $slug)->firstOrFail();
+
+        if ($question->user_id !== auth()->guard('api')->id()) {
+            abort(403, 'You are not authorized to delete this question.');
+        }
+
         $question->delete();
     }
 

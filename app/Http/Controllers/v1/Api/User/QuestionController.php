@@ -113,7 +113,7 @@ class QuestionController extends Controller
             );
         } catch (Exception $e) {
             return $this->internalError(
-                message: 'Failed to update question: ' . $e->getMessage()
+                message: 'Failed to update question',
             );
         }
     }
@@ -158,7 +158,7 @@ class QuestionController extends Controller
             );
         } catch (Exception $e) {
             return $this->internalError(
-                message: $e->getMessage()
+                message: 'Failed to toggle upvote'
             );
         }
     }
@@ -198,7 +198,7 @@ class QuestionController extends Controller
             ]);
         } catch (Exception $e) {
             return $this->internalError(
-                message: $e->getMessage()
+                message: 'Failed to toggle like'
             );
         }
     }

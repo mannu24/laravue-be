@@ -15,15 +15,14 @@ import {
   Search,
   Filter,
   Star,
-  Download,
   Heart,
   Code2,
   Zap,
   ChevronDown,
-  User,
-  Folder,
   Plus,
-  Github
+  Github,
+  Folder,
+  Users
 } from 'lucide-vue-next'
 import axios from 'axios'
 import GitHubImportModal from '@/components/github/GitHubImportModal.vue'
@@ -47,32 +46,28 @@ const handleProjectImported = () => {
 }
 
 const stats = ref([
-  { label: 'Projects launched', value: '0', icon: Folder },
-  { label: 'Total installs', value: '0', icon: Download },
-  { label: 'Community stars', value: '0', icon: Star },
-  { label: 'Active makers', value: '0', icon: User }
+  { label: 'Projects', value: '—', icon: Folder },
+  { label: 'Upvotes', value: '—', icon: Star },
+  { label: 'Contributors', value: '—', icon: Users },
+  { label: 'Open Source', value: '—', icon: Heart },
 ])
 
-const showcaseHighlights = [
-  {
-    title: 'Production-ready kits',
-    description: 'Premium headless starters, dashboards, and SaaS templates built with Laravel + Vue.',
-    icon: Zap,
-    badge: 'Premium'
-  },
-  {
-    title: 'Open-source labs',
-    description: 'Cloneable examples with detailed READMEs, tests, and design tokens to remix freely.',
-    icon: Heart,
-    badge: 'OSS'
-  },
-  {
-    title: 'Client delivery vault',
-    description: 'Private repos for agencies to share deliverables with stakeholders securely.',
-    icon: Folder,
-    badge: 'Studios'
+const fetchStats = async () => {
+  try {
+    const response = await axios.get('/api/v1/projects/stats')
+    if (response.data?.data) {
+      const d = response.data.data
+      stats.value = [
+        { label: 'Projects', value: d.total_projects.toLocaleString(), icon: Folder },
+        { label: 'Upvotes', value: d.total_upvotes.toLocaleString(), icon: Star },
+        { label: 'Contributors', value: d.total_contributors.toLocaleString(), icon: Users },
+        { label: 'Open Source', value: d.open_source_count.toLocaleString(), icon: Heart },
+      ]
+    }
+  } catch (e) {
+    // Stats are non-critical, fail silently
   }
-]
+}
 
 const projectFilters = computed(() => {
   const filters = {
@@ -98,6 +93,7 @@ const fetchTechnologies = async () => {
 
 onMounted(() => {
   fetchTechnologies()
+  fetchStats()
 })
 </script>
 
@@ -155,26 +151,6 @@ onMounted(() => {
           </div>
           <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ stat.value }}</p>
           <p class="text-sm uppercase tracking-wide text-gray-600 dark:text-gray-400">{{ stat.label }}</p>
-        </CardContent>
-      </Card>
-    </section>
-
-    <!-- Highlights -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <Card
-        v-for="highlight in showcaseHighlights"
-        :key="highlight.title"
-        class="bg-white dark:bg-card/70 backdrop-blur border border-gray-200 dark:border-white/5 shadow-xl hover:border-blue-500/40 transition"
-      >
-        <CardContent class="p-6 space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-indigo-500/20 text-white flex items-center justify-center">
-              <component :is="highlight.icon" class="w-5 h-5" />
-            </div>
-            <span class="text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 tracking-wide">{{ highlight.badge }}</span>
-          </div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ highlight.title }}</h3>
-          <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{{ highlight.description }}</p>
         </CardContent>
       </Card>
     </section>

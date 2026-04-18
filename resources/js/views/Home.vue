@@ -232,7 +232,7 @@ const categories = [
               <Rocket class="w-5 h-5 mr-2" />
               Explore Projects
             </Button>
-            <Button @click="router.push('/add-project')" variant="outline" :class="['border-2 px-10 py-4 text-lg font-semibold rounded-full transition-all duration-300 hover:scale-105',
+            <Button @click="router.push('/projects/create')" variant="outline" :class="['border-2 px-10 py-4 text-lg font-semibold rounded-full transition-all duration-300 hover:scale-105',
               themeStore.isDark
                 ? 'border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-primary hover:text-primary'
                 : 'border-gray-300 text-gray-700 hover:bg-primary/10 hover:border-primary hover:text-primary'
@@ -410,7 +410,8 @@ const categories = [
               <Button class="w-full" :class="project.type === 'Premium'
                 ? 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground'
                 : 'bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70 text-secondary-foreground'
-                ">
+                "
+                @click="router.push('/projects')">
                 {{ project.type === 'Premium' ? `Buy for ${project.price}` : 'View Project' }}
                 <ExternalLink class="w-4 h-4 ml-2" />
               </Button>

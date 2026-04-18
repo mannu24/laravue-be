@@ -16,7 +16,6 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Str;
 
 class PostController extends Controller
 {
@@ -79,7 +78,7 @@ class PostController extends Controller
         });
 
         $page = $request->input('page', 1);
-        $perPage = $request->input('per_page', 10);
+        $perPage = min((int) $request->input('per_page', 10), 50);
         $paginatedData = new LengthAwarePaginator(
             $posts->forPage($page, $perPage)->values(), 
             $posts->count(), 
@@ -123,8 +122,8 @@ class PostController extends Controller
                 'title' => $data['title'],
                 'content' => $this->processContent($data['content'], $mentions),
                 'meta_content' => json_encode($mentions),
-                'is_ai_generated' => $request->is_ai_generated ?? 0,
-                'is_blocked' => $request->is_blocked ?? 0,
+                'is_ai_generated' => false,
+                'is_blocked' => false,
             ]);
             if ($request->hasFile('media')) {
                 foreach ($request->file('media') as $file) {
@@ -155,20 +154,25 @@ class PostController extends Controller
             return response()->json(['status' => 'success', 'message' => 'Post created successfully']);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['status' => 'error', 'message' => 'Error Occured']);
+            return response()->json(['status' => 'error', 'message' => 'Error Occurred']);
         }
     }
 
     private function processContent($content, $mentions)
     {
-        $cleanContent = Str::of($content)
-            // ->stripTags(config('feed.allowed_tags'))
-            ->replaceMatches('/<script.*?>.*?<\/script>/si', '');
+        // Strip all HTML tags except safe inline elements
+        $cleanContent = strip_tags($content, '<b><i><u><strong><em><br><p><ul><ol><li><a><code><pre>');
+
+        // Remove any event handlers that might have survived
+        $cleanContent = preg_replace('/\s+on\w+\s*=\s*["\'][^"\']*["\']/i', '', $cleanContent);
 
         return preg_replace_callback('/@\[([^\]]+)\]\((\d+)\)/', function ($matches) use ($mentions) {
             $userId = $matches[2];
             $mention = collect($mentions)->firstWhere('id', $userId);
-            return $mention ? "<mention data-user-id='{$userId}'>@{$mention['username']}</mention>" : $matches[0];
+            if (!$mention) return $matches[0];
+            $safeUserId = htmlspecialchars($userId, ENT_QUOTES, 'UTF-8');
+            $safeUsername = htmlspecialchars($mention['username'], ENT_QUOTES, 'UTF-8');
+            return "<mention data-user-id=\"{$safeUserId}\">@{$safeUsername}</mention>";
         }, $cleanContent);
     }
 
@@ -235,6 +239,11 @@ class PostController extends Controller
         try {
 
             $post = Post::where('post_code', $post_code)->firstOrFail();
+
+            if ($post->user_id !== auth()->id()) {
+                return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+            }
+
             $post->update([
                 'title' => $data['title'],
                 'content' => $this->processContent($data['content'], $data['mentions']),
@@ -285,8 +294,8 @@ class PostController extends Controller
             return response()->json(['status' => 'success', 'message' => 'Post updated successfully']);
         } catch (\Exception $e) {
             DB::rollBack();
-            dd($e);
-            return response()->json(['status' => 'error', 'message' => 'Error Occured']);
+            \Illuminate\Support\Facades\Log::error('Post update failed', ['error' => $e->getMessage()]);
+            return response()->json(['status' => 'error', 'message' => 'Error Occurred']);
         }
     }
 
@@ -358,6 +367,11 @@ class PostController extends Controller
     public function delete_comment($comment_id)
     {
         $comment = Comment::where('id', $comment_id)->firstOrFail();
+
+        if ($comment->user_id !== auth()->id()) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
         $comment->delete();
 
         return response()->json(['status' => 'success', 'message' => 'Comment deleted successfully']);
@@ -423,6 +437,11 @@ class PostController extends Controller
     public function destroy($postCode)
     {
         $post = Post::where('post_code', $postCode)->firstOrFail();
+
+        if ($post->user_id !== auth()->id()) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
         $post->delete();
 
         return response()->json(['message' => 'Post deleted successfully']);
@@ -470,7 +489,7 @@ class PostController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to retrieve feed sidebar data: ' . $e->getMessage()
+                'message' => 'Failed to retrieve feed sidebar data'
             ], 500);
         }
     }

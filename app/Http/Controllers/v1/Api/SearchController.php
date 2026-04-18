@@ -485,8 +485,7 @@ class SearchController extends Controller
         return User::query()
             ->where(function ($q) use ($query) {
                 $q->where('username', 'LIKE', "%{$query}%")
-                  ->orWhere('name', 'LIKE', "%{$query}%")
-                  ->orWhere('email', 'LIKE', "%{$query}%");
+                  ->orWhere('name', 'LIKE', "%{$query}%");
             })
             ->count();
     }
@@ -503,8 +502,7 @@ class SearchController extends Controller
         $usersQuery = User::query()
             ->where(function ($q) use ($query) {
                 $q->where('username', 'LIKE', "%{$query}%")
-                  ->orWhere('name', 'LIKE', "%{$query}%")
-                  ->orWhere('email', 'LIKE', "%{$query}%");
+                  ->orWhere('name', 'LIKE', "%{$query}%");
             });
 
         // Sorting
@@ -546,7 +544,6 @@ class SearchController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'username' => $user->username,
-                'email' => $user->email,
                 'url' => "/@{$user->username}",
                 'avatar' => $user->profile_photo,
                 'icon' => 'Users',

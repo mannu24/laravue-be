@@ -24,9 +24,18 @@ class CompleteTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|integer|exists:users,id',
             'task_id' => 'required|integer|exists:tasks,id',
         ];
+    }
+
+    /**
+     * Merge authenticated user's ID into the request.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'user_id' => $this->user()->id,
+        ]);
     }
 }
 

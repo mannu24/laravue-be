@@ -12,7 +12,7 @@ import {
   Sparkles,
   CircleChevronUp,
   Share2,
-  Download,
+  Eye,
   ExternalLink
 } from 'lucide-vue-next'
 import { useThemeStore } from '@/stores/theme'
@@ -236,7 +236,7 @@ const categoryName = computed(() => props.project.category?.name || props.projec
             <span>Share</span>
           </button>
           <div class="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-            <Download class="w-4 h-4 text-green-600 dark:text-green-400" />
+            <Eye class="w-4 h-4 text-green-600 dark:text-green-400" />
             <span>{{ project.views?.toLocaleString() || 0 }}</span>
           </div>
         </div>

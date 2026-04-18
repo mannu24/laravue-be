@@ -70,7 +70,7 @@ class ProjectService
     {
         // Set default status to draft if not provided
         if (!isset($data['status'])) {
-            $data['status'] = 'published';
+            $data['status'] = 'draft';
         }
 
         $project = $this->projectRepository->create($data);
@@ -213,6 +213,11 @@ class ProjectService
         $project->updateRating();
         
         return $review->load('user');
+    }
+
+    public function getExistingReview(int $projectId, int $userId): ?\App\Models\ProjectReview
+    {
+        return $this->reviewRepository->findByUserAndProject($userId, $projectId);
     }
 
     public function getProjectReviews(int $projectId, int $perPage = 10): LengthAwarePaginator

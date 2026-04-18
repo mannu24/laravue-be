@@ -172,13 +172,13 @@ class GitHubController extends Controller
             if ($request->has('popup')) {
                 return response()->view('github.callback', [
                     'status' => 'error',
-                    'message' => 'Failed to connect GitHub account: ' . $e->getMessage(),
+                    'message' => 'Failed to connect GitHub account. Please try again.',
                 ]);
             }
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to connect GitHub account: ' . $e->getMessage(),
+                'message' => 'Failed to connect GitHub account',
             ], 500);
         }
     }
@@ -234,7 +234,7 @@ class GitHubController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to fetch repositories: ' . $e->getMessage(),
+                'message' => 'Failed to fetch repositories',
             ], 500);
         }
     }
@@ -296,7 +296,7 @@ class GitHubController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to fetch repository: ' . $e->getMessage(),
+                'message' => 'Failed to fetch repository',
             ], 500);
         }
     }
@@ -354,7 +354,7 @@ class GitHubController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to import repository: ' . $e->getMessage(),
+                'message' => 'Failed to import repository',
             ], 500);
         }
     }

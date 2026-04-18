@@ -41,7 +41,7 @@ class ProjectController extends Controller
         ];
 
         $sort = $request->get('sort', 'recent');
-        $perPage = $request->get('per_page', 12);
+        $perPage = min((int) $request->get('per_page', 12), 50);
 
         $projects = $this->projectService->getAllProjects($filters, $sort, $perPage);
 
@@ -63,6 +63,24 @@ class ProjectController extends Controller
         return $this->success(
             data: ProjectResource::collection($projects),
             message: 'Trending projects fetched successfully'
+        );
+    }
+
+    public function stats()
+    {
+        $totalProjects = Project::where('status', 'published')->count();
+        $totalUpvotes = \App\Models\Upvote::where('record_type', Project::class)->count();
+        $totalContributors = Project::where('status', 'published')->distinct('user_id')->count('user_id');
+        $openSourceCount = Project::where('status', 'published')->where('project_type', 'open')->count();
+
+        return $this->success(
+            data: [
+                'total_projects' => $totalProjects,
+                'total_upvotes' => $totalUpvotes,
+                'total_contributors' => $totalContributors,
+                'open_source_count' => $openSourceCount,
+            ],
+            message: 'Project stats fetched successfully'
         );
     }
 
@@ -193,9 +211,14 @@ class ProjectController extends Controller
 
     public function fund(Request $request, Project $project)
     {
+        // Prevent funding own project
+        if ($project->user_id === auth()->id()) {
+            return $this->error(message: 'You cannot fund your own project.', code: 403);
+        }
+
         $validated = $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'mode' => 'nullable|string'
+            'amount' => 'required|numeric|min:1|max:10000',
+            'mode' => 'nullable|string|in:manual,stripe,paypal'
         ]);
 
         $fundingData = $this->projectService->fundProject(
@@ -275,7 +298,7 @@ class ProjectController extends Controller
 
     public function getProjectsByCategory($categoryId, Request $request)
     {
-        $perPage = $request->get('per_page', 12);
+        $perPage = min((int) $request->get('per_page', 12), 50);
         $projects = $this->projectService->getProjectsByCategory($categoryId, $perPage);
         return ProjectResource::collection($projects);
     }
@@ -283,7 +306,7 @@ class ProjectController extends Controller
     // Reviews
     public function getReviews(Project $project, Request $request)
     {
-        $perPage = $request->get('per_page', 10);
+        $perPage = min((int) $request->get('per_page', 10), 50);
         $reviews = $this->projectService->getProjectReviews($project->id, $perPage);
         return $this->success(
             data: $reviews,
@@ -293,10 +316,21 @@ class ProjectController extends Controller
 
     public function createReview(Request $request, Project $project)
     {
+        // Prevent reviewing own project
+        if ($project->user_id === auth()->id()) {
+            return $this->error(message: 'You cannot review your own project.', code: 403);
+        }
+
         $validated = $request->validate([
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:2000',
         ]);
+
+        // Check for existing review
+        $existingReview = $this->projectService->getExistingReview($project->id, auth()->id());
+        if ($existingReview) {
+            return $this->error(message: 'You have already reviewed this project.', code: 409);
+        }
 
         $review = $this->projectService->createReview($project->id, $validated);
 
@@ -313,6 +347,12 @@ class ProjectController extends Controller
             'comment' => 'nullable|string|max:2000',
         ]);
 
+        // Verify ownership
+        $review = \App\Models\ProjectReview::findOrFail($reviewId);
+        if ($review->user_id !== auth()->id()) {
+            return $this->error(message: 'Unauthorized', code: 403);
+        }
+
         $review = $this->projectService->updateReview($reviewId, $validated);
 
         return $this->success(
@@ -323,6 +363,12 @@ class ProjectController extends Controller
 
     public function deleteReview($reviewId)
     {
+        // Verify ownership
+        $review = \App\Models\ProjectReview::findOrFail($reviewId);
+        if ($review->user_id !== auth()->id()) {
+            return $this->error(message: 'Unauthorized', code: 403);
+        }
+
         $this->projectService->deleteReview($reviewId);
         return $this->success(
             message: 'Review deleted successfully'

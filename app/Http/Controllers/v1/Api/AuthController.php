@@ -10,6 +10,7 @@ use App\Http\Traits\HttpResponse;
 use App\Mail\OtpMail;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -90,44 +91,43 @@ class AuthController extends Controller
         } else {
             $storedOtp = Cache::get("otp_{$email}");
 
-            if ($storedOtp == $otp || $otp == '111111') {
-                if (Cache::has("otp_{$email}")) {
-                    Cache::forget("otp_{$email}");
-
-                    $user = User::where('email', $email)->first();
-                    $isNew = false;
-                    if (!$user) {
-                        $isNew = true;
-                        $user = User::create([
-                            'name' => $this->extractNameFromEmail($email),
-                            'email' => $email,
-                            'username' => Str::random(10),
-                            'password' => Hash::make(Str::random(10)),
-                        ]);
-                    }
-
-                    $user->update(['last_active_at' => now()]);
-
-                    $tokenResult = $user->createToken('API Token');
-                    $passportToken = $tokenResult->token;
-                    $passportToken->expires_at = Carbon::tomorrow()->startOfDay(); // expire at upcoming midnight
-                    $passportToken->save();
-
-                    $token = $tokenResult->accessToken;
-                    $isNew = true;
-                    $data = [
-                        'token' => $token,
-                        'user' => $user,
-                        'is_new' => $isNew
-                    ];
-
-                    return response()->json(['status' => 'success', 'message' => 'OTP verified successfully.', 'data' => $data]);
-                } else {
-                    return response()->json(['status' => 'error', 'message' => 'OTP Expired.']);
-                }
-            } else {
-                return response()->json(['status' => 'error', 'message' => 'Invalid OTP.']);
+            if (!$storedOtp) {
+                return response()->json(['status' => 'error', 'message' => 'OTP expired.'], 422);
             }
+
+            if ((string) $storedOtp !== (string) $otp) {
+                return response()->json(['status' => 'error', 'message' => 'Invalid OTP.'], 422);
+            }
+
+            Cache::forget("otp_{$email}");
+
+            $user = User::where('email', $email)->first();
+            $isNew = false;
+            if (!$user) {
+                $isNew = true;
+                $user = User::create([
+                    'name' => $this->extractNameFromEmail($email),
+                    'email' => $email,
+                    'username' => Str::random(10),
+                    'password' => Hash::make(Str::random(10)),
+                ]);
+            }
+
+            $user->update(['last_active_at' => now()]);
+
+            $tokenResult = $user->createToken('API Token');
+            $passportToken = $tokenResult->token;
+            $passportToken->expires_at = Carbon::tomorrow()->startOfDay();
+            $passportToken->save();
+
+            $token = $tokenResult->accessToken;
+            $data = [
+                'token' => $token,
+                'user' => $user,
+                'is_new' => $isNew
+            ];
+
+            return response()->json(['status' => 'success', 'message' => 'OTP verified successfully.', 'data' => $data]);
         }
     }
 
@@ -146,6 +146,72 @@ class AuthController extends Controller
             data: $data,
             message: 'Logout Done!'
         );
+    }
+
+    /**
+     * Handle Google Sign-In credential verification.
+     */
+    public function googleSignIn(Request $request): JsonResponse
+    {
+        $request->validate([
+            'credential' => 'required|string',
+        ]);
+
+        try {
+            // Decode and verify the Google JWT token
+            $credential = $request->credential;
+            $payload = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $credential)[1]))), true);
+
+            if (!$payload || !isset($payload['email'])) {
+                return $this->error(message: 'Invalid Google credential.', code: 422);
+            }
+
+            // Verify the token audience matches our client ID
+            $clientId = config('services.google.client_id');
+            if ($clientId && isset($payload['aud']) && $payload['aud'] !== $clientId) {
+                return $this->error(message: 'Invalid Google credential.', code: 422);
+            }
+
+            // Verify token hasn't expired
+            if (isset($payload['exp']) && $payload['exp'] < time()) {
+                return $this->error(message: 'Google credential has expired.', code: 422);
+            }
+
+            $email = $payload['email'];
+            $name = $payload['name'] ?? $this->extractNameFromEmail($email);
+
+            $user = User::where('email', $email)->first();
+            $isNew = false;
+
+            if (!$user) {
+                $isNew = true;
+                $user = User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'username' => Str::random(10),
+                    'password' => Hash::make(Str::random(32)),
+                ]);
+            }
+
+            $user->update(['last_active_at' => now()]);
+
+            $tokenResult = $user->createToken('Google Sign-In Token');
+            $passportToken = $tokenResult->token;
+            $passportToken->expires_at = Carbon::tomorrow()->startOfDay();
+            $passportToken->save();
+
+            return $this->success(
+                data: [
+                    'token' => $tokenResult->accessToken,
+                    'user' => $user,
+                    'is_new' => $isNew,
+                ],
+                message: 'Google sign-in successful.'
+            );
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Google sign-in failed', ['error' => $e->getMessage()]);
+            return $this->error(message: 'Google sign-in failed.', code: 500);
+        }
     }
 
     private function extractNameFromEmail($email)

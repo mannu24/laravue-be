@@ -232,7 +232,7 @@ class BookmarkController extends Controller
                 message: 'Bookmarks retrieved successfully'
             );
         } catch (\Exception $e) {
-            dd($e->getTrace());
+            \Illuminate\Support\Facades\Log::error('Failed to retrieve bookmarks', ['error' => $e->getMessage()]);
             return $this->internalError(
                 message: 'Failed to retrieve bookmarks'
             );

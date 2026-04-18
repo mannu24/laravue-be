@@ -47,8 +47,6 @@ class AiQnaService
                     'contents' => [['parts' => [['text' => $prompt]]]]
                 ]);
 
-            dd($response->json());
-
             if ($response->successful()) {
                 $text = $response->json('candidates.0.content.parts.0.text', '');
                 $parsed = $this->parseJsonFromText($text);

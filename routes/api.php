@@ -20,11 +20,12 @@ use App\Http\Controllers\v1\Api\BookmarkController;
 use App\Http\Controllers\v1\Api\TaskController;
 
 Route::prefix('v1')->group(function () {
-    // Authentication Routes
-    Route::controller(AuthController::class)->group(function () {
+    // Authentication Routes (rate limited)
+    Route::middleware(['throttle:5,1'])->controller(AuthController::class)->group(function () {
         Route::post('/register', 'register');
         Route::post('/login', 'login')->name('login');
         Route::post('/auth/otp', 'handleOtp');
+        Route::post('/auth/google', 'googleSignIn');
     });
 
     // Search Routes
@@ -156,6 +157,7 @@ Route::prefix('v1')->group(function () {
     Route::get('projects', [ProjectController::class, 'index']);
     Route::get('projects/featured', [ProjectController::class, 'featured']);
     Route::get('projects/trending', [ProjectController::class, 'trending']);
+    Route::get('projects/stats', [ProjectController::class, 'stats']);
     Route::get('projects/technologies', [ProjectController::class, 'getTechnologies']);
     Route::get('projects/categories', [ProjectController::class, 'getCategories']);
     Route::get('projects/categories/{id}', [ProjectController::class, 'getCategory']);
@@ -166,12 +168,12 @@ Route::prefix('v1')->group(function () {
     Route::post('projects/{project}/download', [ProjectController::class, 'download']);
 
     Route::middleware(['auth:api'])->group(function () {
+        Route::get('projects/drafts', [ProjectController::class, 'drafts']);
         Route::apiResource('projects', ProjectController::class)->except(['index', 'show']);
         Route::post('projects/{project}/publish', [ProjectController::class, 'publish']);
         Route::post('projects/{project}/submit-review', [ProjectController::class, 'submitForReview']);
         Route::post('projects/{project}/upvote', [ProjectController::class, 'upvote']);
         Route::post('projects/{project}/fund', [ProjectController::class, 'fund']);
-        Route::get('projects/drafts', [ProjectController::class, 'drafts']);
 
         // Reviews
         Route::post('projects/{project}/reviews', [ProjectController::class, 'createReview']);
