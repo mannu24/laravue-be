@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Crypt;
 
 class UserGitHubToken extends Model
 {
+    protected $table = 'user_github_tokens';
+
     protected $fillable = [
         'user_id',
         'access_token',

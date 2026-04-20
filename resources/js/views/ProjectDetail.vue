@@ -336,7 +336,7 @@ onMounted(() => {
   <div class="min-h-screen">
     <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center min-h-screen">
-      <Loader2 class="h-12 w-12 animate-spin text-blue-500" />
+      <Loader2 class="h-12 w-12 animate-spin text-vue" />
     </div>
 
     <!-- Project Content -->
@@ -360,7 +360,7 @@ onMounted(() => {
             <Badge :class="[
               'text-white font-medium',
               project.is_sellable
-                ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500'
+                ? 'bg-gradient-to-r from-vue to-vue/80'
                 : 'bg-gradient-to-r from-emerald-500 to-teal-500'
             ]">
               {{ project.is_sellable ? 'Premium' : 'Open Source' }}
@@ -456,7 +456,7 @@ onMounted(() => {
                   <Badge
                     v-for="tech in project.technologies" 
                     :key="tech.id"
-                    class="text-xs bg-gray-100 dark:bg-white/10 hover:bg-blue-500/25 dark:hover:bg-blue-400/50 text-gray-700 dark:text-white border border-gray-200 dark:border-white/10"
+                    class="text-xs bg-gray-100 dark:bg-white/10 hover:bg-vue/20 dark:hover:bg-vue/30 text-gray-700 dark:text-white border border-gray-200 dark:border-white/10"
                   >
                     <Code2 class="h-3 w-3 mr-1" />
                     {{ tech.name }}
@@ -470,10 +470,10 @@ onMounted(() => {
                   @click="upvoteProject"
                   class="flex items-center gap-2 transition-colors"
                   :class="project.is_upvoted_by_user 
-                    ? 'text-blue-500' 
+                    ? 'text-vue' 
                     : themeStore.isDark 
-                      ? 'text-gray-400 hover:text-blue-500' 
-                      : 'text-gray-500 hover:text-blue-500'"
+                      ? 'text-gray-400 hover:text-vue' 
+                      : 'text-gray-500 hover:text-vue'"
                 >
                   <Star class="h-5 w-5" :class="project.is_upvoted_by_user ? 'fill-current' : ''" />
                   <span class="font-medium">{{ project.upvotes_count || 0 }} upvotes</span>
@@ -505,7 +505,7 @@ onMounted(() => {
                 
                 <Button 
                   v-if="project.demo_url"
-                  class="w-full bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 hover:from-blue-500 hover:via-purple-500 hover:to-indigo-500 transition-all duration-300 text-white"
+                  class="w-full bg-gradient-to-r from-vue to-vue/80 hover:from-vue/90 hover:to-vue/70 transition-all duration-300 text-white"
                   @click="openNewTab(project.demo_url)"
                 >
                   <Globe class="h-4 w-4 mr-2" />
@@ -534,7 +534,7 @@ onMounted(() => {
                   <CardTitle class="text-lg flex items-center"
                     :class="themeStore.isDark ? 'text-white' : 'text-gray-900'"
                   >
-                    <Heart class="h-5 w-5 mr-2 text-blue-500" />
+                    <Heart class="h-5 w-5 mr-2 text-vue" />
                     Support this Project
                   </CardTitle>
                 </CardHeader>
@@ -545,7 +545,7 @@ onMounted(() => {
                   
                   <Dialog :open="showFundingDialog" @update:open="showFundingDialog = $event">
                     <DialogTrigger as="div">
-                      <Button class="w-full bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 hover:from-blue-500 hover:via-purple-500 hover:to-indigo-500 text-white">
+                      <Button class="w-full bg-gradient-to-r from-vue to-vue/80 hover:from-vue/90 hover:to-vue/70 text-white">
                         <Heart class="h-4 w-4 mr-2" />
                         Fund Project
                       </Button>
@@ -579,7 +579,7 @@ onMounted(() => {
                         <Button 
                           @click="fundProject"
                           :disabled="fundingLoading"
-                          class="bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 w-full hover:from-blue-500 hover:via-purple-500 hover:to-indigo-500 transition-all duration-300 text-white"
+                          class="bg-gradient-to-r from-vue to-vue/80 w-full hover:from-vue/90 hover:to-vue/70 transition-all duration-300 text-white"
                         >
                           <Loader2 v-if="fundingLoading" class="h-4 w-4 mr-2 animate-spin" />
                           <Heart v-else class="h-4 w-4 mr-2" />
@@ -700,7 +700,7 @@ onMounted(() => {
                 class="flex items-start gap-2"
                 :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'"
               >
-                <CheckCircle2 class="h-4 w-4 mt-0.5 text-blue-500 flex-shrink-0" />
+                <CheckCircle2 class="h-4 w-4 mt-0.5 text-vue flex-shrink-0" />
                 <span>{{ feature }}</span>
               </li>
             </ul>
@@ -785,7 +785,7 @@ onMounted(() => {
             <div v-if="project.license_type" class="md:col-span-2">
               <span class="text-sm font-medium" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">License</span>
               <div class="flex items-center gap-2 mt-1">
-                <Badge class="bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 text-blue-400 border border-blue-500/30">{{ project.license_type }}</Badge>
+                <Badge class="bg-gradient-to-r from-vue/15 to-vue/10 text-vue border border-vue/30">{{ project.license_type }}</Badge>
                 <Button 
                   v-if="project.license_url"
                   variant="ghost"
@@ -878,7 +878,7 @@ onMounted(() => {
             </div>
             <div v-if="project.difficulty_level" class="flex justify-between items-center">
               <span class="text-sm font-medium" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">Difficulty Level</span>
-              <Badge class="mt-1 capitalize bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 text-blue-400 border border-blue-500/30">
+              <Badge class="mt-1 capitalize bg-gradient-to-r from-vue/15 to-vue/10 text-vue border border-vue/30">
                 {{ project.difficulty_level }}
               </Badge>
             </div>
@@ -894,7 +894,7 @@ onMounted(() => {
                 <Badge 
                   v-for="tag in project.tags" 
                   :key="tag"
-                  class="text-xs bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 text-blue-400 border border-blue-500/30"
+                  class="text-xs bg-gradient-to-r from-vue/15 to-vue/10 text-vue border border-vue/30"
                 >
                   {{ tag }}
                 </Badge>
@@ -913,7 +913,7 @@ onMounted(() => {
             <CardTitle class="flex items-center"
               :class="themeStore.isDark ? 'text-white' : 'text-gray-900'"
             >
-              <Heart class="h-5 w-5 mr-2 text-blue-500" />
+              <Heart class="h-5 w-5 mr-2 text-vue" />
               Recent Funding
             </CardTitle>
           </CardHeader>
@@ -929,7 +929,7 @@ onMounted(() => {
                   : 'bg-gray-50 hover:bg-gray-100'"
               >
                 <div class="flex items-center gap-3 flex-1 min-w-0">
-                  <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 flex items-center justify-center flex-shrink-0">
+                  <div class="w-8 h-8 rounded-full bg-gradient-to-r from-vue to-vue/80 flex items-center justify-center flex-shrink-0">
                     <Heart class="h-4 w-4 text-white" />
                   </div>
                   <div class="flex-1 min-w-0">
@@ -946,7 +946,7 @@ onMounted(() => {
                     </p>
                   </div>
                 </div>
-                <div class="text-base font-semibold text-blue-500 ml-2 flex-shrink-0">
+                <div class="text-base font-semibold text-vue ml-2 flex-shrink-0">
                   {{ formatPrice(fund.amount) }}
                 </div>
               </div>
@@ -993,7 +993,7 @@ onMounted(() => {
               <span class="text-sm font-medium" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">Actively Maintained</span>
               <div class="mt-1 flex items-center gap-2">
                 <Badge :class="project.is_maintained 
-                  ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 text-white' 
+                  ? 'bg-gradient-to-r from-vue to-vue/80 text-white' 
                   : 'bg-gray-500 text-white'"
                 >
                   {{ project.is_maintained ? 'Yes' : 'No' }}
@@ -1059,7 +1059,7 @@ onMounted(() => {
           <div v-if="project.affiliate_enabled">
             <span class="text-sm font-medium" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">Affiliate Program</span>
             <div class="mt-1">
-              <Badge class="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 text-white">Enabled</Badge>
+              <Badge class="bg-gradient-to-r from-vue to-vue/80 text-white">Enabled</Badge>
               <span v-if="project.affiliate_commission" class="text-sm ml-2"
                 :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'"
               >

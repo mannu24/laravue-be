@@ -214,6 +214,79 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Handle GitHub Sign-In.
+     * Frontend sends the GitHub OAuth code, backend exchanges it for a token,
+     * fetches user info, and creates/finds a Laravue user.
+     */
+    public function githubSignIn(Request $request): JsonResponse
+    {
+        $request->validate([
+            'code' => 'required|string',
+        ]);
+
+        try {
+            $oauthService = app(\App\Services\GitHub\GitHubOAuthService::class);
+
+            // Exchange code for GitHub access token
+            $tokenData = $oauthService->exchangeCodeForToken($request->code);
+            $githubUser = $oauthService->getUserInfo($tokenData['access_token']);
+
+            $email = $githubUser['email'];
+
+            // If email is private, fetch from /user/emails endpoint
+            if (!$email) {
+                $emailsResponse = \Illuminate\Support\Facades\Http::withToken($tokenData['access_token'])
+                    ->get('https://api.github.com/user/emails');
+                if ($emailsResponse->successful()) {
+                    $primary = collect($emailsResponse->json())->firstWhere('primary', true);
+                    $email = $primary['email'] ?? null;
+                }
+            }
+
+            if (!$email) {
+                return $this->error(message: 'Could not retrieve email from GitHub. Please ensure your email is visible in GitHub settings.', code: 422);
+            }
+
+            $name = $githubUser['name'] ?? $githubUser['login'] ?? $this->extractNameFromEmail($email);
+
+            $user = User::where('email', $email)->first();
+            $isNew = false;
+
+            if (!$user) {
+                $isNew = true;
+                $user = User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'username' => $githubUser['login'] ?? Str::random(10),
+                    'password' => Hash::make(Str::random(32)),
+                ]);
+            }
+
+            // Store/update GitHub token for the user
+            $oauthService->storeToken($user->id, $tokenData, $githubUser);
+
+            $user->update(['last_active_at' => now()]);
+
+            $tokenResult = $user->createToken('GitHub Sign-In Token');
+            $passportToken = $tokenResult->token;
+            $passportToken->expires_at = Carbon::tomorrow()->startOfDay();
+            $passportToken->save();
+
+            return $this->success(
+                data: [
+                    'token' => $tokenResult->accessToken,
+                    'user' => $user,
+                    'is_new' => $isNew,
+                ],
+                message: 'GitHub sign-in successful.'
+            );
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('GitHub sign-in failed', ['error' => $e->getMessage()]);
+            return $this->error(message: 'GitHub sign-in failed. Please try again.', code: 500);
+        }
+    }
+
     private function extractNameFromEmail($email)
     {
         $parts = explode('@', $email);

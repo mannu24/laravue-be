@@ -96,8 +96,7 @@ const canVerify = computed(() => {
 })
 
 const handleImproveAnswer = () => {
-  // TODO: Open edit modal for AI answer
-  toastInfo('AI answer improvement feature coming soon')
+  toastInfo('This feature is not available yet.')
 }
 
 const handleVerifyAnswer = async (answerId) => {
@@ -115,8 +114,9 @@ const handleVerifyAnswer = async (answerId) => {
 }
 
 const handleReply = (answerId) => {
-  // TODO: Handle reply to answer (could scroll to form and pre-fill)
-  console.log('Reply to answer:', answerId)
+  // Scroll to the answer form area
+  const answerForm = document.querySelector('#answer-form')
+  if (answerForm) answerForm.scrollIntoView({ behavior: 'smooth' })
 }
 
 const handleSubmitAnswer = async (payload) => {

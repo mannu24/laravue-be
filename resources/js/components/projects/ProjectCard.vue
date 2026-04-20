@@ -138,14 +138,14 @@ const categoryName = computed(() => props.project.category?.name || props.projec
       <div class="absolute top-4 left-4 flex gap-2">
         <Badge
           v-if="isTrending"
-          class="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 shadow-lg text-xs"
+          class="bg-gradient-to-r from-vue to-vue/80 text-white border-0 shadow-lg text-xs"
         >
           <Flame class="w-3 h-3 mr-1" />
           Trending
         </Badge>
         <Badge
           v-if="isNew"
-          class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 shadow-lg text-xs"
+          class="bg-gradient-to-r from-laravel to-laravel/80 text-white border-0 shadow-lg text-xs"
         >
           <Sparkles class="w-3 h-3 mr-1" />
           New
@@ -157,7 +157,7 @@ const categoryName = computed(() => props.project.category?.name || props.projec
           :class="[
             'text-white font-semibold shadow-lg border-0 px-3 py-1',
             project.is_sellable
-              ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500'
+              ? 'bg-gradient-to-r from-vue to-vue/80'
               : 'bg-gradient-to-r from-emerald-500 to-teal-500'
           ]"
         >
@@ -197,19 +197,19 @@ const categoryName = computed(() => props.project.category?.name || props.projec
         <Badge
           v-for="tech in project.technologies?.slice(0, 3)"
           :key="tech.id"
-          class="text-xs bg-gray-100 dark:bg-white/10 hover:bg-blue-500/25 dark:hover:bg-blue-400/50 text-gray-700 dark:text-white border border-gray-200 dark:border-white/10"
+          class="text-xs bg-gray-100 dark:bg-white/10 hover:bg-vue/20 dark:hover:bg-vue/30 text-gray-700 dark:text-white border border-gray-200 dark:border-white/10"
         >
           {{ tech.name }}
         </Badge>
         <Badge
           v-if="project.technologies?.length > 3"
-          class="text-xs bg-gray-100 dark:bg-white/10 hover:bg-blue-500/25 dark:hover:bg-blue-400/50 text-gray-700 dark:text-white border border-gray-200 dark:border-white/10"
+          class="text-xs bg-gray-100 dark:bg-white/10 hover:bg-vue/20 dark:hover:bg-vue/30 text-gray-700 dark:text-white border border-gray-200 dark:border-white/10"
         >
           +{{ project.technologies.length - 3 }}
         </Badge>
         <Badge
           v-if="!project.technologies?.length"
-          class="text-xs bg-gray-100 dark:bg-white/10 hover:bg-blue-500/25 dark:hover:bg-blue-400/50 text-gray-700 dark:text-white border border-gray-200 dark:border-white/10"
+          class="text-xs bg-gray-100 dark:bg-white/10 hover:bg-vue/20 dark:hover:bg-vue/30 text-gray-700 dark:text-white border border-gray-200 dark:border-white/10"
         >
           No technologies added
         </Badge>
@@ -223,7 +223,7 @@ const categoryName = computed(() => props.project.category?.name || props.projec
           <button
             @click.stop="upvoteProject"
             class="flex items-center gap-1 transition-colors"
-            :class="project.is_upvoted_by_user ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'"
+            :class="project.is_upvoted_by_user ? 'text-vue dark:text-vue' : 'text-gray-600 dark:text-gray-400'"
           >
             <CircleChevronUp class="w-4 h-4" />
             <span>{{ project.upvotes_count || 0 }}</span>
@@ -242,7 +242,7 @@ const categoryName = computed(() => props.project.category?.name || props.projec
         </div>
         <Button
           size="sm"
-          class="bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 hover:from-blue-500 hover:via-purple-500 hover:to-indigo-500 transition-all duration-300 text-white shadow-lg shadow-blue-400/30"
+          class="bg-gradient-to-r from-vue to-vue/80 hover:from-vue/90 hover:to-vue/70 transition-all duration-300 text-white shadow-lg shadow-vue/30"
           @click.stop="navigateToProject"
         >
           {{ project.is_sellable && project.selling_price ? `Buy for $${project.selling_price}` : 'View Project' }}

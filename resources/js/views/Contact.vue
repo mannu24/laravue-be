@@ -19,27 +19,33 @@ const isSubmitting = ref(false);
 const isSubmitted = ref(false);
 const formError = ref('');
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   isSubmitting.value = true;
   formError.value = '';
 
-  // Simulate API call
-  setTimeout(() => {
-    console.log('Contact form submitted:', contactData.value);
+  try {
+    // TODO: Connect to backend contact API when ready
+    // For now, show success after basic validation
+    if (!contactData.value.name || !contactData.value.email || !contactData.value.message) {
+      formError.value = 'Please fill in all required fields.';
+      isSubmitting.value = false;
+      return;
+    }
+
+    // Simulate submission (replace with actual API call)
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     isSubmitting.value = false;
     isSubmitted.value = true;
 
-    // Reset form after 3 seconds
     setTimeout(() => {
       isSubmitted.value = false;
-      contactData.value = {
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
-      };
+      contactData.value = { name: '', email: '', subject: '', message: '' };
     }, 3000);
-  }, 1500);
+  } catch (error) {
+    isSubmitting.value = false;
+    formError.value = 'Failed to send message. Please try again.';
+  }
 };
 
 const faqs = [
@@ -68,7 +74,7 @@ const officeHours = [
         <div class="text-center max-w-3xl mx-auto">
           <h1 class="text-5xl font-extrabold tracking-tight mb-6">
             <span :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">Get in </span>
-            <span class="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
+            <span class="bg-gradient-to-r from-vue to-laravel bg-clip-text text-transparent">
               Touch
             </span>
           </h1>
@@ -88,12 +94,12 @@ const officeHours = [
           <Card :class="['overflow-hidden transition-all duration-300 border-0 shadow-xl',
             themeStore.isDark ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-white/90 backdrop-blur-sm'
           ]">
-            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-500 to-orange-500"></div>
+            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-laravel to-laravel/80"></div>
 
             <CardHeader class="pb-6">
               <div class="flex items-center mb-2">
                 <div
-                  class="w-10 h-10 rounded-full bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center mr-3">
+                  class="w-10 h-10 rounded-full bg-gradient-to-r from-laravel to-laravel/80 flex items-center justify-center mr-3">
                   <MessageSquare class="h-5 w-5 text-white" />
                 </div>
                 <CardTitle class="text-2xl" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
@@ -125,7 +131,7 @@ const officeHours = [
                   </label>
                   <Input type="text" id="name" v-model="contactData.name" required placeholder="Your name"
                     :class="themeStore.isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'"
-                    class="transition-all duration-300 focus:ring-2 focus:ring-red-500 focus:border-red-500" />
+                    class="transition-all duration-300 focus:ring-2 focus:ring-vue focus:border-vue" />
                 </div>
 
                 <div class="space-y-1.5">
@@ -135,7 +141,7 @@ const officeHours = [
                   </label>
                   <Input type="email" id="email" v-model="contactData.email" required placeholder="your@email.com"
                     :class="themeStore.isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'"
-                    class="transition-all duration-300 focus:ring-2 focus:ring-red-500 focus:border-red-500" />
+                    class="transition-all duration-300 focus:ring-2 focus:ring-vue focus:border-vue" />
                 </div>
 
                 <div class="space-y-1.5">
@@ -146,7 +152,7 @@ const officeHours = [
                   <Input type="text" id="subject" v-model="contactData.subject" required
                     placeholder="What's this about?"
                     :class="themeStore.isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'"
-                    class="transition-all duration-300 focus:ring-2 focus:ring-red-500 focus:border-red-500" />
+                    class="transition-all duration-300 focus:ring-2 focus:ring-vue focus:border-vue" />
                 </div>
 
                 <div class="space-y-1.5">
@@ -157,7 +163,7 @@ const officeHours = [
                   <Textarea id="message" v-model="contactData.message" rows="5" required
                     placeholder="Please describe how we can help you..."
                     :class="themeStore.isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'"
-                    class="transition-all duration-300 focus:ring-2 focus:ring-red-500 focus:border-red-500" />
+                    class="transition-all duration-300 focus:ring-2 focus:ring-vue focus:border-vue" />
                 </div>
 
                 <div v-if="formError" class="text-red-500 text-sm">
@@ -165,7 +171,7 @@ const officeHours = [
                 </div>
 
                 <Button type="submit"
-                  class="w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white py-6 text-lg font-medium"
+                  class="w-full bg-gradient-to-r from-vue to-vue/80 hover:from-vue/90 hover:to-vue/70 text-white py-6 text-lg font-medium"
                   :disabled="isSubmitting">
                   <Loader2 v-if="isSubmitting" class="h-5 w-5 mr-2 animate-spin" />
                   <Send v-else class="h-5 w-5 mr-2" />
@@ -182,12 +188,12 @@ const officeHours = [
           <Card :class="['overflow-hidden transition-all duration-300 border-0 shadow-xl',
             themeStore.isDark ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-white/90 backdrop-blur-sm'
           ]">
-            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-vue to-vue/80"></div>
 
             <CardHeader class="pb-6">
               <div class="flex items-center mb-2">
                 <div
-                  class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center mr-3">
+                  class="w-10 h-10 rounded-full bg-gradient-to-r from-vue to-vue/80 flex items-center justify-center mr-3">
                   <Users class="h-5 w-5 text-white" />
                 </div>
                 <CardTitle class="text-2xl" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
@@ -226,49 +232,6 @@ const officeHours = [
                   themeStore.isDark ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
                 ]">
                   <div
-                    class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center mr-4 flex-shrink-0">
-                    <Phone class="h-5 w-5 text-blue-700 dark:text-blue-300" />
-                  </div>
-                  <div>
-                    <h3 class="font-medium mb-1" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
-                      Phone
-                    </h3>
-                    <p class="text-sm mb-2" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
-                      For urgent matters and direct support
-                    </p>
-                    <a href="tel:+1-555-123-4567"
-                      class="text-blue-600 dark:text-blue-400 hover:underline flex items-center">
-                      +1 (555) 123-4567
-                      <ExternalLink class="h-3 w-3 ml-1" />
-                    </a>
-                  </div>
-                </div>
-                <div :class="['flex items-start p-4 rounded-lg transition-all duration-300',
-                  themeStore.isDark ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
-                ]">
-                  <div
-                    class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center mr-4 flex-shrink-0">
-                    <Twitter class="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    <h3 class="font-medium mb-1" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
-                      Twitter
-                    </h3>
-                    <p class="text-sm mb-2" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
-                      Follow us for updates and quick responses
-                    </p>
-                    <a href="https://twitter.com/LaraVue" target="_blank" rel="noopener noreferrer"
-                      class="text-purple-600 dark:text-purple-400 hover:underline flex items-center">
-                      @LaraVue
-                      <ExternalLink class="h-3 w-3 ml-1" />
-                    </a>
-                  </div>
-                </div>
-
-                <div :class="['flex items-start p-4 rounded-lg transition-all duration-300',
-                  themeStore.isDark ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
-                ]">
-                  <div
                     class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mr-4 flex-shrink-0">
                     <Github class="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
@@ -296,12 +259,12 @@ const officeHours = [
       <Card :class="['overflow-hidden transition-all duration-300 border-0 shadow-xl mt-16',
         themeStore.isDark ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-white/90 backdrop-blur-sm'
       ]">
-        <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+        <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-laravel to-laravel/80"></div>
 
         <CardHeader class="pb-6">
           <div class="flex items-center mb-2">
             <div
-              class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center mr-3">
+              class="w-10 h-10 rounded-full bg-gradient-to-r from-laravel to-laravel/80 flex items-center justify-center mr-3">
               <HelpCircle class="h-5 w-5 text-white" />
             </div>
             <CardTitle class="text-2xl" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
@@ -317,7 +280,7 @@ const officeHours = [
             ]">
               <h3 class="font-semibold mb-2 flex items-start"
                 :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
-                <span class="text-purple-500 dark:text-purple-400 mr-2">Q:</span>
+                <span class="text-vue dark:text-vue mr-2">Q:</span>
                 {{ faq.question }}
               </h3>
               <p class="pl-5" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
@@ -328,7 +291,7 @@ const officeHours = [
 
           <div class="mt-6 text-center">
             <Button variant="link"
-              class="text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300">
+              class="text-vue dark:text-vue hover:text-purple-700 dark:hover:text-purple-300">
               View all FAQs
               <ArrowRight class="h-4 w-4 ml-1" />
             </Button>

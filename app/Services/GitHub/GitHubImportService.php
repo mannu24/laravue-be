@@ -147,8 +147,8 @@ class GitHubImportService
             'is_sellable' => $userOverrides['is_sellable'] ?? false,
             'status' => 'draft', // Always start as draft for review
             'features' => $userOverrides['features'] ?? $features,
-            'installation_guide' => $userOverrides['installation_guide'] ?? $parsedData['installation'],
-            'requirements' => $userOverrides['requirements'] ?? $parsedData['requirements'],
+            'installation_guide' => $userOverrides['installation_guide'] ?? ($parsedData['installation'] ?? null),
+            'requirements' => $userOverrides['requirements'] ?? ($parsedData['requirements'] ?? null),
             'license_type' => $userOverrides['license_type'] ?? $license,
             'license_url' => $userOverrides['license_url'] ?? $licenseUrl,
             'documentation_url' => $userOverrides['documentation_url'] ?? $repoData['html_url'] . '/blob/main/README.md',

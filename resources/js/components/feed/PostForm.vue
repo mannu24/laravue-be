@@ -115,7 +115,6 @@ const removeMention = (mentionNode) => {
 
     const parent = mentionNode.parentNode;
     parent.removeChild(mentionNode);
-    console.log(parent.innerHTML);
 
     newPost.value.mentions = newPost.value.mentions.filter(m => m.id !== userId);
     newPost.value.content = parent.innerHTML;

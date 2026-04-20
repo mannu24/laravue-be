@@ -305,9 +305,8 @@ const journey = [
             </Button>
           </div>
           <div class="flex justify-center gap-6 text-gray-600 dark:text-gray-400">
-            <a href="#" class="hover:text-primary transition"><Github class="w-5 h-5" /></a>
-            <a href="#" class="hover:text-secondary transition"><Twitter class="w-5 h-5" /></a>
-            <a href="#" class="hover:text-primary/80 transition"><Mail class="w-5 h-5" /></a>
+            <a href="https://github.com/laravue" target="_blank" rel="noopener noreferrer" class="hover:text-vue transition"><Github class="w-5 h-5" /></a>
+            <a href="mailto:support@laravue.com" class="hover:text-vue transition"><Mail class="w-5 h-5" /></a>
           </div>
         </CardContent>
       </Card>

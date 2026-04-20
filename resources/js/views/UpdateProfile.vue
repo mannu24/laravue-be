@@ -389,7 +389,7 @@ const removeAvatar = () => {
 
 // Handle image error
 const handleImageError = (event) => {
-  event.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.value.name || 'User')}&background=6366f1&color=fff&size=200`
+  event.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.value.name || 'User')}&background=41B883&color=fff&size=200`
 }
 
 // Update profile

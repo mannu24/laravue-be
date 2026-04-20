@@ -168,8 +168,7 @@ const saveSettings = async () => {
         }, authStore.config)
 
         if (response.data.status === 'success') {
-            // Show success message (you can add toast notification here)
-            console.log('Notification settings saved successfully')
+            // Settings saved
         }
     } catch (error) {
         console.error('Error saving notification settings:', error)

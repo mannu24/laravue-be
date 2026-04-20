@@ -248,6 +248,59 @@ const handleGoogleCallback = async (response) => {
     }
 };
 
+// ─── GitHub Sign-In ───
+const githubLoading = ref(false);
+
+const handleGitHubSignIn = () => {
+    githubLoading.value = true;
+    errorMessage.value = '';
+
+    const width = 600, height = 700;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+
+    const popup = window.open(
+        '/api/v1/auth/github/redirect',
+        'GitHub Sign In',
+        `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
+    );
+
+    const onMessage = async (event) => {
+        if (event.data?.type === 'github-signin' && event.data.code) {
+            window.removeEventListener('message', onMessage);
+            try {
+                const res = await axios.post('/api/v1/auth/github', { code: event.data.code });
+                githubLoading.value = false;
+                if (res.data.status === 'success') {
+                    const { token, user, is_new } = res.data.data;
+                    authStore.setAuthData(token, user);
+                    router.push(is_new ? '/dashboard' : '/');
+                } else {
+                    errorMessage.value = res.data.message || 'GitHub sign-in failed.';
+                }
+            } catch (error) {
+                githubLoading.value = false;
+                errorMessage.value = error.response?.data?.message || 'GitHub sign-in failed. Please try again.';
+            }
+        } else if (event.data?.type === 'github-signin-error') {
+            window.removeEventListener('message', onMessage);
+            githubLoading.value = false;
+            errorMessage.value = event.data.message || 'GitHub sign-in failed.';
+        }
+    };
+
+    window.addEventListener('message', onMessage);
+
+    // Poll for popup close (user closed without completing)
+    const poll = setInterval(() => {
+        if (popup?.closed) {
+            clearInterval(poll);
+            window.removeEventListener('message', onMessage);
+            githubLoading.value = false;
+        }
+    }, 500);
+};
+
 // ─── Features data ───
 const features = [
     { icon: Code2, title: 'Showcase Your Work', description: 'Share your creations with a community that values innovation and quality.' },
@@ -455,6 +508,24 @@ onBeforeUnmount(() => {
                                     <p v-else class="text-xs text-center" :class="themeStore.isDark ? 'text-gray-500' : 'text-gray-400'">
                                         Google Sign-In unavailable
                                     </p>
+
+                                    <button
+                                        type="button"
+                                        @click="handleGitHubSignIn"
+                                        :disabled="githubLoading"
+                                        class="w-full inline-flex items-center justify-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 border"
+                                        :class="themeStore.isDark
+                                            ? 'bg-white/5 border-white/15 text-gray-200 hover:bg-white/10 hover:border-white/25 active:bg-white/15'
+                                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 shadow-sm'">
+                                        <svg v-if="!githubLoading" class="w-5 h-5 flex-shrink-0" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                                        </svg>
+                                        <svg v-else class="w-5 h-5 flex-shrink-0 animate-spin" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                        </svg>
+                                        <span>{{ githubLoading ? 'Signing in...' : 'Continue with GitHub' }}</span>
+                                    </button>
                                 </div>
                             </div>
                         </form>
@@ -489,13 +560,11 @@ onBeforeUnmount(() => {
                                         placeholder=""
                                         @complete="handleComplete"
                                         @paste.prevent="handleOtpPaste"
-                                        mask
                                     >
                                         <PinInputGroup class="flex flex-nowrap justify-center gap-2">
                                             <template v-for="(id, index) in 6" :key="id">
                                                 <PinInputSlot
                                                     :id="`pinInputRef_${index}`"
-                                                    type="password"
                                                     inputmode="numeric"
                                                     pattern="[0-9]*"
                                                     maxlength="1"

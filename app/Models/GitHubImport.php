@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GitHubImport extends Model
 {
+    protected $table = 'github_imports';
+
     protected $fillable = [
         'user_id',
         'project_id',

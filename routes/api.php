@@ -26,6 +26,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/login', 'login')->name('login');
         Route::post('/auth/otp', 'handleOtp');
         Route::post('/auth/google', 'googleSignIn');
+        Route::post('/auth/github', 'githubSignIn');
     });
 
     // Search Routes
@@ -196,8 +197,24 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    // GitHub OAuth Callback (public route)
+    // GitHub OAuth Callback (public route - for account connection)
     Route::get('github/callback', [\App\Http\Controllers\v1\Api\GitHub\GitHubController::class, 'callback']);
+
+    // GitHub OAuth for Sign-In (public routes)
+    Route::get('auth/github/redirect', function () {
+        $state = \Illuminate\Support\Str::random(40) . '|signin';
+        $cleanState = str_replace('|signin', '', $state);
+        \Illuminate\Support\Facades\Cache::put("github_signin_state:{$cleanState}", true, now()->addMinutes(10));
+
+        $params = http_build_query([
+            'client_id' => config('services.github.client_id'),
+            'redirect_uri' => config('services.github.redirect'),
+            'scope' => 'read:user user:email',
+            'state' => $state,
+        ]);
+
+        return redirect("https://github.com/login/oauth/authorize?{$params}");
+    });
 
     // Question Public Routes
     Route::controller(QuestionController::class)->group(function () {

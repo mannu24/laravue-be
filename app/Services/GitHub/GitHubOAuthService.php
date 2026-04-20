@@ -27,11 +27,14 @@ class GitHubOAuthService
      */
     public function getAuthorizationUrl(string $state, bool $popup = false): string
     {
+        // Encode popup flag into state (GitHub requires exact redirect_uri match)
+        $statePayload = $popup ? "{$state}|popup" : $state;
+
         $params = [
             'client_id' => $this->clientId,
-            'redirect_uri' => $this->redirectUri . ($popup ? '?popup=1' : ''),
+            'redirect_uri' => $this->redirectUri,
             'scope' => 'repo read:user user:email',
-            'state' => $state,
+            'state' => $statePayload,
             'response_type' => 'code',
         ];
 

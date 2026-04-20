@@ -22,26 +22,7 @@ useGamificationRealtime()
 
 // Computed property to determine dot color based on route
 const dotColor = computed(() => {
-    const path = route.path
-    
-    if (path.startsWith('/feed')) {
-        // return '#41B883' // Vue green
-        return '#347958' // Vue green
-    } else if (path.startsWith('/qna')) {
-        return '#cd180e' // Laravel red
-    } else if (path.startsWith('/dashboard')) {
-        return '#3b82f6' // Blue
-    } else if (path.startsWith('/projects')) {
-        return '#a855f7' // Purple
-    } else if (path.startsWith('/about')) {
-        return '#ef4444' // Danger red
-    } else if (path.startsWith('/home') || path === '/') {
-        // For white, use a subtle gray that works on both light/dark backgrounds
-        return themeStore.isDark ? '#ffffff' : '#222222' // White for dark mode, light gray for light mode
-    }
-    
-    // Default color
-    return '#444cf7'
+    return '#41B883' // Vue green — unified across all pages
 })
 
 const updateDotColor = () => {
@@ -117,8 +98,7 @@ const shareUrl = (data: string) => {
         </main>
         <Transition name="fade">
             <button v-if="isScrollTopVisible"
-                class="fixed right-5 bottom-5 flex justify-center items-center text-white w-10 h-10 transition-all duration-300 ease-in-out rounded-full hover:opacity-80 hover:scale-110 z-[100]"
-                :style="{ backgroundColor: dotColor }"
+                class="fixed right-5 bottom-5 flex justify-center items-center text-white w-10 h-10 transition-all duration-300 ease-in-out rounded-full hover:opacity-80 hover:scale-110 z-[100] bg-[#41B883]"
                 type="button" @click="scrollTop()">
                 <i class="fas fa-arrow-up me-0"></i>
             </button>

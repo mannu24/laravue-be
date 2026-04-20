@@ -227,15 +227,12 @@ export default {
     methods: {
         async fetchSocialLinks() {
             try {
-                console.log('Fetching social links...');
                 const response = await axios.get('/api/v1/social-links', {
                     headers: {
                         Authorization: `Bearer ${authStore.token}`
                     }
                 });
-                console.log('Social links response:', response.data);
                 this.socialLinks = response.data.data || [];
-                console.log('Updated socialLinks:', this.socialLinks);
             } catch (error) {
                 console.error('Error fetching social links:', error);
             }

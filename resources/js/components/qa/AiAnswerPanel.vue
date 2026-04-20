@@ -19,9 +19,7 @@ onMounted(() => {
 })
 
 const handleFeedback = (helpful) => {
-    // Note: answerId would normally come from the stream finish or be stored in a ref
-    // For now, we'll just log it
-    console.log('Feedback:', helpful)
+    // Feedback handled via API when AI answer ID is available
 }
 </script>
 

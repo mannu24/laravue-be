@@ -41,8 +41,7 @@ const router = createRouter({
         {
             path: '/signup',
             name: 'signup',
-            component: () => import('./views/Signup.vue'),
-            meta: { auth: false, both: false },
+            redirect: '/login',
         },
         {
             path: '/projects',

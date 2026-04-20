@@ -41,10 +41,13 @@ class GitHubController extends Controller
             }
 
             $state = Str::random(40);
-            session([
-                'github_oauth_state' => $state,
-                'github_oauth_user_id' => $user->id, // Store user ID for callback
-            ]);
+
+            // Store state → user mapping in cache (sessions don't work across API → browser redirect)
+            \Illuminate\Support\Facades\Cache::put(
+                "github_oauth_state:{$state}",
+                $user->id,
+                now()->addMinutes(10)
+            );
             
             $popup = $request->boolean('popup', true);
             $url = $this->oauthService->getAuthorizationUrl($state, $popup);
@@ -71,26 +74,55 @@ class GitHubController extends Controller
     public function callback(Request $request)
     {
         try {
-            // Verify state
             $state = $request->query('state');
-            $sessionState = session('github_oauth_state');
-            
-            if (!$state || $state !== $sessionState) {
-                if ($request->has('popup')) {
+
+            // Check if this is a sign-in flow (state ends with |signin)
+            if ($state && str_contains($state, '|signin')) {
+                $cleanState = str_replace('|signin', '', $state);
+                $valid = \Illuminate\Support\Facades\Cache::pull("github_signin_state:{$cleanState}");
+                $code = $request->query('code');
+                $error = $request->query('error');
+
+                $errorMessage = null;
+                if ($error) {
+                    $errorMessage = $request->query('error_description', 'Authorization denied');
+                } elseif (!$valid) {
+                    $errorMessage = 'Invalid or expired session. Please try again.';
+                }
+
+                return response()->view('github.signin-callback', [
+                    'code' => (!$errorMessage && $code) ? $code : null,
+                    'error' => $errorMessage,
+                ]);
+            }
+
+            // Parse popup flag from state (format: "randomtoken|popup" or just "randomtoken")
+            $isPopup = false;
+            $cacheKey = $state;
+            if ($state && str_contains($state, '|popup')) {
+                $isPopup = true;
+                $cacheKey = str_replace('|popup', '', $state);
+            }
+
+            // Look up user ID from cache using the state token
+            $userId = $cacheKey ? \Illuminate\Support\Facades\Cache::pull("github_oauth_state:{$cacheKey}") : null;
+
+            if (!$state || !$userId) {
+                if ($isPopup) {
                     return response()->view('github.callback', [
                         'status' => 'error',
-                        'message' => 'Invalid state parameter',
+                        'message' => 'Invalid or expired state. Please try again.',
                     ]);
                 }
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Invalid state parameter',
+                    'message' => 'Invalid or expired state. Please try again.',
                 ], 400);
             }
 
             // Check for error from GitHub
             if ($request->has('error')) {
-                if ($request->has('popup')) {
+                if ($isPopup) {
                     return response()->view('github.callback', [
                         'status' => 'error',
                         'message' => $request->query('error_description', 'Authorization was denied'),
@@ -104,7 +136,7 @@ class GitHubController extends Controller
 
             $code = $request->query('code');
             if (!$code) {
-                if ($request->has('popup')) {
+                if ($isPopup) {
                     return response()->view('github.callback', [
                         'status' => 'error',
                         'message' => 'Authorization code not provided',
@@ -113,21 +145,6 @@ class GitHubController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Authorization code not provided',
-                ], 400);
-            }
-
-            // Get user ID from session (stored during authorize)
-            $userId = session('github_oauth_user_id');
-            if (!$userId) {
-                if ($request->has('popup')) {
-                    return response()->view('github.callback', [
-                        'status' => 'error',
-                        'message' => 'Session expired. Please try again.',
-                    ]);
-                }
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Session expired. Please try again.',
                 ], 400);
             }
 
@@ -145,10 +162,10 @@ class GitHubController extends Controller
             );
 
             // Clear state and user ID from session
-            session()->forget(['github_oauth_state', 'github_oauth_user_id']);
+            // (state already consumed by Cache::pull above)
 
             // If this is a popup, return HTML that closes the popup
-            if ($request->has('popup')) {
+            if ($isPopup) {
                 return response()->view('github.callback', [
                     'status' => 'success',
                     'github_username' => $token->github_username,
@@ -166,10 +183,10 @@ class GitHubController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            // Clear session on error
-            session()->forget(['github_oauth_state', 'github_oauth_user_id']);
+            // Determine if this was a popup request (check state param for popup flag)
+            $wasPopup = $isPopup ?? str_contains($request->query('state', ''), '|popup');
 
-            if ($request->has('popup')) {
+            if ($wasPopup) {
                 return response()->view('github.callback', [
                     'status' => 'error',
                     'message' => 'Failed to connect GitHub account. Please try again.',
