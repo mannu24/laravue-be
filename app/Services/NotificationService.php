@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Events\NotificationCreated;
 use App\Jobs\SendNotificationEmail;
 use App\Models\Notification;
 use App\Models\User;
@@ -47,7 +46,7 @@ class NotificationService
             'email_sent' => false,
         ]);
 
-        // Eager load notifiable relationship for broadcasting
+        // Eager load notifiable relationship for notification data
         if ($notifiableId) {
             $notification->load('notifiable:id,name,username');
         }
@@ -105,18 +104,6 @@ class NotificationService
                     ]);
                 }
             }
-        }
-
-        // Broadcast real-time notification event
-        try {
-            broadcast(new NotificationCreated($notification))->toOthers();
-        } catch (\Exception $e) {
-            // Log error but don't fail the notification creation
-            Log::error('Failed to broadcast notification', [
-                'notification_id' => $notification->id,
-                'user_id' => $userId,
-                'error' => $e->getMessage(),
-            ]);
         }
 
         return $notification;

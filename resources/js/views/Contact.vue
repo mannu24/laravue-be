@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { CheckCircle, ExternalLink, Github, Loader2, Mail, MessageSquare, Phone, Send, Twitter, Users } from 'lucide-vue-next';
 import { ref } from 'vue';
+import axios from 'axios';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -24,16 +25,13 @@ const handleSubmit = async () => {
   formError.value = '';
 
   try {
-    // TODO: Connect to backend contact API when ready
-    // For now, show success after basic validation
     if (!contactData.value.name || !contactData.value.email || !contactData.value.message) {
       formError.value = 'Please fill in all required fields.';
       isSubmitting.value = false;
       return;
     }
 
-    // Simulate submission (replace with actual API call)
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await axios.post('/api/v1/contact', contactData.value);
     
     isSubmitting.value = false;
     isSubmitted.value = true;
@@ -42,9 +40,16 @@ const handleSubmit = async () => {
       isSubmitted.value = false;
       contactData.value = { name: '', email: '', subject: '', message: '' };
     }, 3000);
-  } catch (error) {
+  } catch (error: any) {
     isSubmitting.value = false;
-    formError.value = 'Failed to send message. Please try again.';
+    if (error.response?.status === 429) {
+      formError.value = 'Too many requests. Please wait a moment and try again.';
+    } else if (error.response?.data?.errors) {
+      const errors = error.response.data.errors;
+      formError.value = Object.values(errors).flat().join(' ');
+    } else {
+      formError.value = 'Failed to send message. Please try again.';
+    }
   }
 };
 
@@ -221,9 +226,9 @@ const officeHours = [
                     <p class="text-sm mb-2" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
                       For general inquiries and support
                     </p>
-                    <a href="mailto:support@LaraVue.com"
+                    <a href="mailto:info@laravue.in"
                       class="text-yellow-600 dark:text-yellow-400 hover:underline flex items-center">
-                      support@LaraVue.com
+                      info@laravue.in
                       <ExternalLink class="h-3 w-3 ml-1" />
                     </a>
                   </div>
@@ -242,9 +247,9 @@ const officeHours = [
                     <p class="text-sm mb-2" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
                       Contribute to our open source projects
                     </p>
-                    <a href="https://github.com/LaraVue" target="_blank" rel="noopener noreferrer"
+                    <a href="https://github.com/mannu24/laravue" target="_blank" rel="noopener noreferrer"
                       class="text-green-600 dark:text-green-400 hover:underline flex items-center">
-                      github.com/LaraVue
+                      github.com/mannu24/laravue
                       <ExternalLink class="h-3 w-3 ml-1" />
                     </a>
                   </div>

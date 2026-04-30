@@ -11,9 +11,8 @@ class ContactQuery extends Model
     protected $fillable = [
         'name',
         'email',
-        'mobile',
         'subject',
         'message',
-        'status'
+        'status',
     ];
 }

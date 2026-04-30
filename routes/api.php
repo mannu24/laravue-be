@@ -18,6 +18,8 @@ use App\Http\Controllers\v1\Api\SettingsController;
 use App\Http\Controllers\v1\Api\PushSubscriptionController;
 use App\Http\Controllers\v1\Api\BookmarkController;
 use App\Http\Controllers\v1\Api\TaskController;
+use App\Http\Controllers\v1\Api\AchievementController;
+use App\Http\Controllers\v1\Api\ContactController;
 
 Route::prefix('v1')->group(function () {
     // Authentication Routes (rate limited)
@@ -123,6 +125,9 @@ Route::prefix('v1')->group(function () {
             Route::post('/assign', 'assign');
             Route::post('/auto-complete', 'autoComplete');
         });
+
+        // Gamification Achievement Polling
+        Route::get('/gamification/recent-achievements', [AchievementController::class, 'recentAchievements']);
 
         // Question Routes
         Route::post('questions/{id}/toggle-upvote', [QuestionController::class, 'toggleUpvote'])->name('questions.toggleUpvote');
@@ -234,4 +239,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/questions/ai-analyze', [\App\Http\Controllers\v1\Api\AiQnaController::class, 'analyze']);
     Route::post('/questions/{id}/ai-answer', [\App\Http\Controllers\v1\Api\AiQnaController::class, 'stream']);
     Route::post('/ai-answers/{id}/validate', [\App\Http\Controllers\v1\Api\AiQnaController::class, 'validateAnswer']);
+
+    // Contact Form (rate limited to prevent spam)
+    Route::middleware(['throttle:3,1'])->post('/contact', [ContactController::class, 'store']);
 });

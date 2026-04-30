@@ -1,4 +1,5 @@
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useThemeStore } from '../stores/theme'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,17 +22,42 @@ import {
   Share2,
   Layers,
   Sparkles,
-  CalendarDays
+  CalendarDays,
+  FolderGit2
 } from 'lucide-vue-next'
+import axios from 'axios'
 
 const themeStore = useThemeStore()
 
-const stats = [
-  { label: 'Active Developers', value: '10,000+', icon: Users },
-  { label: 'Projects Shared', value: '5,000+', icon: Code2 },
-  { label: 'Community Stars', value: '50,000+', icon: Star },
-  { label: 'Countries', value: '80+', icon: Globe }
-]
+const stats = ref([
+  { label: 'Contributors', value: '—', icon: Users },
+  { label: 'Projects Shared', value: '—', icon: FolderGit2 },
+  { label: 'Community Stars', value: '—', icon: Star },
+  { label: 'Technologies', value: '—', icon: Code2 }
+])
+
+const fetchStats = async () => {
+  try {
+    const [projectsRes, techRes] = await Promise.allSettled([
+      axios.get('/api/v1/projects/stats'),
+      axios.get('/api/v1/projects/technologies'),
+    ])
+
+    const pStats = projectsRes.status === 'fulfilled' ? projectsRes.value.data?.data : {}
+    const tData = techRes.status === 'fulfilled' ? techRes.value.data?.data : []
+
+    stats.value = [
+      { label: 'Contributors', value: String(pStats.total_contributors || 0), icon: Users },
+      { label: 'Projects Shared', value: String(pStats.total_projects || 0), icon: FolderGit2 },
+      { label: 'Community Stars', value: String(pStats.total_upvotes || 0), icon: Star },
+      { label: 'Technologies', value: String(tData.length || 0), icon: Code2 },
+    ]
+  } catch (e) {
+    // Non-critical, keep defaults
+  }
+}
+
+onMounted(fetchStats)
 
 const missionHighlights = [
   {
@@ -91,24 +117,24 @@ const pillars = [
 
 const journey = [
   {
-    year: '2019',
-    title: 'Community roots',
-    copy: 'A handful of Laravel and Vue creators started weekly project drops. Those meetups became LaraVue.'
+    year: 'Start',
+    title: 'The idea takes shape',
+    copy: 'LaraVue began as a passion project to connect Laravel and Vue.js developers in one focused community.'
   },
   {
-    year: '2021',
-    title: 'Launch of project marketplace',
-    copy: 'We introduced verified listings so makers can sell premium components and agencies can source talent.'
+    year: 'Build',
+    title: 'Project marketplace',
+    copy: 'We built a space where makers can share, review, and discover production-ready starter kits and components.'
   },
   {
-    year: '2023',
-    title: 'Learning tracks & badges',
-    copy: 'Gamified achievements, office hours, and peer-led cohorts made shipping together even more rewarding.'
+    year: 'Grow',
+    title: 'Gamification & learning',
+    copy: 'XP, badges, streaks, and daily tasks were added to make contributing and learning more rewarding.'
   },
   {
-    year: 'Today',
-    title: 'Global collective',
-    copy: '10k+ members ship OSS, mentor juniors, run hackathons, and build sustainable businesses together.'
+    year: 'Now',
+    title: 'Growing together',
+    copy: 'We\'re building in public, shipping features, and welcoming every developer who wants to learn and share.'
   }
 ]
 </script>
@@ -305,8 +331,8 @@ const journey = [
             </Button>
           </div>
           <div class="flex justify-center gap-6 text-gray-600 dark:text-gray-400">
-            <a href="https://github.com/laravue" target="_blank" rel="noopener noreferrer" class="hover:text-vue transition"><Github class="w-5 h-5" /></a>
-            <a href="mailto:support@laravue.com" class="hover:text-vue transition"><Mail class="w-5 h-5" /></a>
+            <a href="https://github.com/mannu24/laravue" target="_blank" rel="noopener noreferrer" class="hover:text-vue transition"><Github class="w-5 h-5" /></a>
+            <a href="mailto:info@laravue.in" class="hover:text-vue transition"><Mail class="w-5 h-5" /></a>
           </div>
         </CardContent>
       </Card>

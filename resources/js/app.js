@@ -9,7 +9,6 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import globalFunctions from './functions.js';
 import { useAuthStore } from './stores/auth';
 import { useGlobalDataStore } from './stores/globalData';
-import { reinitializeEcho } from './echo';
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
@@ -22,7 +21,7 @@ app.use(globalFunctions);
 app.use(pinia);
 app.use(router);
 
-// Make auth store available globally for Echo (after Pinia is initialized)
+// Make auth store available globally (after Pinia is initialized)
 const authStore = useAuthStore();
 const globalDataStore = useGlobalDataStore();
 window.authStore = authStore;
@@ -43,18 +42,8 @@ hydrateGlobalData();
 
 authStore.$subscribe((_mutation, state) => {
   if (state.isAuthenticated) {
-    // Reinitialize Echo with new auth token when user logs in
-    reinitializeEcho();
     hydrateGlobalData(true);
   } else {
-    // Disconnect Echo when user logs out
-    if (window.Echo) {
-      try {
-        window.Echo.disconnect();
-      } catch (error) {
-        console.warn('[Echo] Error disconnecting on logout:', error);
-      }
-    }
     globalDataStore.clear();
   }
 });

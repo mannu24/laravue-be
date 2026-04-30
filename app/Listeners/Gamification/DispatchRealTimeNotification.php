@@ -22,11 +22,6 @@ class DispatchRealTimeNotification implements ShouldQueue
      */
     public function handleXpEarned(UserEarnedXp $event): void
     {
-        // TODO: Broadcast to Pusher/Echo
-        // Broadcast::channel("user.{$event->user->id}", function ($user) {
-        //     return (int) $user->id === (int) $event->user->id;
-        // })->broadcast(new XpGainedEvent($event->user, $event->xpLog));
-
         Log::info('XP earned event', [
             'user_id' => $event->user->id,
             'xp_amount' => $event->xpLog->xp_amount,
@@ -39,9 +34,6 @@ class DispatchRealTimeNotification implements ShouldQueue
      */
     public function handleLevelUp(UserLeveledUp $event): void
     {
-        // TODO: Broadcast to Pusher/Echo
-        // Broadcast::channel("user.{$event->user->id}")->broadcast(new LevelUpEvent($event->user, $event->newLevel));
-
         Log::info('Level up event', [
             'user_id' => $event->user->id,
             'new_level' => $event->newLevel->name,
@@ -54,9 +46,6 @@ class DispatchRealTimeNotification implements ShouldQueue
      */
     public function handleBadgeUnlocked(UserUnlockedBadge $event): void
     {
-        // TODO: Broadcast to Pusher/Echo
-        // Broadcast::channel("user.{$event->user->id}")->broadcast(new BadgeUnlockedEvent($event->user, $event->badge));
-
         Log::info('Badge unlocked event', [
             'user_id' => $event->user->id,
             'badge_id' => $event->badge->id,
@@ -69,9 +58,6 @@ class DispatchRealTimeNotification implements ShouldQueue
      */
     public function handleTaskCompleted(UserCompletedTask $event): void
     {
-        // TODO: Broadcast to Pusher/Echo
-        // Broadcast::channel("user.{$event->user->id}")->broadcast(new TaskCompletedEvent($event->user, $event->task));
-
         Log::info('Task completed event', [
             'user_id' => $event->user->id,
             'task_id' => $event->task->id,
@@ -84,13 +70,9 @@ class DispatchRealTimeNotification implements ShouldQueue
      */
     public function handleAnswerVerified(UserAnsweredVerified $event): void
     {
-        // TODO: Broadcast to Pusher/Echo
-        // Broadcast::channel("user.{$event->user->id}")->broadcast(new AnswerVerifiedEvent($event->user, $event->answer));
-
         Log::info('Answer verified event', [
             'user_id' => $event->user->id,
             'answer_id' => $event->answer->id,
         ]);
     }
 }
-

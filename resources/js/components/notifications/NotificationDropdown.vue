@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useThemeStore } from '../../stores/theme'
 import { useRealtimeNotifications } from '../../composables/useRealtimeNotifications'
-import { Bell, Check, X, Wifi, WifiOff } from 'lucide-vue-next'
+import { Bell, Check, X } from 'lucide-vue-next'
 import { Button } from '../ui/button'
 import axios from 'axios'
 
@@ -18,39 +18,24 @@ const unreadCount = ref(0)
 const isLoading = ref(false)
 const dropdownRef = ref(null)
 
-// Real-time notifications composable
+// Notifications composable (provides shared state and helpers)
 const {
-    notifications: realtimeNotifications,
-    unreadCount: realtimeUnreadCount,
-    isConnected: isRealtimeConnected,
-    connectionError: realtimeError,
     markAsRead: markRealtimeAsRead,
     updateUnreadCount: updateRealtimeUnreadCount,
     resetRealtimeTracking,
 } = useRealtimeNotifications(
     // onNotificationReceived callback
     (notification) => {
-        // Add to local notifications if not already present
         const exists = notifications.value.some(n => n.id === notification.id)
         if (!exists) {
             notifications.value.unshift(notification)
-            // Keep only latest 6 notifications in dropdown
             if (notifications.value.length > 6) {
                 notifications.value = notifications.value.slice(0, 6)
-            }
-            
-            // If notification is unread, increment count
-            // But we'll sync with API on next fetch to ensure accuracy
-            if (!notification.read) {
-                // Don't increment here - let the realtime composable handle it
-                // The count will be synced with API when fetchNotifications is called
             }
         }
     },
     // onUnreadCountUpdate callback
     (count) => {
-        // Only update if count is different to prevent unnecessary updates
-        // The watcher will also handle this, but this ensures consistency
         if (unreadCount.value !== count) {
             unreadCount.value = count
         }
@@ -67,23 +52,16 @@ const fetchNotifications = async () => {
         if (response.data.status === 'success') {
             const apiNotifications = response.data.data.notifications || []
             
-            // Merge with real-time notifications, avoiding duplicates
+            // Merge with existing notifications, avoiding duplicates
             const existingIds = new Set(notifications.value.map(n => n.id))
             const newNotifications = apiNotifications.filter(n => !existingIds.has(n.id))
             
             notifications.value = [...newNotifications, ...notifications.value].slice(0, 6)
             
-            // Use API unread count as source of truth (it's always accurate)
-            // This ensures we don't double-count notifications that were already in the API response
+            // Use API unread count as source of truth
             const apiUnreadCount = response.data.data.pagination?.unread_count || 0
             unreadCount.value = apiUnreadCount
-            
-            // Sync with real-time unread count to reset it to API value
-            // This prevents double-counting when realtime notifications arrive after API fetch
             updateRealtimeUnreadCount(apiUnreadCount)
-            
-            // Reset realtime tracking to prevent double-counting
-            // When API fetch happens, all notifications in API are considered "already counted"
             resetRealtimeTracking()
         }
     } catch (error) {
@@ -109,14 +87,6 @@ const fetchUnreadCount = async () => {
     }
 }
 
-// Watch for real-time unread count changes
-// Only update if the count actually changed to prevent unnecessary updates
-watch(realtimeUnreadCount, (newCount) => {
-    if (newCount !== null && newCount !== undefined && newCount !== unreadCount.value) {
-        unreadCount.value = newCount
-    }
-}, { immediate: true })
-
 // Mark notification as read
 const markAsRead = async (notificationId, event) => {
     if (event) {
@@ -131,7 +101,6 @@ const markAsRead = async (notificationId, event) => {
         if (unreadCount.value > 0) {
             unreadCount.value--
         }
-        // Also update real-time state
         markRealtimeAsRead(notificationId)
     }
     
@@ -154,7 +123,6 @@ const handleNotificationClick = (notification) => {
         markAsRead(notification.id, { stopPropagation: () => {} })
     }
     
-    // Navigate based on notification type and data
     if (notification.data?.url) {
         router.push(notification.data.url)
         isOpen.value = false
@@ -164,9 +132,7 @@ const handleNotificationClick = (notification) => {
 // Toggle dropdown
 const toggleDropdown = () => {
     isOpen.value = !isOpen.value
-    // Only fetch if dropdown is opening and realtime is not connected
-    // If realtime is connected, notifications are already synced via websocket
-    if (isOpen.value && !isRealtimeConnected.value) {
+    if (isOpen.value) {
         fetchNotifications()
     }
 }
@@ -236,20 +202,14 @@ const formatTime = (dateString) => {
     return 'Just now'
 }
 
-// Polling control (fallback when realtime unavailable)
+// Polling for notification updates
 let pollingIntervalId = null
-const POLLING_INTERVAL = 10000
+const POLLING_INTERVAL = 15000 // 15 seconds
 
-const startPolling = (fetchImmediately = false) => {
-    if (pollingIntervalId || !authStore.isAuthenticated) {
-        return
-    }
-    // Fetch immediately if requested (e.g., when realtime disconnects)
-    if (fetchImmediately) {
-        fetchNotifications()
-    }
+const startPolling = () => {
+    if (pollingIntervalId || !authStore.isAuthenticated) return
     pollingIntervalId = setInterval(() => {
-        fetchNotifications()
+        fetchUnreadCount()
     }, POLLING_INTERVAL)
 }
 
@@ -260,25 +220,10 @@ const stopPolling = () => {
     }
 }
 
-watch(isRealtimeConnected, (connected) => {
-    if (connected) {
-        stopPolling()
-    } else {
-        // When realtime disconnects, fetch immediately to get latest notifications
-        startPolling(true)
-    }
-})
-
 onMounted(() => {
     if (authStore.isAuthenticated) {
-        // Always fetch initial notifications once to populate the list
         fetchNotifications()
-        
-        // If realtime is not connected, start polling for updates
-        // The watcher will handle stopping polling when realtime connects
-        if (!isRealtimeConnected.value) {
-            startPolling()
-        }
+        startPolling()
     }
     document.addEventListener('click', handleClickOutside)
 })
@@ -287,6 +232,20 @@ onBeforeUnmount(() => {
     stopPolling()
     document.removeEventListener('click', handleClickOutside)
 })
+
+watch(
+    () => authStore.isAuthenticated,
+    (isAuthenticated) => {
+        if (isAuthenticated) {
+            fetchNotifications()
+            startPolling()
+        } else {
+            stopPolling()
+            notifications.value = []
+            unreadCount.value = 0
+        }
+    }
+)
 </script>
 
 <template>
@@ -323,26 +282,11 @@ onBeforeUnmount(() => {
                 <div class="flex items-center justify-between px-4 py-2 border-b" :class="[
                     themeStore.isDark ? 'border-gray-800' : 'border-gray-200'
                 ]">
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-semibold text-lg" :class="[
-                            themeStore.isDark ? 'text-white' : 'text-gray-900'
-                        ]">
-                            Notifications
-                        </h3>
-                        <!-- Connection Status Indicator -->
-                        <div class="flex items-center gap-1" :title="isRealtimeConnected ? 'Real-time connected' : 'Real-time disconnected'">
-                            <Wifi 
-                                v-if="isRealtimeConnected" 
-                                class="h-3 w-3" 
-                                :class="themeStore.isDark ? 'text-green-400' : 'text-green-600'"
-                            />
-                            <WifiOff 
-                                v-else 
-                                class="h-3 w-3" 
-                                :class="themeStore.isDark ? 'text-gray-500' : 'text-gray-400'"
-                            />
-                        </div>
-                    </div>
+                    <h3 class="font-semibold text-lg" :class="[
+                        themeStore.isDark ? 'text-white' : 'text-gray-900'
+                    ]">
+                        Notifications
+                    </h3>
                     <Button
                         variant="ghost"
                         size="icon"
@@ -464,6 +408,7 @@ onBeforeUnmount(() => {
         </Transition>
     </div>
 </template>
+
 <style scoped>
 .dropdown-enter-active,
 .dropdown-leave-active {
@@ -492,4 +437,3 @@ onBeforeUnmount(() => {
     overflow: hidden;
 }
 </style>
-

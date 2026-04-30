@@ -9,7 +9,6 @@
         "php": "^8.3.0",
         "laravel/framework": "^13.0",
         "laravel/passport": "^13.0",
-        "laravel/reverb": "^1.6",
         "laravel/tinker": "^3.0",
         "spatie/laravel-medialibrary": "^11.21",
         "spatie/laravel-sluggable": "^3.7"
@@ -37,7 +36,6 @@
     },
     "scripts": {
         "post-autoload-dump": [
-            "@php scripts/fix-pdo-deprecation.php",
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
         ],

@@ -1,13 +1,21 @@
+/**
+ * Gamification Polling Composable
+ * 
+ * Periodically polls for gamification updates (task completions, badges, level ups).
+ * Replaces the previous WebSocket-based real-time implementation
+ * for shared hosting compatibility.
+ */
+
 import { onMounted, onBeforeUnmount, watch, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useGlobalDataStore } from '@/stores/globalData'
 import { useAchievementPopups } from '@/composables/useAchievementPopups'
 import { toast } from '@/components/ui/toast'
+import axios from 'axios'
 
-let gamificationChannel = null
-// Track recent task completions to prevent duplicate toasts
-const recentCompletions = new Map()
-const TOAST_DEBOUNCE_MS = 3000 // 3 seconds
+const POLL_INTERVAL = 30000 // 30 seconds
+let pollTimer = null
+let lastCheckedAt = null
 
 export function useGamificationRealtime(options = {}) {
   const authStore = useAuthStore()
@@ -16,199 +24,128 @@ export function useGamificationRealtime(options = {}) {
   const isConnected = ref(false)
   const connectionError = ref(null)
 
-  const handleTaskCompleted = async (event) => {
-    const source = event?.source ?? 'manual'
-
-    // Skip manual completions (already handled via UI)
-    if (source === 'manual') {
-      return
-    }
-
-    const taskId = event?.task?.id ?? event?.task_id
-    const xp = event?.xp_reward ?? event?.task?.xp_reward ?? 0
-    const taskTitle = event?.task?.title || event?.task_title || 'Task completed!'
-
-    // Deduplicate: Check if we've shown a toast for this task recently
-    const recentKey = `${taskId}-${new Date().toDateString()}`
-    const lastShown = recentCompletions.get(recentKey)
-    
-    if (lastShown && Date.now() - lastShown < TOAST_DEBOUNCE_MS) {
-      // Skip duplicate toast within debounce window
-      return
-    }
-
-    // Mark as shown
-    recentCompletions.set(recentKey, Date.now())
-    
-    // Clean up old entries (older than debounce window)
-    setTimeout(() => {
-      recentCompletions.delete(recentKey)
-    }, TOAST_DEBOUNCE_MS)
-
-    if (typeof options.onTaskCompleted === 'function') {
-      options.onTaskCompleted(event)
-    }
-
-    // Simply refresh global data to get updated task list from backend
-    await globalDataStore.fetchGlobalData({ force: true })
-
-    // Show XP toast notification using shadcn toast with actual XP amount from backend
-    if (xp > 0) {
-      toast({
-        title: `+${xp} XP!`,
-        description: `Task "${taskTitle}" completed`,
-        duration: 2500,
-      })
-    } else {
-      toast({
-        title: 'Task completed!',
-        description: `${taskTitle} completed successfully`,
-        duration: 3000,
-      })
-    }
-  }
-
-  const handleBadgeUnlocked = (event) => {
-    console.log('[GamificationRealtime] Badge unlocked event received:', event)
-    const badge = event?.badge
-    
-    if (!badge) {
-      console.warn('[GamificationRealtime] Badge unlocked event missing badge data', event)
-      return
-    }
-
-    console.log('[GamificationRealtime] Queueing badge unlock:', badge)
-
-    if (typeof options.onBadgeUnlocked === 'function') {
-      options.onBadgeUnlocked(event)
-    }
-
-    // Queue badge unlock popup
-    queueBadgeUnlock(badge)
-
-    // Refresh global data to update badges
-    globalDataStore.fetchGlobalData({ force: true })
-  }
-
-  const handleLevelUp = (event) => {
-    console.log('[GamificationRealtime] Level up event received:', event)
-    const level = event?.level
-    const previousLevel = event?.previous_level
-
-    if (!level) {
-      console.warn('[GamificationRealtime] Level up event missing level data', event)
-      return
-    }
-
-    console.log('[GamificationRealtime] Queueing level up:', level)
-
-    if (typeof options.onLevelUp === 'function') {
-      options.onLevelUp(event)
-    }
-
-    // Queue level up popup
-    queueLevelUp(level, previousLevel)
-
-    // Refresh global data to update level
-    globalDataStore.fetchGlobalData({ force: true })
-  }
-
-  const connect = () => {
-    if (!window.Echo) {
-      connectionError.value = 'Broadcasting not configured'
-      return
-    }
-
-    if (!authStore.isAuthenticated || !authStore.user?.id) {
-      return
-    }
+  /**
+   * Poll for recent achievement events
+   */
+  const pollAchievements = async () => {
+    if (!authStore.isAuthenticated) return
 
     try {
-      const channelName = `user.${authStore.user.id}`
-      gamificationChannel = window.Echo.private(channelName)
+      const params = {}
+      if (lastCheckedAt) {
+        params.since = lastCheckedAt
+      }
 
-      gamificationChannel.listen('.gamification.task.completed', handleTaskCompleted)
-      gamificationChannel.listen('.gamification.badge.unlocked', handleBadgeUnlocked)
-      gamificationChannel.listen('.gamification.level.up', handleLevelUp)
-      
-      console.log('[GamificationRealtime] Listening for events on channel:', channelName)
-
-      gamificationChannel.subscribed(() => {
-        isConnected.value = true
-        connectionError.value = null
-        console.log('[GamificationRealtime] Connected to channel:', channelName)
+      const response = await axios.get('/api/v1/gamification/recent-achievements', {
+        ...authStore.config,
+        params,
       })
 
-      gamificationChannel.error((error) => {
-        console.error('[GamificationRealtime] Channel error:', error)
-        connectionError.value = error.message || 'Connection error'
-        isConnected.value = false
-      })
+      if (response.data.status === 'success') {
+        const data = response.data.data
+
+        // Process new badge unlocks
+        if (data.badges && data.badges.length > 0) {
+          for (const badge of data.badges) {
+            if (typeof options.onBadgeUnlocked === 'function') {
+              options.onBadgeUnlocked({ badge })
+            }
+            queueBadgeUnlock(badge)
+          }
+        }
+
+        // Process level ups
+        if (data.level_up) {
+          const level = data.level_up.level
+          const previousLevel = data.level_up.previous_level
+          if (typeof options.onLevelUp === 'function') {
+            options.onLevelUp({ level, previous_level: previousLevel })
+          }
+          queueLevelUp(level, previousLevel)
+        }
+
+        // Process auto-completed tasks (not manual ones)
+        if (data.tasks && data.tasks.length > 0) {
+          for (const task of data.tasks) {
+            if (task.source === 'manual') continue
+
+            if (typeof options.onTaskCompleted === 'function') {
+              options.onTaskCompleted(task)
+            }
+
+            const xp = task.xp_reward ?? 0
+            const taskTitle = task.title || 'Task completed!'
+
+            if (xp > 0) {
+              toast({
+                title: `+${xp} XP!`,
+                description: `Task "${taskTitle}" completed`,
+                duration: 2500,
+              })
+            } else {
+              toast({
+                title: 'Task completed!',
+                description: `${taskTitle} completed successfully`,
+                duration: 3000,
+              })
+            }
+          }
+
+          // Refresh global data when tasks were completed
+          await globalDataStore.fetchGlobalData({ force: true })
+        }
+
+        // Update last checked timestamp
+        lastCheckedAt = new Date().toISOString()
+      }
     } catch (error) {
-      console.error('[GamificationRealtime] Connection failed:', error)
-      connectionError.value = error.message || 'Failed to connect'
-      isConnected.value = false
+      // Silently fail — polling errors shouldn't disrupt the UI
+      if (error.response?.status !== 401) {
+        console.warn('[GamificationPolling] Poll failed:', error.message)
+      }
     }
   }
 
-  const disconnect = () => {
-    if (gamificationChannel && authStore.user?.id) {
-      try {
-        window.Echo.leave(`user.${authStore.user.id}`)
-      } catch (error) {
-        console.error('[GamificationRealtime] Disconnect error:', error)
-      }
+  const startPolling = () => {
+    if (pollTimer) return
+    lastCheckedAt = new Date().toISOString()
+    isConnected.value = true
+    pollTimer = setInterval(pollAchievements, POLL_INTERVAL)
+  }
+
+  const stopPolling = () => {
+    if (pollTimer) {
+      clearInterval(pollTimer)
+      pollTimer = null
     }
-    gamificationChannel = null
     isConnected.value = false
   }
 
   watch(
     () => authStore.isAuthenticated,
     (isAuthenticated) => {
-      disconnect()
+      stopPolling()
       if (isAuthenticated) {
-        // Small delay to ensure auth state is fully updated
-        setTimeout(() => {
-          connect()
-        }, 100)
-      }
-    },
-    { immediate: true }
-  )
-
-  watch(
-    () => authStore.user?.id,
-    (userId) => {
-      if (userId && authStore.isAuthenticated) {
-        // Reconnect when user ID is available
-        disconnect()
-        setTimeout(() => {
-          connect()
-        }, 100)
+        startPolling()
       }
     },
     { immediate: true }
   )
 
   onMounted(() => {
-    if (authStore.isAuthenticated && authStore.user?.id) {
-      // Small delay to ensure Echo is ready
-      setTimeout(() => {
-        connect()
-      }, 200)
+    if (authStore.isAuthenticated) {
+      startPolling()
     }
   })
 
   onBeforeUnmount(() => {
-    disconnect()
+    stopPolling()
   })
 
   return {
-    connect,
-    disconnect,
+    connect: startPolling,
+    disconnect: stopPolling,
     isConnected,
     connectionError,
   }
 }
-
