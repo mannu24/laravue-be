@@ -183,6 +183,39 @@ const router = createRouter({
             component: () => import('./views/LevelsView.vue'),
             meta: { auth: false, both: true },
         },
+        // Portfolio Routes
+        {
+            path: '/portfolio',
+            name: 'portfolio',
+            component: () => import('./views/portfolio/PortfolioDashboard.vue'),
+            meta: { auth: true },
+        },
+        {
+            path: '/portfolio/editor',
+            name: 'portfolio-editor',
+            component: () => import('./views/portfolio/PortfolioEditor.vue'),
+            meta: { auth: true },
+        },
+        {
+            path: '/portfolio/templates',
+            name: 'portfolio-templates',
+            component: () => import('./views/portfolio/PortfolioTemplates.vue'),
+            meta: { auth: true },
+        },
+        {
+            path: '/portfolio/plans',
+            name: 'portfolio-plans',
+            component: () => import('./views/portfolio/PortfolioPlans.vue'),
+            meta: { auth: false, both: true },
+        },
+        {
+            path: '/portfolio/preview',
+            name: 'portfolio-preview',
+            component: () => import('./views/portfolio/PortfolioPreview.vue'),
+            meta: { auth: true },
+        },
+        // Admin Routes — handled by Blade (not Vue)
+        // Access at /admin/login (Blade page)
         {
             path: '/:pathMatch(.*)*',
             name: 'not-found',

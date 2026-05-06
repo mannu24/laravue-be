@@ -29,3 +29,24 @@ Schedule::command('gamification:check-streaks')
     ->description('Check and update user streaks based on activity')
     ->withoutOverlapping()
     ->runInBackground();
+
+// Portfolio Subscription Management
+Schedule::command('portfolio:expire-subscriptions')
+    ->dailyAt('00:05')
+    ->timezone('UTC')
+    ->description('Expire subscriptions past grace period and unpublish portfolios')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+Schedule::command('portfolio:send-expiry-reminders')
+    ->dailyAt('09:00')
+    ->timezone('Asia/Kolkata')
+    ->description('Send expiry reminders for subscriptions expiring in 7, 3, 1 days')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+Schedule::command('portfolio:verify-domains')
+    ->everyFourHours()
+    ->description('Auto-verify pending custom domains and check verified domains')
+    ->withoutOverlapping()
+    ->runInBackground();

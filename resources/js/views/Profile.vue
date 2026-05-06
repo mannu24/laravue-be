@@ -171,6 +171,30 @@ const gamificationSummary = computed(() => globalDataStore.gamificationSummary)
         @logout="logout"
       />
 
+      <!-- Portfolio CTA -->
+      <div class="mx-auto mt-4 mb-2 px-0">
+        <div @click="router.push('/portfolio')"
+          class="cursor-pointer rounded-xl border p-4 flex items-center justify-between transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+          :class="themeStore.isDark
+            ? 'bg-gradient-to-r from-gray-800/80 to-gray-800/60 border-gray-700 hover:border-vue/40'
+            : 'bg-gradient-to-r from-white to-gray-50 border-gray-200 hover:border-vue/40'">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-vue/20 to-vue/5 flex items-center justify-center">
+              <span class="text-lg">🌐</span>
+            </div>
+            <div>
+              <p class="font-semibold text-sm" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+                Build Your Portfolio
+              </p>
+              <p class="text-xs" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
+                Create your personal portfolio website at yourname.laravue.in
+              </p>
+            </div>
+          </div>
+          <span class="text-vue text-sm font-medium hidden sm:block">Get Started →</span>
+        </div>
+      </div>
+
       <!-- Main Content -->
       <div class="mx-auto pb-5 lg:pb-16 lg:-mt-8">
         <ProfileTabs

@@ -26,6 +26,7 @@ class User extends Authenticatable implements HasMedia
         'username',
         'password',
         'bio',
+        'is_admin',
         'xp_total',
         'level_id',
         'streak_days',
@@ -56,6 +57,7 @@ class User extends Authenticatable implements HasMedia
             'level_id' => 'integer',
             'streak_days' => 'integer',
             'last_active_at' => 'datetime',
+            'is_admin' => 'boolean',
         ];
     }
 
@@ -221,5 +223,35 @@ class User extends Authenticatable implements HasMedia
     public function answers()
     {
         return $this->hasMany(Answer::class);
+    }
+
+    /**
+     * Get the user's portfolio.
+     */
+    public function portfolio()
+    {
+        return $this->hasOne(Portfolio::class);
+    }
+
+    /**
+     * Get the user's portfolio subscriptions.
+     */
+    public function portfolioSubscriptions()
+    {
+        return $this->hasMany(PortfolioSubscription::class);
+    }
+
+    /**
+     * Get the user's active portfolio subscription.
+     */
+    public function activePortfolioSubscription()
+    {
+        return $this->hasOne(PortfolioSubscription::class)
+            ->where('status', 'active')
+            ->where(function ($q) {
+                $q->where('expires_at', '>', now())
+                  ->orWhere('grace_ends_at', '>', now());
+            })
+            ->latest('starts_at');
     }
 }

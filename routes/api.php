@@ -20,6 +20,10 @@ use App\Http\Controllers\v1\Api\BookmarkController;
 use App\Http\Controllers\v1\Api\TaskController;
 use App\Http\Controllers\v1\Api\AchievementController;
 use App\Http\Controllers\v1\Api\ContactController;
+use App\Http\Controllers\v1\Api\PortfolioController;
+use App\Http\Controllers\v1\Api\PortfolioSectionController;
+use App\Http\Controllers\v1\Api\PortfolioPaymentController;
+use App\Http\Controllers\v1\Api\RazorpayWebhookController;
 
 Route::prefix('v1')->group(function () {
     // Authentication Routes (rate limited)
@@ -242,4 +246,85 @@ Route::prefix('v1')->group(function () {
 
     // Contact Form (rate limited to prevent spam)
     Route::middleware(['throttle:3,1'])->post('/contact', [ContactController::class, 'store']);
+
+    // Portfolio Public Routes
+    Route::get('/portfolio/plans', [PortfolioController::class, 'plans']);
+    Route::get('/portfolio/templates', [PortfolioController::class, 'templates']);
+
+    // Portfolio Authenticated Routes
+    Route::middleware(['auth:api'])->prefix('portfolio')->group(function () {
+        // Portfolio CRUD
+        Route::get('/', [PortfolioController::class, 'show']);
+        Route::post('/', [PortfolioController::class, 'store']);
+        Route::put('/', [PortfolioController::class, 'update']);
+        Route::delete('/', [PortfolioController::class, 'destroy']);
+
+        // Template & Publishing
+        Route::put('/template', [PortfolioController::class, 'updateTemplate']);
+        Route::post('/publish', [PortfolioController::class, 'publish']);
+        Route::post('/unpublish', [PortfolioController::class, 'unpublish']);
+        Route::get('/preview', [PortfolioController::class, 'preview']);
+        Route::get('/subdomain/check', [PortfolioController::class, 'checkSubdomain']);
+
+        // Portfolio Sections (bulk update)
+        Route::put('/social-links', [PortfolioSectionController::class, 'updateSocialLinks']);
+        Route::put('/skills', [PortfolioSectionController::class, 'updateSkills']);
+        Route::put('/experience', [PortfolioSectionController::class, 'updateExperience']);
+        Route::put('/education', [PortfolioSectionController::class, 'updateEducation']);
+        Route::put('/projects', [PortfolioSectionController::class, 'updateProjects']);
+        Route::put('/testimonials', [PortfolioSectionController::class, 'updateTestimonials']);
+        Route::put('/custom-sections', [PortfolioSectionController::class, 'updateCustomSections']);
+
+        // Payments & Subscriptions
+        Route::post('/orders', [PortfolioPaymentController::class, 'createOrder']);
+        Route::post('/orders/verify', [PortfolioPaymentController::class, 'verifyPayment']);
+        Route::get('/subscription', [PortfolioPaymentController::class, 'subscription']);
+        Route::post('/coupons/validate', [PortfolioPaymentController::class, 'validateCoupon']);
+
+        // Custom Domain
+        Route::get('/custom-domain/status', [\App\Http\Controllers\v1\Api\PortfolioCustomDomainController::class, 'status']);
+        Route::post('/custom-domain', [\App\Http\Controllers\v1\Api\PortfolioCustomDomainController::class, 'store']);
+        Route::post('/custom-domain/verify', [\App\Http\Controllers\v1\Api\PortfolioCustomDomainController::class, 'verify']);
+        Route::delete('/custom-domain', [\App\Http\Controllers\v1\Api\PortfolioCustomDomainController::class, 'destroy']);
+
+        // File Uploads
+        Route::post('/upload/photo', [\App\Http\Controllers\v1\Api\PortfolioUploadController::class, 'uploadPhoto']);
+        Route::post('/upload/resume', [\App\Http\Controllers\v1\Api\PortfolioUploadController::class, 'uploadResume']);
+        Route::post('/upload/project-image', [\App\Http\Controllers\v1\Api\PortfolioUploadController::class, 'uploadProjectImage']);
+    });
+
+    // Razorpay Webhook (no auth — verified via signature)
+    Route::post('/webhooks/razorpay', [RazorpayWebhookController::class, 'handle']);
+
+    // Admin Routes
+    Route::middleware(['throttle:5,1'])->post('/admin/login', [\App\Http\Controllers\v1\Api\Admin\AdminAuthController::class, 'login']);
+
+    Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
+        Route::get('/dashboard/stats', [\App\Http\Controllers\v1\Api\Admin\AdminDashboardController::class, 'stats']);
+
+        Route::get('/portfolios', [\App\Http\Controllers\v1\Api\Admin\AdminPortfolioController::class, 'index']);
+        Route::get('/portfolios/{id}', [\App\Http\Controllers\v1\Api\Admin\AdminPortfolioController::class, 'show']);
+        Route::put('/portfolios/{id}', [\App\Http\Controllers\v1\Api\Admin\AdminPortfolioController::class, 'update']);
+        Route::delete('/portfolios/{id}', [\App\Http\Controllers\v1\Api\Admin\AdminPortfolioController::class, 'destroy']);
+        Route::post('/portfolios/{id}/force-unpublish', [\App\Http\Controllers\v1\Api\Admin\AdminPortfolioController::class, 'forceUnpublish']);
+
+        Route::get('/plans', [\App\Http\Controllers\v1\Api\Admin\AdminPlanController::class, 'index']);
+        Route::post('/plans', [\App\Http\Controllers\v1\Api\Admin\AdminPlanController::class, 'store']);
+        Route::put('/plans/{id}', [\App\Http\Controllers\v1\Api\Admin\AdminPlanController::class, 'update']);
+        Route::delete('/plans/{id}', [\App\Http\Controllers\v1\Api\Admin\AdminPlanController::class, 'destroy']);
+
+        Route::get('/coupons', [\App\Http\Controllers\v1\Api\Admin\AdminCouponController::class, 'index']);
+        Route::post('/coupons', [\App\Http\Controllers\v1\Api\Admin\AdminCouponController::class, 'store']);
+        Route::put('/coupons/{id}', [\App\Http\Controllers\v1\Api\Admin\AdminCouponController::class, 'update']);
+        Route::delete('/coupons/{id}', [\App\Http\Controllers\v1\Api\Admin\AdminCouponController::class, 'destroy']);
+
+        Route::get('/orders', [\App\Http\Controllers\v1\Api\Admin\AdminOrderController::class, 'index']);
+        Route::get('/subscriptions', [\App\Http\Controllers\v1\Api\Admin\AdminOrderController::class, 'subscriptions']);
+        Route::post('/subscriptions/{id}/refund', [\App\Http\Controllers\v1\Api\Admin\AdminOrderController::class, 'refund']);
+
+        Route::get('/templates', [\App\Http\Controllers\v1\Api\Admin\AdminTemplateController::class, 'index']);
+        Route::post('/templates', [\App\Http\Controllers\v1\Api\Admin\AdminTemplateController::class, 'store']);
+        Route::put('/templates/{id}', [\App\Http\Controllers\v1\Api\Admin\AdminTemplateController::class, 'update']);
+        Route::delete('/templates/{id}', [\App\Http\Controllers\v1\Api\Admin\AdminTemplateController::class, 'destroy']);
+    });
 });

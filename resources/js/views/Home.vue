@@ -143,6 +143,118 @@ onMounted(fetchHomeData)
       </div>
     </section>
 
+    <!-- Portfolio CTA -->
+    <section class="py-16">
+      <div class="container mx-auto px-4">
+        <div class="relative overflow-hidden rounded-3xl"
+          :class="themeStore.isDark ? 'bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800' : 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'">
+          <!-- Decorative elements -->
+          <div class="absolute top-0 left-0 w-72 h-72 bg-vue/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2"></div>
+          <div class="absolute bottom-0 right-0 w-72 h-72 bg-laravel/20 rounded-full blur-[100px] translate-x-1/2 translate-y-1/2"></div>
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px]"></div>
+
+          <div class="relative px-8 py-16 md:px-16 md:py-20">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <!-- Left: Content -->
+              <div>
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-vue/10 border border-vue/20 text-vue text-sm font-semibold mb-6">
+                  <Sparkles class="w-4 h-4" />
+                  New: Portfolio Builder
+                </div>
+                <h2 class="text-3xl md:text-4xl font-black text-white mb-4 leading-tight">
+                  Your work deserves<br>
+                  <span class="bg-gradient-to-r from-vue to-emerald-400 bg-clip-text text-transparent">its own website</span>
+                </h2>
+                <p class="text-lg text-gray-400 mb-6 leading-relaxed">
+                  Build a stunning portfolio at <strong class="text-white">yourname.laravue.in</strong> — choose a template, add your projects, and go live in minutes. No coding needed.
+                </p>
+
+                <!-- Features mini-list -->
+                <div class="grid grid-cols-2 gap-3 mb-8">
+                  <div v-for="f in ['Beautiful templates', 'Custom domain', 'SEO optimized', 'Mobile responsive']" :key="f"
+                    class="flex items-center gap-2 text-sm text-gray-300">
+                    <div class="w-5 h-5 rounded-full bg-vue/20 flex items-center justify-center flex-shrink-0">
+                      <svg class="w-3 h-3 text-vue" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    {{ f }}
+                  </div>
+                </div>
+
+                <!-- CTA buttons -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <Button @click="router.push(authStore.isAuthenticated ? '/portfolio' : '/login')"
+                    class="bg-vue hover:bg-vue/90 text-white px-8 py-3 text-base font-semibold rounded-xl shadow-lg shadow-vue/25 hover:shadow-vue/40 transition-all">
+                    <Rocket class="w-5 h-5 mr-2" />
+                    Start Building Free
+                  </Button>
+                  <Button @click="router.push('/portfolio/plans')" variant="outline"
+                    class="border-gray-600 text-gray-300 hover:bg-white/5 hover:border-gray-500 px-8 py-3 text-base rounded-xl">
+                    View Plans
+                    <ArrowRight class="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+
+                <!-- Discount badge -->
+                <div class="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
+                  <span class="text-yellow-400 text-lg">🎉</span>
+                  <span class="text-sm text-yellow-300/90">
+                    Launch offer: Use <span class="font-mono font-bold text-yellow-300">WELCOME40</span> for <strong>40% off</strong>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Right: Visual mockup -->
+              <div class="hidden lg:block">
+                <div class="relative">
+                  <!-- Browser mockup -->
+                  <div class="rounded-xl border border-gray-700 bg-gray-900 shadow-2xl overflow-hidden">
+                    <!-- Browser bar -->
+                    <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-700 bg-gray-800/50">
+                      <div class="flex gap-1.5">
+                        <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                      </div>
+                      <div class="flex-1 mx-4">
+                        <div class="bg-gray-700 rounded-md px-3 py-1 text-xs text-gray-400 text-center">
+                          yourname.laravue.in
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Content mockup -->
+                    <div class="p-6 space-y-4">
+                      <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-vue to-emerald-500"></div>
+                        <div>
+                          <div class="h-3 w-28 bg-gray-700 rounded"></div>
+                          <div class="h-2 w-20 bg-gray-800 rounded mt-1.5"></div>
+                        </div>
+                      </div>
+                      <div class="h-2 w-full bg-gray-800 rounded"></div>
+                      <div class="h-2 w-3/4 bg-gray-800 rounded"></div>
+                      <div class="flex gap-2 mt-2">
+                        <div class="h-6 w-16 bg-vue/20 rounded-md"></div>
+                        <div class="h-6 w-20 bg-vue/20 rounded-md"></div>
+                        <div class="h-6 w-14 bg-vue/20 rounded-md"></div>
+                      </div>
+                      <div class="grid grid-cols-2 gap-3 mt-4">
+                        <div class="h-24 bg-gray-800 rounded-lg"></div>
+                        <div class="h-24 bg-gray-800 rounded-lg"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Floating badge -->
+                  <div class="absolute -bottom-3 -right-3 bg-vue text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg shadow-vue/30 rotate-3">
+                    ✨ Live in 5 min
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA -->
     <section class="py-20">
       <div class="container mx-auto px-4">

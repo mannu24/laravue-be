@@ -36,6 +36,10 @@ const navigation = computed(() => {
 
     baseNav.push({ name: 'Contact', href: '/contact', current: route.path === '/contact' })
 
+    if (authStore.isAuthenticated) {
+        baseNav.push({ name: 'Portfolio', href: '/portfolio', current: route.path.startsWith('/portfolio') })
+    }
+
     return baseNav
 })
 
